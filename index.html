@@ -280,6 +280,7 @@ input[type=date].in{display:block;-webkit-appearance:none;appearance:none;min-he
 .photo-in .hint svg{width:34px;height:34px;display:block;margin:0 auto 8px;color:var(--ink3)}
 .photo-in .rm{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(30,28,26,.6);color:#fff;display:grid;place-items:center;z-index:2}
 .photo-in .rots{position:absolute;bottom:10px;left:10px;z-index:2;display:flex;gap:6px}
+.photo-in .rots span.on{background:var(--mauve)}
 .photo-in .rots span{width:38px;height:38px;border-radius:50%;background:rgba(30,28,26,.6);color:#fff;display:grid;place-items:center}
 .photo-in .chg{position:absolute;bottom:10px;right:10px;z-index:2;background:rgba(30,28,26,.6);color:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
 .photo-in.drag{border-color:var(--mauve);background:var(--mauve-soft)}
@@ -288,6 +289,17 @@ input[type=date].in{display:block;-webkit-appearance:none;appearance:none;min-he
 .similar .mini{width:54px}
 .formgrid{display:block}
 @media (min-width:900px){.formgrid{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:start}.formgrid .photo-col{position:sticky;top:0}}
+.crop-wrap{display:flex;justify-content:center;background:#1E1C1A;border-radius:14px;padding:18px;overflow:hidden}
+.crop-stage{position:relative;display:inline-block;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none;line-height:0}
+.crop-stage img{display:block;max-width:100%;max-height:56vh;-webkit-user-drag:none;pointer-events:none}
+.crop-box{position:absolute;box-shadow:0 0 0 9999px rgba(20,18,16,.6);outline:1.5px solid rgba(255,255,255,.95);cursor:move;touch-action:none}
+.crop-box .g{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px)),linear-gradient(180deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px))}
+.crop-h{position:absolute;width:40px;height:40px;touch-action:none}
+.crop-h::after{content:"";position:absolute;width:20px;height:20px;border:0 solid #fff}
+.crop-h.nw{left:-14px;top:-14px;cursor:nwse-resize}.crop-h.nw::after{left:12px;top:12px;border-left-width:4px;border-top-width:4px}
+.crop-h.ne{right:-14px;top:-14px;cursor:nesw-resize}.crop-h.ne::after{right:12px;top:12px;border-right-width:4px;border-top-width:4px}
+.crop-h.sw{left:-14px;bottom:-14px;cursor:nesw-resize}.crop-h.sw::after{left:12px;bottom:12px;border-left-width:4px;border-bottom-width:4px}
+.crop-h.se{right:-14px;bottom:-14px;cursor:nwse-resize}.crop-h.se::after{right:12px;bottom:12px;border-right-width:4px;border-bottom-width:4px}
 .batchlink{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--mauve-soft);color:var(--mauve-ink);border-radius:14px;padding:10px 12px;margin:0 0 14px;font-size:13.5px;line-height:1.4}
 .batchlink svg{width:26px;height:26px;flex:none}
 .batchlink .faint{color:var(--mauve-ink);opacity:.75;font-size:12.5px}
@@ -388,7 +400,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.0.1';
+const APP_VERSION = '2.1.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -481,6 +493,7 @@ const ICON = {
   rotr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 4v5h-5"/><path d="M19.4 13a7.5 7.5 0 1 1-1.8-7.4L20 9"/></svg>',
   plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0V8ZM12 17v4"/></svg>',
   box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5v-9Z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
+  crop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg>',
   hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
 };
 
@@ -631,17 +644,26 @@ function drawRotated(im,max,rot){ // rot：0／90／180／270（順時針）
   cx.translate(cv.width/2,cv.height/2); cx.rotate(rot*Math.PI/180); cx.drawImage(im,-dw/2,-dh/2,dw,dh);
   return cv;
 }
-async function encode(im,max,q,rot=0){ const cv=drawRotated(im,max,rot); const out=await canvasToBuf(cv,q); cv.width=cv.height=0; return out; }
-async function rotatedPreviewURL(src,rot){ const im=await loadImage(src); const cv=drawRotated(im,1000,rot);
+function editedCanvas(im,max,rot,crop){ // 先旋轉，再依比例（0～1）裁切，最後縮到 max
+  if(!crop) return drawRotated(im,max,rot);
+  const base=drawRotated(im,3000,rot);
+  const sx=Math.round(crop.x*base.width), sy=Math.round(crop.y*base.height);
+  const sw=Math.max(1,Math.round(crop.w*base.width)), sh=Math.max(1,Math.round(crop.h*base.height));
+  const s=Math.min(1,max/Math.max(sw,sh)); const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(sw*s)); cv.height=Math.max(1,Math.round(sh*s));
+  const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height); cx.drawImage(base,sx,sy,sw,sh,0,0,cv.width,cv.height);
+  base.width=base.height=0; return cv;
+}
+async function encode(im,max,q,rot=0,crop=null){ const cv=editedCanvas(im,max,rot,crop); const out=await canvasToBuf(cv,q); cv.width=cv.height=0; return out; }
+async function rotatedPreviewURL(src,rot,crop=null){ const im=await loadImage(src); const cv=editedCanvas(im,1000,rot,crop);
   const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',.85)); cv.width=cv.height=0; return URL.createObjectURL(b); }
-async function processImage(file,rot=0,maxFull=1400){
+async function processImage(file,rot=0,maxFull=1400,crop=null){
   const url=URL.createObjectURL(file);
   try{
     let im; try{ im=await loadImage(url); }catch(e){
       const heic=/heic|heif/i.test(file.type)||/\.hei[cf]$/i.test(file.name||'');
       throw new Error(heic?'這張照片是 HEIC 格式，這個瀏覽器讀不了。請改用 JPG／PNG，或在 iPhone 上直接從 App 選照片。':'這個檔案無法當作照片讀取，請換一張 JPG 或 PNG。');
     }
-    const full=await encode(im,maxFull,.84,rot); const thumb=await encode(im,520,.8,rot);
+    const full=await encode(im,maxFull,.84,rot,crop); const thumb=await encode(im,520,.8,rot,crop);
     return {full,thumb};
   } finally { URL.revokeObjectURL(url); }
 }
@@ -660,6 +682,51 @@ function photoHTML(it,kind='thumb'){
   if(it.photo) return `<img alt="" data-img="${esc(it.photo)}" data-kind="${kind}">`;
   const k=it.colors?.[0]; const bg=k?swBg(k):'var(--surface2)'; const fg=k&&COLOR[k]?.h!=='multi'? (lum(COLOR[k].h)>.55?'#34302C':'#F6F5F1'):'var(--ink2)';
   return `<div class="ph-fallback" style="background:${bg};color:${fg}">${k&&COLOR[k]?.h==='multi'?'<span style="background:rgba(246,245,241,.85);color:#34302C;padding:2px 10px;border-radius:8px">'+esc(catName(it.cat))+'</span>':esc(catName(it.cat))}</div>`;
+}
+
+function rotateCrop(c,deg){ if(!c) return null; return deg===90? {x:1-c.y-c.h,y:c.x,w:c.h,h:c.w} : {x:c.y,y:1-c.x-c.w,w:c.h,h:c.w}; }
+
+/* ---------- 裁切 ---------- */
+const CROP_RATIOS=[['free','自由',null],['34','3:4',3/4],['11','1:1',1],['43','4:3',4/3]];
+function openCropper(src,rot,crop){
+  return new Promise(async res=>{
+    let url; try{ url=await rotatedPreviewURL(src,rot); }catch(e){ toast('這張照片無法裁切'); res(undefined); return; }
+    let done=false, ratio=null;
+    const w=openSheet({title:'裁切照片',wide:true,body:`<div class="crop-wrap"><div class="crop-stage" id="cpStage"><img src="${url}" alt="" draggable="false"><div class="crop-box" id="cpBox"><i class="g"></i>${['nw','ne','sw','se'].map(h=>`<span class="crop-h ${h}" data-h="${h}"></span>`).join('')}</div></div></div>
+      <div class="pick" id="cpRatio" style="justify-content:center;margin-top:12px">${CROP_RATIOS.map(([k,n])=>`<button type="button" class="chip${k==='free'?' on':''}" data-r="${k}">${n}</button>`).join('')}</div>
+      <p class="faint tiny" style="text-align:center;margin:8px 0 0">拖曳四個角調整大小，拖曳框內可以移動。3:4 跟清單縮圖的比例一樣。</p>`,
+      foot:`<button class="btn" data-reset>重設</button><button class="btn" data-c>取消</button><button class="btn pri grow2" data-ok>套用</button>`,
+      onClose:()=>{ URL.revokeObjectURL(url); if(!done) res(undefined); }});
+    const stage=$('#cpStage',w), img=stage.querySelector('img'), box=$('#cpBox',w); const MIN=36;
+    let dw=0, dh=0, r={x:0,y:0,w:0,h:0};
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const draw=()=>{ box.style.left=r.x+'px'; box.style.top=r.y+'px'; box.style.width=r.w+'px'; box.style.height=r.h+'px'; };
+    const fitRatio=()=>{ if(!ratio){ return; } const cx=r.x+r.w/2, cy=r.y+r.h/2; let ww=Math.min(dw,dh*ratio), hh=ww/ratio; if(hh>dh){ hh=dh; ww=hh*ratio; }
+      if(r.w*r.h>0){ const sc=Math.min(1,Math.max(r.w/ww,r.h/hh)); ww*=Math.max(sc,.5); hh=ww/ratio; }
+      r={w:ww,h:hh,x:clamp(cx-ww/2,0,dw-ww),y:clamp(cy-hh/2,0,dh-hh)}; draw(); };
+    const init=()=>{ dw=img.clientWidth; dh=img.clientHeight; if(!dw||!dh) return;
+      r = crop? {x:crop.x*dw,y:crop.y*dh,w:crop.w*dw,h:crop.h*dh} : {x:0,y:0,w:dw,h:dh}; draw(); };
+    if(img.complete) setTimeout(init,30); img.onload=()=>setTimeout(init,30);
+    window.addEventListener('resize',init);
+    let st=null;
+    stage.addEventListener('pointerdown',e=>{ const h=e.target.closest('[data-h]'); const inBox=e.target.closest('#cpBox');
+      if(!h&&!inBox) return; e.preventDefault(); st={mode:h?h.dataset.h:'move',px:e.clientX,py:e.clientY,r:{...r}}; try{ stage.setPointerCapture(e.pointerId); }catch(err){} });
+    stage.addEventListener('pointermove',e=>{ if(!st) return; e.preventDefault(); const dx=e.clientX-st.px, dy=e.clientY-st.py, s0=st.r;
+      if(st.mode==='move'){ r.x=clamp(s0.x+dx,0,dw-s0.w); r.y=clamp(s0.y+dy,0,dh-s0.h); }
+      else { const sx=st.mode.includes('w')?-1:1, sy=st.mode.includes('n')?-1:1;
+        const ax=sx>0?s0.x:s0.x+s0.w, ay=sy>0?s0.y:s0.y+s0.h; const maxW=sx>0?dw-ax:ax, maxH=sy>0?dh-ay:ay;
+        let ww=clamp(sx>0?s0.w+dx:s0.w-dx,MIN,maxW), hh=clamp(sy>0?s0.h+dy:s0.h-dy,MIN,maxH);
+        if(ratio){ hh=ww/ratio; if(hh>maxH){ hh=maxH; ww=hh*ratio; } if(hh<MIN){ hh=MIN; ww=Math.min(maxW,hh*ratio); } }
+        r={w:ww,h:hh,x:sx>0?ax:ax-ww,y:sy>0?ay:ay-hh}; }
+      draw(); });
+    const end=()=>{ st=null; }; stage.addEventListener('pointerup',end); stage.addEventListener('pointercancel',end);
+    $('#cpRatio',w).onclick=e=>{ const b=e.target.closest('[data-r]'); if(!b) return; ratio=CROP_RATIOS.find(x=>x[0]===b.dataset.r)[2]; $$('#cpRatio .chip',w).forEach(x=>x.classList.toggle('on',x===b)); fitRatio(); };
+    w.querySelector('[data-reset]').onclick=()=>{ ratio=null; $$('#cpRatio .chip',w).forEach(x=>x.classList.toggle('on',x.dataset.r==='free')); r={x:0,y:0,w:dw,h:dh}; draw(); };
+    w.querySelector('[data-c]').onclick=()=>w.close();
+    w.querySelector('[data-ok]').onclick=()=>{ done=true; window.removeEventListener('resize',init);
+      const c={x:r.x/dw,y:r.y/dh,w:r.w/dw,h:r.h/dh}; const full=c.x<0.005&&c.y<0.005&&c.w>0.99&&c.h>0.99;
+      w.close(); res(full?null:c); };
+  });
 }
 
 /* ---------- 照片自動選色（全部在本機計算，不上傳） ---------- */
@@ -1304,21 +1371,21 @@ function openItemForm(item,opts={}){
     ? `<button class="btn" data-skip>略過這張</button><button class="btn pri grow2" data-save>${batch.index===batch.files.length-1?'儲存並完成':'儲存，下一張'}</button>`
     : isNew ? `<button class="btn soft" data-again>儲存，再加一${B.unit}</button><button class="btn pri" data-save>儲存</button>`
             : `<button class="btn danger" data-del aria-label="刪除">${ICON.trash}</button><button class="btn" data-cancel>取消</button><button class="btn pri grow2" data-save>儲存</button>`;
-  let rot=0, rotURL=null, drawTk=0;
+  let rot=0, crop=null, rotURL=null, drawTk=0;
   const keepDocs=[...it.docs], newDocs=[];
   const w=openSheet({title,body,foot,wide:true,onClose:()=>{ if(photoPreview) URL.revokeObjectURL(photoPreview); if(rotURL) URL.revokeObjectURL(rotURL); newDocs.forEach(d=>URL.revokeObjectURL(d.url)); document.removeEventListener('paste',onPaste); }});
 
   // 照片
   const box=$('#fPhoto',w);
-  const ctrls=()=>`<span class="rm" data-rmph role="button" aria-label="移除照片">${ICON.close.replace('<svg','<svg width="16" height="16"')}</span><span class="rots"><span role="button" data-rot="-90" aria-label="向左旋轉">${ICON.rotl}</span><span role="button" data-rot="90" aria-label="向右旋轉">${ICON.rotr}</span></span><span class="chg">換一張</span>`;
+  const ctrls=()=>`<span class="rm" data-rmph role="button" aria-label="移除照片">${ICON.close.replace('<svg','<svg width="16" height="16"')}</span><span class="rots"><span role="button" data-rot="-90" aria-label="向左旋轉">${ICON.rotl}</span><span role="button" data-rot="90" aria-label="向右旋轉">${ICON.rotr}</span><span role="button" data-crop aria-label="裁切"${crop?' class="on"':''}>${ICON.crop}</span></span><span class="chg">換一張</span>`;
   async function drawPhoto(){
     const tk=++drawTk; const src = photoPreview || (it.photo && !removePhoto ? await imgURL(it.photo,'full') : null);
     if(tk!==drawTk) return;
-    if(src){ let shown=src; if(rot){ try{ const u=await rotatedPreviewURL(src,rot); if(tk!==drawTk){ URL.revokeObjectURL(u); return; } if(rotURL) URL.revokeObjectURL(rotURL); rotURL=u; shown=u; }catch(e){} }
+    if(src){ let shown=src; if(rot||crop){ try{ const u=await rotatedPreviewURL(src,rot,crop); if(tk!==drawTk){ URL.revokeObjectURL(u); return; } if(rotURL) URL.revokeObjectURL(rotURL); rotURL=u; shown=u; }catch(e){} }
       box.classList.add('has'); box.innerHTML=`<img src="${shown}" alt="">${ctrls()}`; }
     else { box.classList.remove('has'); box.innerHTML=`<span class="hint">${ICON.camera}拍照或選照片<br><span class="faint small">可以不放照片</span></span>`; }
   }
-  function setFile(file){ if(!file) return; if(file.type && !file.type.startsWith('image/') && !/\.hei[cf]$/i.test(file.name)){ toast('請選擇照片檔'); return; } photoFile=file; if(photoPreview) URL.revokeObjectURL(photoPreview); photoPreview=URL.createObjectURL(file); removePhoto=false; rot=0; drawPhoto(); if(B.colors) autoColor(photoPreview); }
+  function setFile(file){ if(!file) return; if(file.type && !file.type.startsWith('image/') && !/\.hei[cf]$/i.test(file.name)){ toast('請選擇照片檔'); return; } photoFile=file; if(photoPreview) URL.revokeObjectURL(photoPreview); photoPreview=URL.createObjectURL(file); removePhoto=false; rot=0; crop=null; drawPhoto(); if(B.colors) autoColor(photoPreview); }
   // 照片自動選色：還沒手動選顏色時直接選好；已經選了就只給建議
   let colorsTouched=!!(item && item.colors && item.colors.length), detectToken=0;
   const chipsOf=keys=>keys.map(k=>`<span class="ac"><i style="background:${swBg(k)}"></i>${esc(COLOR[k]?.n||'')}</span>`).join('');
@@ -1333,8 +1400,12 @@ function openItemForm(item,opts={}){
     else { ab.innerHTML=`<span>照片看起來是</span>${chipsOf(keys)}<button type="button" class="linkbtn" data-applyauto>套用</button>`;
       ab.querySelector('[data-applyauto]').onclick=()=>{ it.colors=keys.slice(); drawColors(); updateSimilar(); ab.innerHTML=`<span>已套用</span>${chipsOf(keys)}`; }; }
   }
-  box.onclick=e=>{ const rb=e.target.closest('[data-rot]'); if(rb){ rot=(rot+ +rb.dataset.rot+360)%360; drawPhoto(); return; }
-    if(e.target.closest('[data-rmph]')){ photoFile=null; if(photoPreview){URL.revokeObjectURL(photoPreview);photoPreview=null;} removePhoto=true; rot=0; drawPhoto(); return; } const inp=$('#fileOne'); inp.value=''; inp.onchange=()=>setFile(inp.files[0]); inp.click(); };
+  box.onclick=async e=>{ const rb=e.target.closest('[data-rot]'); if(rb){ const d=+rb.dataset.rot; rot=(rot+d+360)%360; crop=rotateCrop(crop,d>0?90:-90); drawPhoto(); return; }
+    if(e.target.closest('[data-crop]')){ const src=photoPreview || (it.photo && !removePhoto ? await imgURL(it.photo,'full') : null); if(!src) return;
+      const c=await openCropper(src,rot,crop); if(c===undefined) return; crop=c; await drawPhoto();
+      if(B.colors && !colorsTouched && $('#fAuto',w)){ try{ autoColor(crop? await rotatedPreviewURL(src,rot,crop) : src); }catch(err){} }
+      toast(crop?'已裁切，儲存後生效':'已取消裁切'); return; }
+    if(e.target.closest('[data-rmph]')){ photoFile=null; if(photoPreview){URL.revokeObjectURL(photoPreview);photoPreview=null;} removePhoto=true; rot=0; crop=null; drawPhoto(); return; } const inp=$('#fileOne'); inp.value=''; inp.onchange=()=>setFile(inp.files[0]); inp.click(); };
   box.ondragover=e=>{ e.preventDefault(); box.classList.add('drag'); }; box.ondragleave=()=>box.classList.remove('drag');
   box.ondrop=e=>{ e.preventDefault(); box.classList.remove('drag'); setFile(e.dataTransfer.files[0]); };
   function onPaste(e){ if(sheets[sheets.length-1]!==w) return; const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/')); if(f){ e.preventDefault(); setFile(f); toast('已貼上照片'); } }
@@ -1460,10 +1531,10 @@ function openItemForm(item,opts={}){
     const btns=$$('.sh-f button',w); btns.forEach(b=>b.disabled=true);
     try{
       const oldPhoto=item?.photo, oldDocs=item?.docs||[];
-      if(photoFile){ const p=await processImage(photoFile,rot); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); data.photo=pid; }
-      else if(rot && data.photo && !removePhoto){ // 旋轉已存的照片：用原本的大圖重新存一份
+      if(photoFile){ const p=await processImage(photoFile,rot,1400,crop); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); data.photo=pid; }
+      else if((rot||crop) && data.photo && !removePhoto){ // 旋轉已存的照片：用原本的大圖重新存一份
         const im=await loadImage(await imgURL(data.photo,'full')); const pid=uid();
-        await DB.put('images',{id:pid,full:await encode(im,1400,.9,rot),thumb:await encode(im,520,.8,rot)}); data.photo=pid; }
+        await DB.put('images',{id:pid,full:await encode(im,1400,.9,rot,crop),thumb:await encode(im,520,.8,rot,crop)}); data.photo=pid; }
       else if(removePhoto) data.photo=null;
       if(book==='appliance'){ const ids=[...keepDocs];
         for(const d of newDocs){ const p=await processImage(d.file,0,1800); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); ids.push(pid); }
