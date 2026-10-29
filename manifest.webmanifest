@@ -1,6 +1,6 @@
 {
-  "name": "生活帳本",
-  "short_name": "生活帳本",
+  "name": "財產清冊",
+  "short_name": "財產清冊",
   "description": "衣櫥、電器、物品建檔：盤點、花費、保固與效期提醒",
   "lang": "zh-Hant-TW",
   "start_url": "./",

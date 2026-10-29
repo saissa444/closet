@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>生活帳本</title>
+<title>財產清冊</title>
 <meta name="description" content="衣櫥、電器、物品建檔：盤點、花費統計、保固與效期提醒、淘汰紀錄">
 <meta name="theme-color" content="#E7E5E0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1F1E1C" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="生活帳本">
+<meta name="apple-mobile-web-app-title" content="財產清冊">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -69,7 +69,7 @@ button:disabled{cursor:default;opacity:.45}
 .nav .dot::after{content:"";position:absolute;top:-1px;right:-4px;width:7px;height:7px;border-radius:50%;background:var(--brick)}
 @media (min-width:900px){
   .nav{top:0;right:auto;width:200px;height:auto;display:flex;flex-direction:column;gap:4px;padding:28px 14px;border-top:0;border-right:1px solid var(--line)}
-  .nav::before{content:"生活帳本";order:-2;font-weight:700;letter-spacing:.12em;font-size:17px;padding:0 12px 18px}
+  .nav::before{content:"財產清冊";order:-2;font-weight:700;letter-spacing:.12em;font-size:17px;padding:0 12px 18px}
   .nav button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:15px;padding:10px 12px;border-radius:12px}
   .nav button.on{background:var(--surface2)}
   .nav .add{order:-1;margin-bottom:12px}
@@ -193,7 +193,9 @@ button:disabled{cursor:default;opacity:.45}
 /* 花費 */
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (min-width:700px){.kpis{grid-template-columns:repeat(4,1fr)}}
-.kpi{background:var(--surface2);border-radius:14px;padding:12px 14px}
+.kpis.k3{grid-template-columns:1fr 1fr}.kpis.k3 .kpi:first-child{grid-column:1/-1}
+@media (min-width:700px){.kpis.k3{grid-template-columns:repeat(3,1fr)}.kpis.k3 .kpi:first-child{grid-column:auto}}
+.kpi{min-width:0;background:var(--surface2);border-radius:14px;padding:12px 14px}
 .kpi .k{font-size:12.5px;color:var(--ink2)}
 .kpi .v{font-family:var(--num);font-size:22px;font-weight:600;margin-top:2px;white-space:nowrap}
 .kpi .v small{font-size:12px;font-weight:500;color:var(--ink2);margin-right:2px}
@@ -400,7 +402,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -543,7 +545,7 @@ function migrateSettings(src){ // 舊版（只有衣櫥）設定升級成三本
   st.lastCheckBy={...(st.lastCheckBy||{})}; if(st.lastCheckAt && !st.lastCheckBy.closet) st.lastCheckBy.closet=st.lastCheckAt; delete st.lastCheckAt;
   return st;
 }
-async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); }
+async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); if(typeof notifyOthers==='function') notifyOthers(); }
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 
@@ -856,8 +858,15 @@ function confirmSheet({title,msg,ok='確定',danger,cancel='取消'}){
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sheets.length){ sheets[sheets.length-1].close(); } });
 
 /* ---------- 存取 ---------- */
-async function putItem(it){ it.updatedAt=Date.now(); await DB.put('items',it); const i=S.items.findIndex(x=>x.id===it.id); if(i>=0) S.items[i]=it; else S.items.push(it); askPersist(); }
-async function removeItem(id){ const it=S.items.find(x=>x.id===id); if(!it) return; await DB.del('items',id); S.items=S.items.filter(x=>x.id!==id); }
+let bc=null; try{ bc=new BroadcastChannel('ledger-sync'); }catch(e){}
+let syncT; function notifyOthers(){ clearTimeout(syncT); syncT=setTimeout(()=>{ try{ bc&&bc.postMessage('changed'); }catch(e){} },150); }
+async function putItem(it){ it.updatedAt=Date.now(); await DB.put('items',it); const i=S.items.findIndex(x=>x.id===it.id); if(i>=0) S.items[i]=it; else S.items.push(it); askPersist(); notifyOthers(); }
+async function removeItem(id){ const it=S.items.find(x=>x.id===id); if(!it) return; await DB.del('items',id); S.items=S.items.filter(x=>x.id!==id); notifyOthers(); }
+async function reloadFromDB(){ // 重新讀取資料庫（另一個視窗改過、或從背景回來時）
+  if(!DB.db) return; try{ S.items=await DB.getAll('items'); const st=await DB.get('meta','settings'); if(st) S.settings=migrateSettings(st.value); rebuildColors(); }catch(e){ return; }
+  if(!sheets.length) render(); }
+bc&&(bc.onmessage=()=>reloadFromDB());
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') reloadFromDB(); });
 let persistAsked=false;
 function askPersist(){ if(persistAsked) return; persistAsked=true; try{ navigator.storage?.persist?.(); }catch(e){} }
 
@@ -1008,7 +1017,7 @@ function renderOverview(){
   <div class="cols">
     <div class="panel">
       <p class="lede">你現在擁有 <b>${fmtInt(q)}</b> ${B.unit}${B.noun}${overs.length?`，有 <b style="color:var(--brick)">${overs.length}</b> 個分類超過上限`:''}。</p>
-      <div class="muted small">${own.length?`買進總額 ${money(own.reduce((s,i)=>s+(i.price||0),0))}${own.some(i=>i.price==null)?`（${own.filter(i=>i.price==null).length} 筆沒填價格）`:''}`:`還沒有建檔的${B.noun}。`}</div>
+      <div class="muted small">${own.length?`買進總額 ${money(own.reduce((s,i)=>s+(i.price||0),0))}${own.some(i=>i.price==null)?`（${own.filter(i=>i.price==null).length} 筆沒填價格）`:''}　<button class="linkbtn" data-a="totaldetail">核對明細</button>`:`還沒有建檔的${B.noun}。`}</div>
       <div class="btnrow" style="margin-top:14px"><button class="btn pri" data-a="buycheck">想買之前，先查一下</button></div>
     </div>
     <div class="panel">
@@ -1131,7 +1140,7 @@ function renderSettings(){
   const st=S.settings; const R=S.rates; const SB=settingsBook||S.book;
   const bud=st.budgetBy||{};
   $('#app').innerHTML=`
-  <div class="vh"><div><h1>設定</h1><div class="sub">生活帳本 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
+  <div class="vh"><div><h1>設定</h1><div class="sub">財產清冊 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
   <div class="cols">
   <div class="stack">
     <div class="panel" id="sec-backup">
@@ -1731,6 +1740,32 @@ async function deleteWithUndo(ids){
   setTimeout(async()=>{ if(undone) return; for(const c of copies) if(!S.items.some(i=>i.id===c.id)){ await deleteImageIfUnused(c.photo); for(const d of (c.docs||[])) await deleteImageIfUnused(d); } },6500);
 }
 
+/* ---------- 買進總額明細 ---------- */
+function rateOff(it){ // 外幣紀錄的匯率和目前匯率差很多（可能幣別或金額打錯）
+  if(!it.currency||it.currency==='TWD'||it.priceOrig==null||it.price==null||!it.priceOrig) return false;
+  const now=currentRate(it.currency); if(!now) return false; const used=it.price/it.priceOrig; return used/now>1.25||used/now<0.8;
+}
+function openTotalDetail(){
+  const B=BK(); const own=ownedItems(); const priced=own.filter(i=>i.price!=null);
+  const twd=priced.filter(i=>(i.currency||'TWD')==='TWD'), fx=priced.filter(i=>(i.currency||'TWD')!=='TWD');
+  const sum=a=>a.reduce((s,i)=>s+i.price,0); const total=sum(priced);
+  const retired=BI().filter(i=>i.status==='retired'), noPrice=own.filter(i=>i.price==null);
+  const odd=fx.filter(rateOff);
+  const row=it=>{ const f=(it.currency||'TWD')!=='TWD';
+    return `<button class="li" data-open="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${f?`${money(it.priceOrig,it.currency)} × 匯率 ${it.rate??'—'}`:'台幣'}${qtyOf(it)>1?`・${qtyOf(it)} ${B.unit}`:''}・${fmtDate(it.date)}${rateOff(it)?' <b style="color:var(--brick)">匯率跟現在差很多，請確認幣別</b>':''}</div></span><span class="rv">${money(it.price)}</span></button>`; };
+  const w=openSheet({title:'買進總額明細',wide:true,body:`
+    <div class="kpis k3"><div class="kpi hl"><div class="k">買進總額</div><div class="v num">${money(total)}</div></div>
+      <div class="kpi"><div class="k">台幣購買 ${twd.length} 筆</div><div class="v num">${money(sum(twd))}</div></div>
+      <div class="kpi"><div class="k">外幣購買 ${fx.length} 筆</div><div class="v num">${money(sum(fx))}</div></div></div>
+    <p class="muted small" style="margin:10px 0 0">只算目前「${B.own}」和「待售」的${B.noun}，以台幣金額加總。${retired.length?`已淘汰的 ${retired.length} 筆不算在內。`:''}${noPrice.length?`另有 ${noPrice.length} 筆沒填價格。`:''}點任一筆可以查看或修改，改完回到「盤點」總額就會更新。</p>
+    ${odd.length?`<div class="notice" style="margin:12px 0 0"><div>有 <b>${odd.length}</b> 筆外幣紀錄的匯率跟現在差很多，可能是幣別或金額打錯，請點進去確認。</div></div>`:''}
+    ${fx.length?`<div class="flabel" style="margin-top:16px">外幣購買</div><div class="list">${[...fx].sort((a,b)=>rateOff(b)-rateOff(a)||b.price-a.price).map(row).join('')}</div>`:''}
+    ${twd.length?`<div class="flabel" style="margin-top:16px">台幣購買</div><div class="list">${[...twd].sort((a,b)=>b.price-a.price).map(row).join('')}</div>`:''}
+    ${noPrice.length?`<div class="flabel" style="margin-top:16px">沒填價格</div><div class="list">${noPrice.map(it=>`<button class="li" data-open="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${fmtDate(it.date)}</div></span><span class="rv muted">—</span></button>`).join('')}</div>`:''}`});
+  hydrateImages(w);
+  w.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ w.close(); setTimeout(()=>openDetail(b.dataset.open),340); });
+}
+
 /* ---------- 買前先查 ---------- */
 function openBuyCheck(){
   let cat='', col=''; const B=BK(), bk=S.book;
@@ -1852,7 +1887,7 @@ async function doExport(){
     const imgs=await DB.getAll('images'); const used=usedImageIds();
     const payload={app:'life-ledger',version:2,exportedAt:Date.now(),items:S.items,settings:{...S.settings,lastBackup:undefined},
       images:imgs.filter(i=>used.has(i.id)).map(i=>({id:i.id,full:{type:i.full.type,b64:abToB64(i.full.buf)},thumb:{type:i.thumb.type,b64:abToB64(i.thumb.buf)}}))};
-    const file=new File([JSON.stringify(payload)],`生活帳本備份-${stamp()}.json`,{type:'application/json'});
+    const file=new File([JSON.stringify(payload)],`財產清冊備份-${stamp()}.json`,{type:'application/json'});
     deliverFile(file,'備份',async()=>{ S.settings.lastBackup=Date.now(); await saveSettings(); $('#navSet').classList.toggle('dot',backupDue()); });
   }catch(e){ out.innerHTML=`<p class="ferr">匯出失敗：${esc(e.message)}</p>`; }
 }
@@ -1866,14 +1901,14 @@ function doCSV(){
       tw?wearCount(it):'',tw?lastWear(it):'',tw&&it.price!=null&&wearCount(it)?Math.round(cpw(it)):'',it.warrantyUntil,it.openedAt,it.expiry,effExpiry(it),(it.logs||[]).length||'',logsCost(it)||'',
       it.retire?.date,it.status==='retired'?methodName(bk,it.retire?.method):'',it.retire?.income,it.retire?.where,[it.note,it.retire?.note].filter(Boolean).join('／')]; });
   const csv='﻿'+[head,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
-  deliverFile(new File([csv],`生活帳本清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
+  deliverFile(new File([csv],`財產清冊清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
 }
 function doImport(){
   const inp=$('#fileBackup'); inp.value='';
   inp.onchange=async()=>{
     const file=inp.files[0]; if(!file) return;
-    let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是生活帳本（衣櫥帳本）的備份檔'); return; }
-    if(!['life-ledger','closet-ledger'].includes(data?.app)||!Array.isArray(data.items)){ toast('這個檔案不是生活帳本（衣櫥帳本）的備份檔'); return; }
+    let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是財產清冊（生活帳本、衣櫥帳本）的備份檔'); return; }
+    if(!['life-ledger','closet-ledger'].includes(data?.app)||!Array.isArray(data.items)){ toast('這個檔案不是財產清冊（生活帳本、衣櫥帳本）的備份檔'); return; }
     data.items.forEach(i=>{ if(!i.book) i.book='closet'; });
     const cnt=BOOK_KEYS.map(k=>[BOOKS[k].name,data.items.filter(i=>i.book===k).length]).filter(x=>x[1]).map(([n,c])=>`${n} ${c}`).join('、')||'0';
     const w=openSheet({title:'匯入備份',body:`<p style="margin:0 0 6px">備份檔裡有 <b>${data.items.length}</b> 筆（${cnt}）、${(data.images||[]).length} 張照片（${fmtDate(ymd(new Date(data.exportedAt)))} 匯出）。</p>
@@ -1935,6 +1970,7 @@ document.addEventListener('click',async e=>{
     case 'gocat': setF({...S.f,status:'own',cats:[b.dataset.k],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}); setView('closet'); break;
     case 'seeidle': setF({...S.f,status:'own',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:'',sort:'idle'}); setView('closet'); break;
     case 'buycheck': openBuyCheck(); break;
+    case 'totaldetail': openTotalDetail(); break;
     case 'check': openCheck(); break;
     case 'bulkwear': { const t=today(); let n=0; for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it&&owned(it)&&tracksWear(it)&&!(it.wears||[]).includes(t)){ it.wears=[...(it.wears||[]),t]; await putItem(it); n++; } } S.selecting=false; S.sel.clear(); render(); toast(n?`已記錄 ${n} 筆今天${BK().verb}了`:'選的都已經記錄過今天了，或這些分類不記錄次數'); break; }
     case 'bulkloc': { const locs=[...new Set([...LOCS_BY[S.book],...brandDisplayMap('location').values()])];
