@@ -344,6 +344,13 @@ body.locked .toast.in{transform:translate(-50%,0)}
   .sw-wrap.in .sheet{opacity:1}
   .sh-f{padding-bottom:12px}
 }
+.dnav{display:flex;align-items:center;gap:2px;flex:none}
+.dnav .pos{min-width:3.8em;text-align:center;font-size:13px;color:var(--ink2)}
+.iconbtn.sm{width:34px;height:34px;border-radius:10px;background:var(--surface2)}
+.iconbtn.sm svg{width:18px;height:18px}
+.iconbtn:disabled{opacity:.3}
+.detail-sheet .sh-b{will-change:transform}
+.detail-sheet .dt-photo img{cursor:zoom-in}
 .grabber{width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0}
 @media (min-width:700px){.grabber{display:none}}
 
@@ -402,7 +409,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -496,6 +503,8 @@ const ICON = {
   plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0V8ZM12 17v4"/></svg>',
   box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5v-9Z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
   crop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
   hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
 };
 
@@ -855,7 +864,8 @@ function confirmSheet({title,msg,ok='確定',danger,cancel='取消'}){
     w.querySelector('[data-ok]').onclick=()=>{ done=true; w.close(); res(true); };
   });
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sheets.length){ sheets[sheets.length-1].close(); } });
+document.addEventListener('keydown',e=>{ const top=sheets[sheets.length-1]; if(e.key==='Escape' && top){ top.close(); return; }
+  if(top && top.classList.contains('detail-sheet') && (e.key==='ArrowLeft'||e.key==='ArrowRight') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){ e.preventDefault(); goDetail(top,e.key==='ArrowRight'?1:-1); } });
 
 /* ---------- 存取 ---------- */
 let bc=null; try{ bc=new BroadcastChannel('ledger-sync'); }catch(e){}
@@ -1590,8 +1600,43 @@ function maybeOverLimit(catId){
 
 /* ---------- 詳細 ---------- */
 function viewImage(id,title='照片'){ const w=openSheet({title,wide:true,body:`<div class="viewer"><img alt="" data-img="${esc(id)}" data-kind="full"></div>`}); hydrateImages(w); }
-function openDetail(id){
-  const it=S.items.find(i=>i.id===id); if(!it) return;
+/* 詳細頁：左右滑或按箭頭切換上一筆／下一筆（依點進來那份清單的順序） */
+function openDetail(id,seq){
+  if(!S.items.some(i=>i.id===id)) return;
+  const w=openSheet({title:'',body:'',foot:'<span></span>',wide:true}); w.classList.add('detail-sheet');
+  w.seq=(Array.isArray(seq)&&seq.includes(id))?[...new Set(seq)]:[id];
+  setupDetailNav(w); fillDetail(w,id,0);
+}
+const navSeq = w => w.seq.filter(x=>S.items.some(i=>i.id===x));
+function goDetail(w,dir){ const seq=navSeq(w), j=seq.indexOf(w.cur)+dir; if(j<0||j>=seq.length) return false; fillDetail(w,seq[j],dir); return true; }
+function updateNav(w){ const nav=w.querySelector('.dnav'); if(!nav) return; const seq=navSeq(w), i=seq.indexOf(w.cur);
+  nav.classList.toggle('hide',seq.length<2); nav.querySelector('.pos').textContent=`${i+1} / ${seq.length}`;
+  nav.querySelector('[data-dnav="-1"]').disabled=i<=0; nav.querySelector('[data-dnav="1"]').disabled=i>=seq.length-1; }
+function slideIn(el,dir){ el.style.transition='none'; el.style.transform=`translateX(${dir*70}px)`; el.style.opacity='0'; void el.offsetWidth;
+  el.style.transition='transform .24s cubic-bezier(.2,.8,.2,1), opacity .2s'; el.style.transform=''; el.style.opacity=''; }
+function setupDetailNav(w){
+  const h=w.querySelector('.sh-h'), nav=document.createElement('div'); nav.className='dnav';
+  nav.innerHTML=`<button class="iconbtn sm" data-dnav="-1" aria-label="上一筆">${ICON.left}</button><span class="pos num"></span><button class="iconbtn sm" data-dnav="1" aria-label="下一筆">${ICON.right}</button>`;
+  h.insertBefore(nav,h.querySelector('[data-close]'));
+  nav.onclick=e=>{ const b=e.target.closest('[data-dnav]'); if(b&&!b.disabled) goDetail(w,+b.dataset.dnav); };
+  const body=w.querySelector('.sh-b'); body.style.touchAction='pan-y';
+  let st=null, swipedAt=0;
+  const reset=()=>{ body.style.transition='transform .2s ease, opacity .2s'; body.style.transform=''; body.style.opacity=''; };
+  body.addEventListener('pointerdown',e=>{ if(e.pointerType==='mouse'&&e.button!==0) return; if(e.target.closest('input,textarea,select')) return; st={x:e.clientX,y:e.clientY,id:e.pointerId,act:false}; },{passive:true});
+  body.addEventListener('pointermove',e=>{ if(!st||e.pointerId!==st.id) return; const dx=e.clientX-st.x, dy=e.clientY-st.y;
+    if(!st.act){ if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.3){ st.act=true; try{ body.setPointerCapture(e.pointerId); }catch(_){} } else if(Math.abs(dy)>12){ st=null; return; } else return; }
+    const seq=navSeq(w), i=seq.indexOf(w.cur), edge=(dx>0&&i<=0)||(dx<0&&i>=seq.length-1);
+    body.style.transition='none'; body.style.transform=`translateX(${edge?dx*0.25:dx}px)`; body.style.opacity=String(1-Math.min(.45,Math.abs(dx)/600)); });
+  body.addEventListener('pointerup',e=>{ if(!st) return; const was=st; st=null; if(!was.act) return; swipedAt=Date.now();
+    const dx=e.clientX-was.x, dir=dx<0?1:-1, seq=navSeq(w), j=seq.indexOf(w.cur)+dir;
+    if(Math.abs(dx)>60&&j>=0&&j<seq.length){ body.style.transition='transform .13s ease-in, opacity .13s'; body.style.transform=`translateX(${dx<0?-70:70}px)`; body.style.opacity='0'; setTimeout(()=>fillDetail(w,seq[j],dir),120); }
+    else reset(); });
+  body.addEventListener('pointercancel',()=>{ if(st&&st.act) reset(); st=null; });
+  w.addEventListener('click',e=>{ if(Date.now()-swipedAt<350){ e.stopPropagation(); e.preventDefault(); } },true); // 滑動後不要誤觸按鈕
+}
+function fillDetail(w,id,dir){
+  const it=S.items.find(i=>i.id===id); if(!it){ w.close(); return; }
+  w.cur=id;
   const bk=bookOf(it), B=BOOKS[bk];
   const c=catById(it.cat); const w_=wearCount(it); const lw=lastWear(it); const wornToday=(it.wears||[]).includes(today());
   const colors=(it.colors||[]).map(k=>`<span class="chip" style="height:28px"><i class="sw" style="background:${swBg(k)}"></i>${COLOR[k]?.n}</span>`).join('');
@@ -1639,9 +1684,13 @@ function openDetail(id){
     ${extra}
     <dl class="facts" style="margin-top:16px">${facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
   </div></div>`;
-  const w=openSheet({title:itemName(it),body,foot:actions,wide:true});
-  const re=()=>{ w.close(); setTimeout(()=>openDetail(id),340); };
-  w.querySelector('[data-wear]')?.addEventListener('click',async()=>{ const t=today(); it.wears=it.wears||[]; if(it.wears.includes(t)) it.wears=it.wears.filter(d=>d!==t); else it.wears.push(t); await putItem(it); render(); w.close(); toast(it.wears.includes(t)?`已記錄，${B.verb}了 ${wearCount(it)} 次`:'已取消今天的紀錄'); });
+  w.setTitle(itemName(it));
+  const bodyEl=w.querySelector('.sh-b'), footEl=w.querySelector('.sh-f');
+  bodyEl.innerHTML=body; footEl.innerHTML=actions; bodyEl.scrollTop=0; hydrateImages(w); updateNav(w);
+  if(dir) slideIn(bodyEl,dir); else { bodyEl.style.transform=''; bodyEl.style.opacity=''; }
+  const re=()=>fillDetail(w,id,0);
+  w.querySelector('.dt-photo img')?.addEventListener('click',()=>viewImage(it.photo,itemName(it)));
+  w.querySelector('[data-wear]')?.addEventListener('click',async()=>{ const t=today(); it.wears=it.wears||[]; if(it.wears.includes(t)) it.wears=it.wears.filter(d=>d!==t); else it.wears.push(t); await putItem(it); render(); re(); toast(it.wears.includes(t)?`已記錄，${B.verb}了 ${wearCount(it)} 次`:'已取消今天的紀錄'); });
   w.querySelector('[data-edit]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openItemForm(it),340); });
   w.querySelector('[data-retire]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openRetire([id]),340); });
   w.querySelector('[data-sell]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openSell(id),340); });
@@ -1763,7 +1812,8 @@ function openTotalDetail(){
     ${twd.length?`<div class="flabel" style="margin-top:16px">台幣購買</div><div class="list">${[...twd].sort((a,b)=>b.price-a.price).map(row).join('')}</div>`:''}
     ${noPrice.length?`<div class="flabel" style="margin-top:16px">沒填價格</div><div class="list">${noPrice.map(it=>`<button class="li" data-open="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${fmtDate(it.date)}</div></span><span class="rv muted">—</span></button>`).join('')}</div>`:''}`});
   hydrateImages(w);
-  w.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ w.close(); setTimeout(()=>openDetail(b.dataset.open),340); });
+  const allIds=$$('[data-open]',w).map(x=>x.dataset.open);
+  w.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ w.close(); setTimeout(()=>openDetail(b.dataset.open,allIds),340); });
 }
 
 /* ---------- 買前先查 ---------- */
@@ -1795,7 +1845,7 @@ function openBuyCheck(){
       <p style="margin:0 0 12px;font-weight:600;${c?.limit&&catN>=c.limit?'color:var(--brick)':''}">${verdict}</p>
       ${arr.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px">${sortItems(arr,'new').slice(0,30).map(it=>`<button class="tile" data-open="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="ts" style="margin-top:4px"><span>${esc(it.brand||itemName(it))}</span></div></button>`).join('')}</div>`:''}</div>`;
     hydrateImages(out);
-    out.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
+    out.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDetail(b.dataset.open,$$('[data-open]',out).map(x=>x.dataset.open)));
   };
   $('#bcCats',w).onclick=e=>{ const b=e.target.closest('[data-cat]'); if(!b) return; cat=cat===b.dataset.cat?'':b.dataset.cat; $$('#bcCats .chip',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===cat)); draw(); };
   $('#bcCols',w)?.addEventListener('click',e=>{ const b=e.target.closest('[data-col]'); if(!b) return; col=col===b.dataset.col?'':b.dataset.col; $$('#bcCols .swatch',w).forEach(x=>x.classList.toggle('on',x.dataset.col===col)); draw(); });
@@ -1965,8 +2015,8 @@ document.addEventListener('click',async e=>{
     case 'clearf': ['cats','colors','brands','stores','seasons','locations'].forEach(k=>S.f[k]=[]); S.f.q=''; saveFilters(); render(); break;
     case 'filters': openFilters(); break;
     case 'selmode': S.selecting=!S.selecting; S.sel.clear(); render(); break;
-    case 'tile': if(S.selecting){ const id=b.dataset.id; S.sel.has(id)?S.sel.delete(id):S.sel.add(id); b.classList.toggle('sel'); renderSelbar(); } else openDetail(b.dataset.id); break;
-    case 'open': openDetail(b.dataset.id); break;
+    case 'tile': if(S.selecting){ const id=b.dataset.id; S.sel.has(id)?S.sel.delete(id):S.sel.add(id); b.classList.toggle('sel'); renderSelbar(); } else openDetail(b.dataset.id,$$('#grid [data-a=tile]').map(x=>x.dataset.id)); break;
+    case 'open': { const box=b.closest('.list,.minis,.grid,.panel'); openDetail(b.dataset.id,box?$$('[data-a=open][data-id]',box).map(x=>x.dataset.id):null); break; }
     case 'gocat': setF({...S.f,status:'own',cats:[b.dataset.k],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}); setView('closet'); break;
     case 'seeidle': setF({...S.f,status:'own',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:'',sort:'idle'}); setView('closet'); break;
     case 'buycheck': openBuyCheck(); break;
