@@ -278,6 +278,9 @@ input[type=date].in{display:block;-webkit-appearance:none;appearance:none;min-he
 .similar .mini{width:54px}
 .formgrid{display:block}
 @media (min-width:900px){.formgrid{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:start}.formgrid .photo-col{position:sticky;top:0}}
+.batchlink{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--mauve-soft);color:var(--mauve-ink);border-radius:14px;padding:10px 12px;margin:0 0 14px;font-size:13.5px;line-height:1.4}
+.batchlink svg{width:26px;height:26px;flex:none}
+.batchlink .faint{color:var(--mauve-ink);opacity:.75;font-size:12.5px}
 .batchbar{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);margin-bottom:10px}
 .batchbar .track{flex:1;height:6px;border-radius:4px;background:var(--surface2);overflow:hidden}
 .batchbar .track i{display:block;height:100%;background:var(--mauve);transition:width .3s}
@@ -364,7 +367,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -1070,7 +1073,8 @@ function openItemForm(item,opts={}){
   ${batch?`<div class="batchbar"><span class="num">${batch.index+1} / ${batch.files.length}</span><span class="track"><i style="width:${(batch.index)/batch.files.length*100}%"></i></span><span>已存 ${batch.saved||0}</span></div>`:''}
   <div class="formgrid"><div class="photo-col">
     <button type="button" class="photo-in" id="fPhoto" aria-label="選擇照片"></button>
-    <p class="faint tiny" style="margin:6px 2px 14px">${isIOS?'可以拍照或從相簿選。':'可以拖曳照片進來，或按 Ctrl／⌘+V 貼上截圖。'}照片會縮小後存在本機。</p>
+    <p class="faint tiny" style="margin:6px 2px ${isNew&&!batch?'8px':'14px'}">${isIOS?'可以拍照或從相簿選。':'可以拖曳照片進來，或按 Ctrl／⌘+V 貼上截圖。'}照片會縮小後存在本機。</p>
+    ${isNew&&!batch?`<button type="button" class="batchlink" data-batchstart>${ICON.camera}<span><b>一次選多張照片</b><br><span class="faint">批次建檔，每張自動選好顏色</span></span></button>`:''}
   </div><div>
     <div class="flabel">分類<span class="req">*</span></div>
     <div id="fCats" style="margin-bottom:4px">${catPickHTML(it.cat)}</div>
@@ -1234,6 +1238,7 @@ function openItemForm(item,opts={}){
   w.querySelector('[data-again]')?.addEventListener('click',async()=>{ const d=await save(); if(!d) return; w.close(); render(); toast('已新增「'+itemName(d)+'」，繼續下一件'); setTimeout(()=>openItemForm(null,{carry:carryOf(d)}),360); });
   w.querySelector('[data-skip]')?.addEventListener('click',()=>{ w.close(); nextBatch(batch,carryOf(collectLoose()),false); });
   w.querySelector('[data-cancel]')?.addEventListener('click',()=>w.close());
+  w.querySelector('[data-batchstart]')?.addEventListener('click',()=>{ startBatch(); w.close(); });
   w.querySelector('[data-del]')?.addEventListener('click',async()=>{ if(await confirmSheet({title:'刪除這筆紀錄？',msg:'刪除會讓花費統計也少掉這一筆。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})){ w.close(); sheets.slice().forEach(s=>s.close()); await deleteWithUndo([item.id]); } });
   function collectLoose(){ return {cat:it.cat,brand:$('#fBrand',w).value.trim(),seasons:it.seasons,date:$('#fDate',w).value,store:$('#fStore',w).value.trim(),channel:$('#fChannel',w).value,currency:fCur.value,rate:parseNum(fRate.value)||null,location:$('#fLoc',w).value.trim()}; }
   return w;
