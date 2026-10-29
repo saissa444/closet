@@ -1,7 +1,7 @@
 {
-  "name": "衣櫥帳本",
-  "short_name": "衣櫥帳本",
-  "description": "衣物建檔、盤點、花費與淘汰紀錄",
+  "name": "生活帳本",
+  "short_name": "生活帳本",
+  "description": "衣櫥、電器、物品建檔：盤點、花費、保固與效期提醒",
   "lang": "zh-Hant-TW",
   "start_url": "./",
   "scope": "./",

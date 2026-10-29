@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>衣櫥帳本</title>
-<meta name="description" content="衣物建檔、盤點、花費統計與淘汰紀錄">
+<title>生活帳本</title>
+<meta name="description" content="衣櫥、電器、物品建檔：盤點、花費統計、保固與效期提醒、淘汰紀錄">
 <meta name="theme-color" content="#E7E5E0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1F1E1C" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="衣櫥帳本">
+<meta name="apple-mobile-web-app-title" content="生活帳本">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -69,19 +69,26 @@ button:disabled{cursor:default;opacity:.45}
 .nav .dot::after{content:"";position:absolute;top:-1px;right:-4px;width:7px;height:7px;border-radius:50%;background:var(--brick)}
 @media (min-width:900px){
   .nav{top:0;right:auto;width:200px;height:auto;display:flex;flex-direction:column;gap:4px;padding:28px 14px;border-top:0;border-right:1px solid var(--line)}
-  .nav::before{content:"衣櫥帳本";order:-2;font-weight:700;letter-spacing:.12em;font-size:17px;padding:0 12px 18px}
+  .nav::before{content:"生活帳本";order:-2;font-weight:700;letter-spacing:.12em;font-size:17px;padding:0 12px 18px}
   .nav button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:15px;padding:10px 12px;border-radius:12px}
   .nav button.on{background:var(--surface2)}
   .nav .add{order:-1;margin-bottom:12px}
   .nav .add span{width:100%;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px}
   .nav .add span svg{width:20px;height:20px}
-  .nav .add span::after{content:"新增衣物"}
+  .nav .add span::after{content:"新增"}
   .nav .add .lbl{display:none}
   .app{margin-left:200px;padding:28px 36px 48px;max-width:1300px}
   .vh h1{font-size:32px}
 }
 
 /* 色譜 */
+.booktabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:2px 0 14px;overflow-x:auto;scrollbar-width:none}
+.booktabs::-webkit-scrollbar{display:none}
+.booktabs button{position:relative;font-size:17px;font-weight:600;letter-spacing:.06em;color:var(--ink3);padding:6px 0 11px;white-space:nowrap;transition:color .15s}
+.booktabs button sup{font-size:11px;font-weight:600;margin-left:3px;color:var(--ink3);top:-.55em}
+.booktabs button.on{color:var(--ink)}
+.booktabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:2px 2px 0 0;background:var(--ink);animation:tabin .25s ease}
+@keyframes tabin{from{transform:scaleX(.3);opacity:0}to{transform:none;opacity:1}}
 .rail{margin:4px 0 16px}
 .rail .bar{display:flex;height:46px;border-radius:14px;overflow:hidden;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)}
 .rail .seg{position:relative;min-width:6px;height:100%;transition:flex-grow .5s cubic-bezier(.2,.8,.2,1),opacity .2s,transform .2s;transform-origin:bottom}
@@ -127,6 +134,7 @@ button:disabled{cursor:default;opacity:.45}
 .badge{font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(246,245,241,.92);color:#34302C;font-weight:600}
 .badge.sell{background:var(--mauve);color:#fff}.badge.idle{background:#e9e1cf;color:#5d5340}.badge.ret{background:#34302C;color:#F6F5F1}
 .badge.qty{margin-left:auto}
+.badge.warn{background:#F1E3C6;color:#6B5222}.badge.bad{background:var(--brick);color:#fff}
 .tile .tt{margin-top:8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .ts{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px}
 .tile .ts .num{margin-left:auto;flex:none;color:var(--ink)}
@@ -144,7 +152,7 @@ button:disabled{cursor:default;opacity:.45}
 /* 面板 */
 .panel{background:var(--surface);border-radius:20px;padding:18px;margin-bottom:14px}
 .panel h2{font-size:17px;margin:0 0 4px;letter-spacing:.03em}
-.panel .ph2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+.dt-grid .ph2,.panel .ph2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
 .cols{display:grid;gap:14px}
 @media (min-width:900px){.cols{grid-template-columns:1fr 1fr;align-items:start}.cols>.panel{margin-bottom:0}}
 .stack>*+*{margin-top:14px}
@@ -338,6 +346,16 @@ body.locked .toast.in{transform:translate(-50%,0)}
 .wearbox div{background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
 .wearbox b{display:block;font-family:var(--num);font-size:20px;font-weight:600}
 .wearbox span{font-size:12px;color:var(--ink2)}
+.infobox{background:var(--surface2);border-radius:14px;padding:12px 14px;margin:12px 0;font-size:14px;box-shadow:inset 3px 0 0 var(--sage)}
+.infobox.warn{box-shadow:inset 3px 0 0 #C9A55C}.infobox.bad{box-shadow:inset 3px 0 0 var(--brick)}
+.docs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.doc{position:relative;width:72px;height:72px;border-radius:12px;overflow:hidden;background:var(--surface2);display:block;padding:0}
+.doc img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .2s}.doc img.ok{opacity:1}
+.doc button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(30,28,26,.65);color:#fff;font-size:14px;line-height:1}
+.doc.add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink2);font-size:12px;border:1.5px dashed var(--ink3);background:transparent}
+.doc.add svg{width:22px;height:22px}
+.viewer img{width:100%;height:auto;display:block;border-radius:12px;opacity:0;transition:opacity .2s}.viewer img.ok{opacity:1}
+.cated .flags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 14px}
 .retinfo{background:var(--surface2);border-radius:14px;padding:12px 14px;margin:12px 0;font-size:14px}
 .checkcard{text-align:center}
 .checkcard .ph{max-width:260px;margin:0 auto 12px}
@@ -355,9 +373,9 @@ body.locked .toast.in{transform:translate(-50%,0)}
 <body>
 <main class="app" id="app" aria-live="polite"></main>
 <nav class="nav" id="nav" aria-label="主選單">
-  <button data-a="nav" data-v="closet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg><span class="lbl">衣櫥</span></button>
-  <button data-a="nav" data-v="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">盤點</span></button>
-  <button class="add" data-a="add" aria-label="新增衣物"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="lbl sr">新增</span></button>
+  <button data-a="nav" data-v="closet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg><span class="lbl">清單</span></button>
+  <button data-a="nav" data-v="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl" id="navOv">盤點</span></button>
+  <button class="add" data-a="add" aria-label="新增"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="lbl sr">新增</span></button>
   <button data-a="nav" data-v="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/><path d="M7 6V4.8C7 4.4 7.4 4 7.8 4h8.4c.4 0 .8.4.8.8V6"/></svg><span class="lbl">花費</span></button>
   <button data-a="nav" data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="lbl" id="navSet">設定</span></button>
 </nav>
@@ -365,11 +383,12 @@ body.locked .toast.in{transform:translate(-50%,0)}
 <div class="toast" id="toast" role="status"></div>
 <input type="file" id="fileOne" accept="image/*" class="hide">
 <input type="file" id="fileMany" accept="image/*" multiple class="hide">
+<input type="file" id="fileDocs" accept="image/*" multiple class="hide">
 <input type="file" id="fileBackup" accept=".json,application/json" class="hide">
 
 <script>
 'use strict';
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '2.0.1';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -385,18 +404,52 @@ const swBg = k => !COLOR[k] ? 'var(--line)' : (COLOR[k].h==='multi' ? MULTI_BG :
 const SEASONS = ['春','夏','秋','冬'];
 const CURRENCIES = [['TWD','台幣'],['JPY','日圓'],['KRW','韓元'],['USD','美元'],['EUR','歐元'],['GBP','英鎊'],['HKD','港幣'],['CNY','人民幣'],['THB','泰銖'],['SGD','星幣'],['AUD','澳幣'],['VND','越南盾']];
 const CUR_SYMBOL = {TWD:'NT$',JPY:'¥',KRW:'₩',USD:'US$',EUR:'€',GBP:'£',HKD:'HK$',CNY:'CN¥',THB:'฿',SGD:'S$',AUD:'A$',VND:'₫'};
-const METHODS = [['trash','丟棄'],['donate','捐回收箱'],['gift','送人'],['sold','賣掉'],['lost','遺失']];
-const METHOD = Object.fromEntries(METHODS);
-const DEFAULT_GROUPS = ['上衣','下身','貼身衣物','居家','配件','鞋子'];
+const BOOKS = {
+  closet:{name:'衣櫥',title:'我的衣櫥',noun:'衣物',unit:'件',own:'在衣櫥',colors:true,seasons:true,size:'尺寸',verb:'穿',idle:'久未穿',buyNoun:'衣服',locHint:'衣櫃、收納箱 A…'},
+  appliance:{name:'電器',title:'我的電器',noun:'電器',unit:'台',own:'使用中',colors:false,seasons:false,size:null,verb:null,idle:null,buyNoun:'電器',locHint:'客廳、廚房、書房…'},
+  goods:{name:'物品',title:'我的物品',noun:'物品',unit:'個',own:'擁有中',colors:true,seasons:false,size:'規格',verb:'用',idle:'久未用',buyNoun:'東西',locHint:'化妝台、抽屜、收納箱…'}
+};
+const BOOK_KEYS = ['closet','appliance','goods'];
+const METHODS_BY = {
+  closet:[['trash','丟棄'],['donate','捐回收箱'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
+  appliance:[['broken','壞掉丟棄'],['recycle','回收'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
+  goods:[['usedup','用完了'],['trash','丟棄'],['donate','捐出'],['gift','送人'],['sold','賣掉'],['lost','遺失']]
+};
+const METHOD_ALL = {trash:'丟棄',donate:'捐出',gift:'送人',sold:'賣掉',lost:'遺失',broken:'壞掉丟棄',recycle:'回收',usedup:'用完了'};
+const methodName = (book,k) => (METHODS_BY[book]||[]).find(m=>m[0]===k)?.[1] || METHOD_ALL[k] || '已淘汰';
+const DEFAULT_GROUPS_BY = {
+  closet:['上衣','下身','貼身衣物','居家','配件','鞋子'],
+  appliance:['3C','影音','廚房家電','生活家電','大型家電','個人護理'],
+  goods:['保養品','化妝品','包包','飾品配件','收藏品','文具','生活用品']
+};
+const mkCats=(book,rows)=>rows.map(([id,name,group,fl={}],i)=>({id,name,group,book,limit:null,idle:fl.idle!==false,wear:!!fl.wear,expiry:!!fl.expiry,order:i}));
+const NOIDLE={idle:false}, EXP={expiry:true,idle:false}, WEAR={wear:true};
 const DEFAULT_CATS = [
-  ['shirt','襯衫','上衣'],['jacket','外套','上衣'],['ls_tee','長袖T','上衣'],['ss_tee','短袖T','上衣'],['hoodie','帽T','上衣'],['sweater','毛衣','上衣'],
-  ['bottom','下衣','下身'],
-  ['bra','內衣','貼身衣物',false],['panties','內褲','貼身衣物',false],['heattech','發熱衣','貼身衣物',false],['cool','涼感衣','貼身衣物',false],['socks','襪子','貼身衣物',false],
-  ['pj_top','睡衣','居家',false],['pj_bottom','睡褲','居家',false],
-  ['hat','帽子','配件'],['scarf','圍巾','配件'],['sleeve','袖套','配件'],
-  ['shoes','鞋子','鞋子']
-].map(([id,name,group,idle],i)=>({id,name,group,limit:null,idle:idle!==false,order:i}));
-const DEFAULT_LOCATIONS = ['衣櫃','抽屜','收納箱','鞋櫃'];
+  ...mkCats('closet',[
+    ['shirt','襯衫','上衣'],['jacket','外套','上衣'],['ls_tee','長袖T','上衣'],['ss_tee','短袖T','上衣'],['hoodie','帽T','上衣'],['sweater','毛衣','上衣'],
+    ['bottom','下衣','下身'],
+    ['bra','內衣','貼身衣物',NOIDLE],['panties','內褲','貼身衣物',NOIDLE],['heattech','發熱衣','貼身衣物',NOIDLE],['cool','涼感衣','貼身衣物',NOIDLE],['socks','襪子','貼身衣物',NOIDLE],
+    ['pj_top','睡衣','居家',NOIDLE],['pj_bottom','睡褲','居家',NOIDLE],
+    ['hat','帽子','配件'],['scarf','圍巾','配件'],['sleeve','袖套','配件'],
+    ['shoes','鞋子','鞋子']]),
+  ...mkCats('appliance',[
+    ['a_phone','手機','3C',NOIDLE],['a_pc','電腦','3C',NOIDLE],['a_tablet','平板','3C',NOIDLE],['a_earphone','耳機','3C',NOIDLE],['a_camera','相機','3C',NOIDLE],['a_watch','智慧手錶','3C',NOIDLE],
+    ['a_tv','電視','影音',NOIDLE],['a_speaker','音響／喇叭','影音',NOIDLE],['a_game','遊戲機','影音',NOIDLE],
+    ['a_cooker','電鍋','廚房家電',NOIDLE],['a_airfryer','氣炸鍋','廚房家電',NOIDLE],['a_coffee','咖啡機','廚房家電',NOIDLE],['a_oven','微波爐／烤箱','廚房家電',NOIDLE],['a_blender','果汁機','廚房家電',NOIDLE],
+    ['a_vacuum','吸塵器','生活家電',NOIDLE],['a_dehum','除濕機','生活家電',NOIDLE],['a_purifier','空氣清淨機','生活家電',NOIDLE],['a_fan','電風扇','生活家電',NOIDLE],['a_heater','電暖器','生活家電',NOIDLE],
+    ['a_fridge','冰箱','大型家電',NOIDLE],['a_washer','洗衣機','大型家電',NOIDLE],['a_aircon','冷氣','大型家電',NOIDLE],
+    ['a_dryer','吹風機','個人護理',NOIDLE],['a_toothbrush','電動牙刷','個人護理',NOIDLE],['a_beauty','美容儀器','個人護理',NOIDLE]]),
+  ...mkCats('goods',[
+    ['g_toner','化妝水','保養品',EXP],['g_lotion','乳液／乳霜','保養品',EXP],['g_serum','精華液','保養品',EXP],['g_sunscreen','防曬','保養品',EXP],['g_cleanser','洗面乳','保養品',EXP],['g_mask','面膜','保養品',EXP],
+    ['g_base','底妝','化妝品',EXP],['g_eye','眼妝','化妝品',EXP],['g_lip','唇彩','化妝品',EXP],['g_perfume','香水','化妝品',EXP],
+    ['g_bag','包包','包包',WEAR],['g_wallet','錢包','包包',WEAR],
+    ['g_necklace','項鍊','飾品配件',WEAR],['g_earring','耳環','飾品配件',WEAR],['g_ring','戒指','飾品配件',WEAR],['g_watch','手錶','飾品配件',WEAR],['g_hair','髮飾','飾品配件',WEAR],['g_glasses','眼鏡','飾品配件',WEAR],
+    ['g_figure','公仔','收藏品',NOIDLE],['g_card','卡片／周邊','收藏品',NOIDLE],['g_model','模型','收藏品',NOIDLE],
+    ['g_pen','筆','文具',NOIDLE],['g_note','筆記本','文具',NOIDLE],['g_stationery','其他文具','文具',NOIDLE],
+    ['g_kitchen','廚房用品','生活用品',NOIDLE],['g_clean','清潔用品','生活用品',NOIDLE],['g_bedding','寢具','生活用品',NOIDLE],['g_storage','收納用品','生活用品',NOIDLE]])
+];
+const LOCS_BY = {closet:['衣櫃','抽屜','收納箱','鞋櫃'],appliance:['客廳','廚房','臥室','書房','浴室'],goods:['化妝台','抽屜','收納箱','書桌','櫃子']};
+const DEFAULT_LOCATIONS = LOCS_BY.closet;
 const DEFAULT_CHANNELS = ['實體店','網購','二手','別人送的'];
 
 /* ---------- 小工具 ---------- */
@@ -426,6 +479,8 @@ const ICON = {
   trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9.5 7V4.5h5V7"/></svg>',
   rotl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 4v5h5"/><path d="M4.6 13a7.5 7.5 0 1 0 1.8-7.4L4 9"/></svg>',
   rotr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 4v5h-5"/><path d="M19.4 13a7.5 7.5 0 1 1-1.8-7.4L20 9"/></svg>',
+  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0V8ZM12 17v4"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5v-9Z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>',
   hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
 };
 
@@ -455,36 +510,64 @@ const DB = {
 };
 
 /* ---------- 狀態 ---------- */
+const newF = () => ({status:'own',q:'',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],sort:'new'});
 const S = {
-  items:[], settings:null, rates:null, view:'closet',
-  f:{status:'own',q:'',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],sort:'new'},
+  items:[], settings:null, rates:null, view:'closet', book:'closet',
+  fBy:{closet:newF(),appliance:newF(),goods:newF()}, f:null,
   selecting:false, sel:new Set(), railAnimated:false
 };
-function defaultSettings(){ return {groups:[...DEFAULT_GROUPS],cats:DEFAULT_CATS.map(c=>({...c})),budget:null,idleDays:365,manualRates:{},lastBackup:null,firstUse:Date.now(),lastCheckAt:null,theme:'auto',customColors:[],channels:[...DEFAULT_CHANNELS]}; }
+S.f=S.fBy.closet;
+function defaultSettings(){ return {groupsBy:JSON.parse(JSON.stringify(DEFAULT_GROUPS_BY)),cats:DEFAULT_CATS.map(c=>({...c})),budgetBy:{},idleDays:365,manualRates:{},lastBackup:null,firstUse:Date.now(),lastCheckBy:{},theme:'auto',customColors:[],channels:[...DEFAULT_CHANNELS]}; }
+function migrateSettings(src){ // 舊版（只有衣櫥）設定升級成三本
+  const d=defaultSettings(); const st={...d,...(src||{})};
+  st.groupsBy = (st.groupsBy && !Array.isArray(st.groupsBy)) ? {...st.groupsBy} : {};
+  if(Array.isArray(st.groups)) st.groupsBy.closet=st.groups.slice();
+  delete st.groups;
+  st.cats=(st.cats||[]).map(c=>({...c,book:c.book||'closet'}));
+  BOOK_KEYS.forEach(b=>{ if(!Array.isArray(st.groupsBy[b])) st.groupsBy[b]=[...d.groupsBy[b]];
+    if(!st.cats.some(c=>c.book===b)) st.cats.push(...d.cats.filter(c=>c.book===b).map(c=>({...c}))); });
+  st.budgetBy={...(st.budgetBy||{})}; if(st.budget!=null && st.budgetBy.closet==null) st.budgetBy.closet=st.budget; delete st.budget;
+  st.lastCheckBy={...(st.lastCheckBy||{})}; if(st.lastCheckAt && !st.lastCheckBy.closet) st.lastCheckBy.closet=st.lastCheckAt; delete st.lastCheckAt;
+  return st;
+}
 async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); }
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 
 /* ---------- 衍生資料 ---------- */
-const cats = () => [...S.settings.cats].sort((a,b)=>a.order-b.order);
+const bookOf = it => it.book||'closet';
+const BK = (b=S.book) => BOOKS[b];
+const BI = (b=S.book) => S.items.filter(i=>bookOf(i)===b);
+const groups = (b=S.book) => S.settings.groupsBy[b];
+const cats = (b=S.book) => S.settings.cats.filter(c=>c.book===b).sort((a,b2)=>a.order-b2.order);
 const catById = id => S.settings.cats.find(c=>c.id===id);
 const catName = id => catById(id)?.name || '未分類';
 const owned = it => it.status==='active' || it.status==='selling';
-const ownedItems = () => S.items.filter(owned);
+const ownedItems = (b=S.book) => BI(b).filter(owned);
 const qtyOf = it => Math.max(1, it.qty||1);
 const sumQty = arr => arr.reduce((s,it)=>s+qtyOf(it),0);
-const itemName = it => it.name?.trim() || `${it.colors?.[0]&&COLOR[it.colors[0]]?COLOR[it.colors[0]].n+'色':''}${catName(it.cat)}`;
+function tracksWear(it){ const b=bookOf(it); if(b==='closet') return true; if(b==='goods') return !!catById(it.cat)?.wear; return false; }
+function tracksExpiry(it){ return bookOf(it)==='goods' && !!catById(it.cat)?.expiry; }
+function itemName(it){ if(it.name?.trim()) return it.name.trim(); const b=bookOf(it);
+  const col=it.colors?.[0]&&COLOR[it.colors[0]]?COLOR[it.colors[0]].n+'色':''; const br=it.brand?it.brand+' ':'';
+  if(b==='appliance') return br+catName(it.cat); if(b==='goods') return br? br+catName(it.cat) : col+catName(it.cat); return col+catName(it.cat); }
 const wearCount = it => (it.wears||[]).length;
 const lastWear = it => (it.wears||[]).reduce((m,d)=>d>m?d:m,'');
-function idleSince(it){ // 從哪一天開始算「沒穿」：最後穿著、購入日、開始建檔日 取最晚
+function idleSince(it){ // 從哪一天開始算「沒穿／沒用」：最後一次、購入日、開始建檔日 取最晚
   const tracked = ymd(new Date(it.createdAt||Date.now()));
   return [lastWear(it), it.date||'', tracked].reduce((m,d)=>d>m?d:m,'');
 }
-function isIdle(it){ if(!owned(it)) return false; const c=catById(it.cat); if(c && c.idle===false) return false; return daysSince(idleSince(it)) >= (S.settings.idleDays||365); }
+function isIdle(it){ if(!owned(it)||!tracksWear(it)) return false; const c=catById(it.cat); if(c && c.idle===false) return false; return daysSince(idleSince(it)) >= (S.settings.idleDays||365); }
 const cpw = it => it.price==null ? null : it.price / Math.max(1, wearCount(it));
-function brandDisplayMap(field){ // 不分大小寫合併，顯示最常用的寫法
+function addMonths(s,m){ const d=parseYmd(s); if(!d) return ''; const day=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+m); const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); d.setDate(Math.min(day,last)); return ymd(d); }
+const daysUntil = s => { const d=daysSince(s); return d==null?null:-d; };
+function effExpiry(it){ if(!tracksExpiry(it)) return ''; const c=[]; if(it.expiry) c.push(it.expiry); if(it.openedAt&&it.paoMonths) c.push(addMonths(it.openedAt,it.paoMonths)); return c.sort()[0]||''; }
+function expiryState(it){ const e=effExpiry(it); if(!e||!owned(it)) return null; const n=daysUntil(e); return {k:n<0?'expired':n<=30?'soon':'ok',n,e}; }
+function warrantyState(it){ if(bookOf(it)!=='appliance'||!it.warrantyUntil||!owned(it)) return null; const n=daysUntil(it.warrantyUntil); return {k:n<0?'expired':n<=60?'soon':'ok',n}; }
+const logsCost = it => (it.logs||[]).reduce((s,l)=>s+(l.cost||0),0);
+function brandDisplayMap(field,arr=BI()){ // 不分大小寫合併，顯示最常用的寫法
   const m=new Map();
-  S.items.forEach(it=>{ const v=(it[field]||'').trim(); if(!v) return; const k=normKey(v); if(!m.has(k)) m.set(k,new Map()); const sub=m.get(k); sub.set(v,(sub.get(v)||0)+1); });
+  arr.forEach(it=>{ const v=(it[field]||'').trim(); if(!v) return; const k=normKey(v); if(!m.has(k)) m.set(k,new Map()); const sub=m.get(k); sub.set(v,(sub.get(v)||0)+1); });
   const out=new Map(); m.forEach((sub,k)=>{ out.set(k,[...sub.entries()].sort((a,b)=>b[1]-a[1])[0][0]); }); return out;
 }
 function convertToTWD(amount,cur,rateOverride){ if(amount==null) return null; if(cur==='TWD') return amount; const r=rateOverride||currentRate(cur); return r? amount*r : null; }
@@ -495,7 +578,7 @@ function matchItem(it,f,skip={}){
   if(f.status==='own' && !owned(it)) return false;
   if(f.status==='selling' && it.status!=='selling') return false;
   if(f.status==='retired' && it.status!=='retired') return false;
-  if(f.q){ const q=normKey(f.q); const hay=normKey([itemName(it),it.brand,it.store,it.note,catName(it.cat),it.size,it.location,(it.colors||[]).map(c=>COLOR[c]?.n).join(' ')].join(' ')); if(!q.split(' ').every(w=>hay.includes(w))) return false; }
+  if(f.q){ const q=normKey(f.q); const hay=normKey([itemName(it),it.brand,it.store,it.note,catName(it.cat),it.size,it.model,it.serial,it.location,(it.colors||[]).map(c=>COLOR[c]?.n).join(' ')].join(' ')); if(!q.split(' ').every(w=>hay.includes(w))) return false; }
   if(f.cats.length && !f.cats.includes(it.cat)) return false;
   if(!skip.colors && f.colors.length && !(it.colors||[]).some(c=>f.colors.includes(c))) return false;
   if(f.brands.length && !f.brands.includes(normKey(it.brand))) return false;
@@ -504,7 +587,13 @@ function matchItem(it,f,skip={}){
   if(f.locations.length && !f.locations.includes(normKey(it.location))) return false;
   return true;
 }
-const SORTS = [['new','最新購入'],['old','最早購入'],['priceDesc','價格高→低'],['priceAsc','價格低→高'],['wearDesc','穿最多次'],['idle','最久沒穿'],['cpwDesc','每次成本最高']];
+const SORT_LABELS = {new:'最新購入',old:'最早購入',priceDesc:'價格高→低',priceAsc:'價格低→高',wearDesc:'用最多次',idle:'最久沒用',cpwDesc:'每次成本最高',warranty:'保固最快到期',expiry:'最快過期'};
+function sortsFor(b=S.book){
+  const base=['new','old','priceDesc','priceAsc'];
+  if(b==='closet') return [...base,'wearDesc','idle','cpwDesc'].map(k=>[k,k==='wearDesc'?'穿最多次':k==='idle'?'最久沒穿':SORT_LABELS[k]]);
+  if(b==='goods') return [...base,'wearDesc','idle','cpwDesc','expiry'].map(k=>[k,SORT_LABELS[k]]);
+  return [...base,'warranty'].map(k=>[k,SORT_LABELS[k]]);
+}
 function sortItems(arr,key){
   const by = {
     new:(a,b)=>(b.date||'').localeCompare(a.date||'')||b.createdAt-a.createdAt,
@@ -513,12 +602,15 @@ function sortItems(arr,key){
     priceAsc:(a,b)=>(a.price??1e15)-(b.price??1e15),
     wearDesc:(a,b)=>wearCount(b)-wearCount(a),
     idle:(a,b)=>idleSince(a).localeCompare(idleSince(b)),
-    cpwDesc:(a,b)=>(cpw(b)??-1)-(cpw(a)??-1)
+    cpwDesc:(a,b)=>(cpw(b)??-1)-(cpw(a)??-1),
+    warranty:(a,b)=>(a.warrantyUntil||'9999').localeCompare(b.warrantyUntil||'9999'),
+    expiry:(a,b)=>(effExpiry(a)||'9999').localeCompare(effExpiry(b)||'9999')
   }[key]||(()=>0);
   return [...arr].sort(by);
 }
-function filtered(){ return sortItems(S.items.filter(it=>matchItem(it,S.f)),S.f.sort); }
+function filtered(){ const keys=sortsFor().map(s=>s[0]); return sortItems(BI().filter(it=>matchItem(it,S.f)),keys.includes(S.f.sort)?S.f.sort:'new'); }
 const filterCount = () => ['cats','colors','brands','stores','seasons','locations'].reduce((n,k)=>n+S.f[k].length,0);
+function setF(f){ S.f=f; S.fBy[S.book]=f; saveFilters(); }
 
 /* ---------- 圖片 ---------- */
 const urlCache = new Map();
@@ -542,19 +634,19 @@ function drawRotated(im,max,rot){ // rot：0／90／180／270（順時針）
 async function encode(im,max,q,rot=0){ const cv=drawRotated(im,max,rot); const out=await canvasToBuf(cv,q); cv.width=cv.height=0; return out; }
 async function rotatedPreviewURL(src,rot){ const im=await loadImage(src); const cv=drawRotated(im,1000,rot);
   const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',.85)); cv.width=cv.height=0; return URL.createObjectURL(b); }
-async function processImage(file,rot=0){
+async function processImage(file,rot=0,maxFull=1400){
   const url=URL.createObjectURL(file);
   try{
     let im; try{ im=await loadImage(url); }catch(e){
       const heic=/heic|heif/i.test(file.type)||/\.hei[cf]$/i.test(file.name||'');
       throw new Error(heic?'這張照片是 HEIC 格式，這個瀏覽器讀不了。請改用 JPG／PNG，或在 iPhone 上直接從 App 選照片。':'這個檔案無法當作照片讀取，請換一張 JPG 或 PNG。');
     }
-    const full=await encode(im,1400,.84,rot); const thumb=await encode(im,520,.8,rot);
+    const full=await encode(im,maxFull,.84,rot); const thumb=await encode(im,520,.8,rot);
     return {full,thumb};
   } finally { URL.revokeObjectURL(url); }
 }
 async function deleteImageIfUnused(imgId){
-  if(!imgId) return; if(S.items.some(it=>it.photo===imgId)) return;
+  if(!imgId) return; if(S.items.some(it=>it.photo===imgId||(it.docs||[]).includes(imgId))) return;
   await DB.del('images',imgId); dropImgCache(imgId);
 }
 let io=null;
@@ -702,24 +794,33 @@ async function removeItem(id){ const it=S.items.find(x=>x.id===id); if(!it) retu
 let persistAsked=false;
 function askPersist(){ if(persistAsked) return; persistAsked=true; try{ navigator.storage?.persist?.(); }catch(e){} }
 
+const BOOK_ICON = {closet:ICON.hanger, appliance:ICON.plug, goods:ICON.box};
 /* ---------- 導覽與畫面 ---------- */
 function setView(v){ S.view=v; S.selecting=false; S.sel.clear(); lsSet('closet.view',v); render(); window.scrollTo(0,0); }
+function setBook(b){ if(!BOOKS[b]||b===S.book) return; S.book=b; S.f=S.fBy[b]; S.selecting=false; S.sel.clear(); S.railAnimated=false; lsSet('closet.book',b); render(); }
+function alertCount(){ return S.items.filter(it=>{ const w=warrantyState(it), e=expiryState(it); return (w&&w.k==='soon'&&w.n<=30)||(e&&e.k!=='ok'); }).length; }
 function render(){
   $$('#nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
-  const needBackup = backupDue(); $('#navSet').classList.toggle('dot',needBackup);
+  $('#navSet').classList.toggle('dot',backupDue()); $('#navOv').classList.toggle('dot',alertCount()>0);
+  $('#nav .add').setAttribute('aria-label','新增'+BK().noun);
   ({closet:renderCloset,overview:renderOverview,money:renderMoney,settings:renderSettings}[S.view]||renderCloset)();
   renderSelbar(); hydrateImages($('#app'));
 }
 function backupDue(){ const st=S.settings; if(S.items.length<10) return false; if(!st.lastBackup) return Date.now()-st.firstUse>7*864e5; return Date.now()-st.lastBackup>30*864e5; }
+function bookTabsHTML(act='book',cur=S.book,withAll=false){
+  const keys=withAll?[...BOOK_KEYS,'all']:BOOK_KEYS;
+  return `<div class="booktabs" role="tablist" aria-label="切換帳本">${keys.map(k=>{ const n=k==='all'?null:sumQty(ownedItems(k));
+    return `<button role="tab" aria-selected="${cur===k}" data-a="${act}" data-k="${k}" class="${cur===k?'on':''}">${k==='all'?'全部':BOOKS[k].name}${n!=null?`<sup class="num">${fmtInt(n)}</sup>`:''}</button>`; }).join('')}</div>`;
+}
 
-/* 衣櫥 */
+/* 清單 */
 function renderCloset(){
-  const f=S.f;
-  $('#app').innerHTML=`
-  <div class="vh"><div><h1>我的衣櫥</h1><div class="sub" id="ownSub"></div></div>
+  const f=S.f, B=BK();
+  $('#app').innerHTML=`${bookTabsHTML()}
+  <div class="vh"><div><h1>${B.title}</h1><div class="sub" id="ownSub"></div></div>
     <button class="iconbtn${S.selecting?' on':''}" data-a="selmode" aria-label="多選">${ICON.select}</button></div>
   <div id="railBox"></div>
-  <div class="toolbar"><label class="search">${ICON.search}<input id="q" type="search" placeholder="搜尋名稱、品牌、店家、備註" value="${esc(f.q)}" enterkeyhint="search" autocomplete="off"></label>
+  <div class="toolbar"><label class="search">${ICON.search}<input id="q" type="search" placeholder="${S.book==='appliance'?'搜尋名稱、品牌、型號、序號':'搜尋名稱、品牌、店家、備註'}" value="${esc(f.q)}" enterkeyhint="search" autocomplete="off"></label>
     <button class="iconbtn${filterCount()?' on':''}" data-a="filters" aria-label="篩選與排序">${ICON.filter}</button></div>
   <div id="resBox"></div>`;
   const q=$('#q'); let qt, composing=false;
@@ -732,14 +833,15 @@ function renderCloset(){
   S.railAnimated=true;
 }
 function fillCloset(){
-  const f=S.f; const list=filtered(); const ownedAll=ownedItems(); const totalQty=sumQty(list);
-  const sellingN=sumQty(S.items.filter(i=>i.status==='selling'));
-  $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedAll))}</span> 件${sellingN?`，其中 <span class="num">${sellingN}</span> 件待售`:''}`;
-  $('#railBox').innerHTML=railHTML(S.items.filter(it=>matchItem(it,f,{colors:true})));
-  const statusSeg=[['own','在衣櫥'],['selling','待售'],['retired','已淘汰'],['all','全部']].map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
+  const f=S.f, B=BK(); const list=filtered(); const totalQty=sumQty(list);
+  const sellingN=sumQty(BI().filter(i=>i.status==='selling'));
+  $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedItems()))}</span> ${B.unit}${sellingN?`，其中 <span class="num">${sellingN}</span> ${B.unit}待售`:''}`;
+  $('#railBox').innerHTML=B.colors?railHTML(BI().filter(it=>matchItem(it,f,{colors:true}))):'';
+  const statusSeg=[['own',B.own],['selling','待售'],['retired','已淘汰'],['all','全部']].map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
+  const sortName=(sortsFor().find(s=>s[0]===f.sort)||sortsFor()[0])[1];
   $('#resBox').innerHTML=`
   <div class="chips"><div class="seg-ctl" role="tablist">${statusSeg}</div>${activeFilterChips()}</div>
-  <div class="countline"><span>${list.length?`<span class="num">${fmtInt(totalQty)}</span> 件${list.length!==totalQty?`（${list.length} 筆）`:''}・${esc(SORTS.find(s=>s[0]===f.sort)?.[1]||'')}`:''}</span>${(filterCount()||f.q)?'<button class="linkbtn" data-a="clearf">清除篩選</button>':''}</div>
+  <div class="countline"><span>${list.length?`<span class="num">${fmtInt(totalQty)}</span> ${B.unit}${list.length!==totalQty?`（${list.length} 筆）`:''}・${esc(sortName)}`:''}</span>${(filterCount()||f.q)?'<button class="linkbtn" data-a="clearf">清除篩選</button>':''}</div>
   ${list.length?`<div class="grid${S.selecting?' selecting':''}" id="grid">${list.map(tileHTML).join('')}</div>`:emptyHTML()}`;
   hydrateImages($('#app'));
 }
@@ -748,9 +850,9 @@ function railHTML(base){
   const total=[...counts.values()].reduce((a,b)=>a+b,0);
   if(!total) return '';
   const arr=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
-  const sel=S.f.colors;
-  return `<div class="rail${sel.length?' has-sel':''}${!S.railAnimated?' anim':''}" aria-label="衣櫥色譜：依主色統計">
-    <div class="bar">${arr.map(([k,n],i)=>`<button class="seg${sel.includes(k)?' sel':''}" data-a="railc" data-k="${k}" style="flex:${n} 1 0;background:${swBg(k)};animation-delay:${i*40}ms" aria-label="${COLOR[k]?.n}色 ${n} 件" title="${COLOR[k]?.n} ${n} 件"></button>`).join('')}</div>
+  const sel=S.f.colors, u=BK().unit;
+  return `<div class="rail${sel.length?' has-sel':''}${!S.railAnimated?' anim':''}" aria-label="${BK().name}色譜：依主色統計">
+    <div class="bar">${arr.map(([k,n],i)=>`<button class="seg${sel.includes(k)?' sel':''}" data-a="railc" data-k="${k}" style="flex:${n} 1 0;background:${swBg(k)};animation-delay:${i*40}ms" aria-label="${COLOR[k]?.n}色 ${n} ${u}" title="${COLOR[k]?.n} ${n} ${u}"></button>`).join('')}</div>
     <div class="legend">${arr.slice(0,6).map(([k,n])=>`<button data-a="railc" data-k="${k}"><i style="background:${swBg(k)}"></i>${COLOR[k]?.n} <b class="num">${Math.round(n/total*100)}%</b></button>`).join('')}${arr.length>6?`<span>等 ${arr.length} 色</span>`:''}</div></div>`;
 }
 function activeFilterChips(){
@@ -765,30 +867,39 @@ function activeFilterChips(){
   return out.map(([k,v,n,c])=>`<button class="chip on" data-a="rmf" data-k="${k}" data-v="${esc(v)}">${c?`<i class="sw" style="background:${swBg(c)}"></i>`:''}${esc(n)}<span class="x">×</span></button>`).join('');
 }
 function tileHTML(it){
-  const b=[];
+  const b=[], bk=bookOf(it);
   if(it.status==='selling') b.push('<span class="badge sell">待售</span>');
-  if(it.status==='retired') b.push(`<span class="badge ret">${METHOD[it.retire?.method]||'已淘汰'}</span>`);
-  if(isIdle(it)) b.push('<span class="badge idle">久未穿</span>');
+  if(it.status==='retired') b.push(`<span class="badge ret">${methodName(bk,it.retire?.method)}</span>`);
+  if(isIdle(it)) b.push(`<span class="badge idle">${BOOKS[bk].idle}</span>`);
+  const ws=warrantyState(it); if(ws&&ws.k==='soon') b.push(`<span class="badge warn">保固剩 ${ws.n} 天</span>`);
+  const es=expiryState(it); if(es&&es.k==='soon') b.push(`<span class="badge warn">${es.n===0?'今天到期':es.n+' 天後到期'}</span>`); if(es&&es.k==='expired') b.push('<span class="badge bad">已過期</span>');
   if(qtyOf(it)>1) b.push(`<span class="badge qty num">×${qtyOf(it)}</span>`);
+  const sub = bk==='appliance' ? (it.model||it.brand||catName(it.cat)) : (it.brand||catName(it.cat));
   return `<button class="tile${it.status==='retired'?' retired':''}${S.sel.has(it.id)?' sel':''}" data-a="tile" data-id="${it.id}">
     <div class="ph">${photoHTML(it)}</div><div class="badges">${b.join('')}</div><span class="tick"></span>
     <div class="tt">${esc(itemName(it))}</div>
-    <div class="ts"><span>${esc(it.brand||catName(it.cat))}</span><span class="num">${it.price!=null?money(it.price):''}</span></div></button>`;
+    <div class="ts"><span>${esc(sub)}</span><span class="num">${it.price!=null?money(it.price):''}</span></div></button>`;
 }
+const EMPTY_TEXT = {
+  closet:['從第一件開始建檔','拍一張照、選分類和顏色就能存。<br>家裡已經有很多衣服的話，可以用「批次拍照建檔」一次選多張照片。','新增一件'],
+  appliance:['從第一台電器開始建檔','記下型號、序號和保固到期日，壞了要送修時就查得到。<br>發票和保固卡也可以拍照存起來。','新增一台'],
+  goods:['從第一個物品開始建檔','保養品、化妝品可以記開封日和有效期限，快過期會提醒你。<br>包包、飾品、收藏品、生活用品也都能放進來。','新增一個']
+};
 function emptyHTML(){
-  if(!S.items.length) return `<div class="empty">${ICON.hanger}<h3>從第一件開始建檔</h3><p>拍一張照、選分類和顏色就能存。<br>家裡已經有很多衣服的話，可以用「批次拍照建檔」一次選多張照片。</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">新增一件</button><button class="btn soft" data-a="batch">批次拍照建檔</button></div></div>`;
-  return `<div class="empty">${ICON.search}<h3>沒有符合的衣物</h3><p>試試換個關鍵字，或清除篩選條件。</p><button class="btn" data-a="clearf">清除篩選</button></div>`;
+  if(!BI().length){ const [h,p,btn]=EMPTY_TEXT[S.book]; return `<div class="empty">${BOOK_ICON[S.book]}<h3>${h}</h3><p>${p}</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">${btn}</button><button class="btn soft" data-a="batch">批次拍照建檔</button></div></div>`; }
+  return `<div class="empty">${ICON.search}<h3>沒有符合的${BK().noun}</h3><p>試試換個關鍵字，或清除篩選條件。</p><button class="btn" data-a="clearf">清除篩選</button></div>`;
 }
-function saveFilters(){ lsSet('closet.f',S.f); }
+function saveFilters(){ lsSet('closet.fBy',S.fBy); }
 
 /* 多選 */
 function renderSelbar(){
   const bar=$('#selbar');
   if(!(S.selecting && S.view==='closet')){ bar.classList.remove('in'); document.body.classList.remove('selbar-on'); return; }
   const n=S.sel.size; const items=[...S.sel].map(id=>S.items.find(i=>i.id===id)).filter(Boolean);
-  const anyOwned=items.some(owned);
+  const anyOwned=items.some(owned), canWear=items.some(i=>owned(i)&&tracksWear(i));
+  const verb=BK().verb;
   bar.innerHTML=`<span class="cnt"><span class="num">${n}</span> 筆</span>
-    <button data-a="bulkwear" ${!n||!anyOwned?'disabled':''}>穿了</button>
+    ${verb?`<button data-a="bulkwear" ${!canWear?'disabled':''}>${verb}了</button>`:''}
     <button data-a="bulkloc" ${!n?'disabled':''}>位置</button>
     <button data-a="bulkretire" ${!n||!anyOwned?'disabled':''}>淘汰</button>
     <button data-a="bulkdel" ${!n?'disabled':''}>刪除</button>
@@ -797,157 +908,188 @@ function renderSelbar(){
 }
 
 /* ---------- 盤點總覽 ---------- */
+function liRow(it,sub,rv,bad){ return `<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${sub}</div></span><span class="rv"${bad?' style="color:var(--brick);font-weight:700"':''}>${rv}</span></button>`; }
 function renderOverview(){
-  const own=ownedItems(); const q=sumQty(own);
-  const lastBuy=S.items.map(i=>i.date).filter(Boolean).sort().pop();
+  const B=BK(), bk=S.book; const own=ownedItems(); const q=sumQty(own);
+  const lastBuy=BI().map(i=>i.date).filter(Boolean).sort().pop();
   const gap=lastBuy!=null?daysSince(lastBuy):null;
-  const idle=sortItems(own.filter(isIdle),'idle');
-  const selling=S.items.filter(i=>i.status==='selling');
+  const hasWear=bk!=='appliance';
+  const idle=hasWear?sortItems(own.filter(isIdle),'idle'):[];
+  const selling=BI().filter(i=>i.status==='selling');
   const overs=cats().filter(c=>c.limit && sumQty(own.filter(i=>i.cat===c.id))>c.limit);
-  const groups=S.settings.groups;
   const maxCount=Math.max(1,...cats().map(c=>Math.max(sumQty(own.filter(i=>i.cat===c.id)),c.limit||0)));
-  const lastCheck=S.settings.lastCheckAt;
-  $('#app').innerHTML=`
+  const lastCheck=S.settings.lastCheckBy?.[bk];
+  let alertPanel='';
+  if(bk==='appliance'){
+    const war=own.filter(i=>i.warrantyUntil).map(i=>({it:i,s:warrantyState(i)}));
+    const soon=war.filter(x=>x.s.k==='soon').sort((a,b)=>a.s.n-b.s.n);
+    const inW=war.filter(x=>x.s.k!=='expired').length, outW=war.length-inW, none=own.length-war.length;
+    alertPanel=`<div class="panel"><div class="ph2"><h2>保固</h2><span class="muted small">保固中 ${inW}・已過保 ${outW}${none?`・沒填 ${none}`:''}</span></div>
+      ${soon.length?`<div class="list">${soon.map(x=>liRow(x.it,'保固到 '+fmtDate(x.it.warrantyUntil),x.s.n===0?'今天到期':'剩 '+x.s.n+' 天',x.s.n<=30)).join('')}</div><p class="muted small" style="margin:8px 0 0">有問題趁保固內送修；60 天內到期的會列在這裡。</p>`
+        :`<p class="muted small" style="margin:0">${war.length?'60 天內沒有保固要到期。':'建檔時填上保固（例如 1 年），快到期時會在這裡提醒你。'}</p>`}</div>`;
+  }
+  if(bk==='goods'){
+    const exp=own.map(i=>({it:i,s:expiryState(i)})).filter(x=>x.s);
+    const bad=exp.filter(x=>x.s.k!=='ok').sort((a,b)=>a.s.n-b.s.n);
+    alertPanel=`<div class="panel"><div class="ph2"><h2>有效期限</h2><span class="muted small">${exp.length} 個有記效期</span></div>
+      ${bad.length?`<div class="list">${bad.map(x=>liRow(x.it,'到期日 '+fmtDate(x.s.e),x.s.k==='expired'?'已過期 '+(-x.s.n)+' 天':x.s.n===0?'今天到期':'剩 '+x.s.n+' 天',x.s.k==='expired')).join('')}</div><p class="muted small" style="margin:8px 0 0">過期的保養品、化妝品容易刺激皮膚，可以在詳細頁按「淘汰」→「用完了」或「丟棄」。</p>`
+        :`<p class="muted small" style="margin:0">${exp.length?'30 天內沒有要過期的。':'保養品、化妝品記下開封日或有效期限後，快過期會出現在這裡。'}</p>`}</div>`;
+  }
+  $('#app').innerHTML=`${bookTabsHTML()}
   <div class="vh"><div><h1>盤點</h1><div class="sub">先知道自己有什麼，才不會又買一樣的</div></div></div>
   ${backupDue()?`<div class="notice"><div>${S.settings.lastBackup?`已經 <b>${Math.floor((Date.now()-S.settings.lastBackup)/864e5)}</b> 天沒有備份`:'還沒有備份過'}。資料只存在這支手機裡，建議存一份到 iCloud 或雲端硬碟。</div><button class="btn sm danger" data-a="nav" data-v="settings">去備份</button></div>`:''}
   <div class="cols">
     <div class="panel">
-      <p class="lede">你現在擁有 <b>${fmtInt(q)}</b> 件衣物${overs.length?`，有 <b style="color:var(--brick)">${overs.length}</b> 個分類超過上限`:''}。</p>
-      <div class="muted small">${own.length?`買進總額 ${money(own.reduce((s,i)=>s+(i.price||0),0))}${own.some(i=>i.price==null)?`（${own.filter(i=>i.price==null).length} 筆沒填價格）`:''}`:'還沒有建檔的衣物。'}</div>
+      <p class="lede">你現在擁有 <b>${fmtInt(q)}</b> ${B.unit}${B.noun}${overs.length?`，有 <b style="color:var(--brick)">${overs.length}</b> 個分類超過上限`:''}。</p>
+      <div class="muted small">${own.length?`買進總額 ${money(own.reduce((s,i)=>s+(i.price||0),0))}${own.some(i=>i.price==null)?`（${own.filter(i=>i.price==null).length} 筆沒填價格）`:''}`:`還沒有建檔的${B.noun}。`}</div>
       <div class="btnrow" style="margin-top:14px"><button class="btn pri" data-a="buycheck">想買之前，先查一下</button></div>
     </div>
     <div class="panel">
-      <div class="streak"><div class="big">${gap==null?'—':fmtInt(gap)}</div><div><div style="font-weight:600">天沒買衣服</div><div class="muted small">${gap==null?'記錄購入日期後會開始計算':gap===0?'今天剛買過，接下來挑戰一個月不買':`上次購入是 ${fmtDate(lastBuy)}${longestGap()>gap?`，最長紀錄 ${fmtInt(longestGap())} 天`:'，這是目前最長紀錄'}`}</div></div></div>
+      <div class="streak"><div class="big">${gap==null?'—':fmtInt(gap)}</div><div><div style="font-weight:600">天沒買${B.buyNoun}</div><div class="muted small">${gap==null?'記錄購入日期後會開始計算':gap===0?'今天剛買過，接下來挑戰一個月不買':`上次購入是 ${fmtDate(lastBuy)}${longestGap()>gap?`，最長紀錄 ${fmtInt(longestGap())} 天`:'，這是目前最長紀錄'}`}</div></div></div>
     </div>
   </div>
   <div class="cols" style="margin-top:14px">
     <div class="panel">
       <div class="ph2"><h2>各分類數量</h2><button class="linkbtn" data-a="nav" data-v="settings" data-sec="cats">設定上限</button></div>
-      ${groups.map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; const gq=sumQty(own.filter(i=>cs.some(c=>c.id===i.cat)));
+      ${groups().map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; const gq=sumQty(own.filter(i=>cs.some(c=>c.id===i.cat)));
         return `<div class="catgroup"><h4>${esc(g)}${cs.length>1?`　<span class="num">${gq}</span>`:''}</h4>${cs.map(c=>{ const n=sumQty(own.filter(i=>i.cat===c.id)); const over=c.limit&&n>c.limit;
           return `<button class="catrow${over?' over':''}" data-a="gocat" data-k="${c.id}"><span class="nm">${esc(c.name)}</span><span class="track"><span class="fill" style="width:${n/maxCount*100}%"></span>${c.limit?`<span class="limitmark" style="left:calc(${c.limit/maxCount*100}% - 1px)"></span>`:''}</span><span class="ct">${n}${c.limit?`<span class="faint"> / ${c.limit}</span>`:''}</span></button>`; }).join('')}</div>`; }).join('')}
     </div>
     <div class="stack">
+      ${alertPanel}
       <div class="panel">
         <div class="ph2"><h2>盤點模式</h2><span class="muted small">${lastCheck?'上次 '+fmtDate(ymd(new Date(lastCheck))):'還沒盤點過'}</span></div>
-        <p class="muted small" style="margin:0 0 12px">一件一件確認：還在、要淘汰、還是找不到了。可以只盤一個分類。</p>
+        <p class="muted small" style="margin:0 0 12px">一${B.unit}一${B.unit}確認：還在、要淘汰、還是找不到了。可以只盤一個分類。</p>
         <button class="btn soft block" data-a="check" ${own.length?'':'disabled'}>開始盤點</button>
       </div>
-      <div class="panel">
-        <div class="ph2"><h2>久未穿</h2><span class="muted small">超過 ${S.settings.idleDays} 天</span></div>
-        ${idle.length?`<div class="minis">${idle.slice(0,12).map(it=>`<button class="mini" data-a="open" data-id="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${daysSince(idleSince(it))} 天</div></button>`).join('')}</div>${idle.length>12?`<button class="linkbtn" style="margin-top:8px" data-a="seeidle">看全部 ${idle.length} 件</button>`:''}<p class="muted small" style="margin:10px 0 0">在衣物頁按「今天穿了」記錄穿著；從開始建檔那天起算，舊衣服不會一建檔就被列進來。</p>`
-          :`<p class="muted small" style="margin:0">${own.length?'目前沒有。在衣物頁按「今天穿了」記錄穿著，太久沒穿的會出現在這裡。':'建檔後開始計算。'}</p>`}
-      </div>
+      ${hasWear?`<div class="panel">
+        <div class="ph2"><h2>${B.idle}</h2><span class="muted small">超過 ${S.settings.idleDays} 天</span></div>
+        ${idle.length?`<div class="minis">${idle.slice(0,12).map(it=>`<button class="mini" data-a="open" data-id="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${daysSince(idleSince(it))} 天</div></button>`).join('')}</div>${idle.length>12?`<button class="linkbtn" style="margin-top:8px" data-a="seeidle">看全部 ${idle.length} ${B.unit}</button>`:''}<p class="muted small" style="margin:10px 0 0">在詳細頁按「今天${B.verb}了」記錄；從開始建檔那天起算，舊東西不會一建檔就被列進來。</p>`
+          :`<p class="muted small" style="margin:0">${own.length?`目前沒有。在詳細頁按「今天${B.verb}了」記錄，太久沒${B.verb}的會出現在這裡。`:'建檔後開始計算。'}${bk==='goods'?'（只有包包、飾品這類有開「記錄使用次數」的分類會計算）':''}</p>`}
+      </div>`:''}
       ${selling.length?`<div class="panel"><div class="ph2"><h2>待售中</h2><span class="muted small num">預計 ${money(selling.reduce((s,i)=>s+(i.sell?.ask||0),0))}</span></div>
-        <div class="list">${selling.map(it=>`<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${esc(it.sell?.platform||'')}${it.sell?.listedAt?`　上架 ${daysSince(it.sell.listedAt)} 天`:''}</div></span><span class="rv">${it.sell?.ask!=null?money(it.sell.ask):''}</span></button>`).join('')}</div></div>`:''}
+        <div class="list">${selling.map(it=>liRow(it,esc(it.sell?.platform||'')+(it.sell?.listedAt?`　上架 ${daysSince(it.sell.listedAt)} 天`:''),it.sell?.ask!=null?money(it.sell.ask):'')).join('')}</div></div>`:''}
     </div>
   </div>`;
 }
 function longestGap(){
-  const ds=[...new Set(S.items.map(i=>i.date).filter(Boolean))].sort(); if(!ds.length) return 0;
+  const ds=[...new Set(BI().map(i=>i.date).filter(Boolean))].sort(); if(!ds.length) return 0;
   let best=0; for(let i=1;i<ds.length;i++) best=Math.max(best,Math.round((parseYmd(ds[i])-parseYmd(ds[i-1]))/864e5));
   return Math.max(best,daysSince(ds[ds.length-1]));
 }
 
 /* ---------- 花費 ---------- */
-let moneyYear=String(new Date().getFullYear());
+let moneyYear=String(new Date().getFullYear()), moneyBook=null;
 function renderMoney(){
-  const years=[...new Set(S.items.flatMap(i=>[i.date?.slice(0,4),i.retire?.date?.slice(0,4)]).filter(Boolean))].sort().reverse();
+  const MB=moneyBook||S.book; const isAll=MB==='all';
+  const scope=isAll?S.items:BI(MB); const unit=isAll?'件':BOOKS[MB].unit;
+  const allLogs=scope.flatMap(i=>(i.logs||[]).map(l=>({...l,it:i})));
+  const years=[...new Set([...scope.flatMap(i=>[i.date?.slice(0,4),i.retire?.date?.slice(0,4)]),...allLogs.map(l=>l.date?.slice(0,4))].filter(Boolean))].sort().reverse();
   const curY=String(new Date().getFullYear()); if(!years.includes(curY)) years.unshift(curY);
   if(moneyYear!=='all' && !years.includes(moneyYear)) moneyYear=curY;
-  const Y=moneyYear;
-  const bought=S.items.filter(i=>Y==='all'||i.date?.startsWith(Y));
+  const Y=moneyYear, inY=d=>Y==='all'||(d||'').startsWith(Y);
+  const bought=scope.filter(i=>Y==='all'||i.date?.startsWith(Y));
   const priced=bought.filter(i=>i.price!=null);
-  const spend=priced.reduce((s,i)=>s+i.price,0);
+  const spendBuy=priced.reduce((s,i)=>s+i.price,0);
+  const logs=allLogs.filter(l=>inY(l.date)); const spendLog=logs.reduce((s,l)=>s+(l.cost||0),0);
+  const spend=spendBuy+spendLog;
   const qty=sumQty(bought);
-  const sold=S.items.filter(i=>i.status==='retired'&&i.retire?.method==='sold'&&(Y==='all'||i.retire?.date?.startsWith(Y)));
+  const sold=scope.filter(i=>i.status==='retired'&&i.retire?.method==='sold'&&inY(i.retire?.date));
   const income=sold.reduce((s,i)=>s+(i.retire.income||0),0);
-  const retired=S.items.filter(i=>i.status==='retired'&&(Y==='all'||i.retire?.date?.startsWith(Y)));
-  const budget=S.settings.budget;
+  const retired=scope.filter(i=>i.status==='retired'&&inY(i.retire?.date));
+  const budget=(S.settings.budgetBy||{})[MB];
   const isCur=Y===curY;
-  const months=Array.from({length:12},(_,m)=>priced.filter(i=>Y!=='all'&&+i.date.slice(5,7)===m+1).reduce((s,i)=>s+i.price,0));
+  const months=Array.from({length:12},(_,m)=>Y==='all'?0:priced.filter(i=>+i.date.slice(5,7)===m+1).reduce((s,i)=>s+i.price,0)+logs.filter(l=>+l.date.slice(5,7)===m+1).reduce((s,l)=>s+(l.cost||0),0));
   const maxM=Math.max(1,...months);
-  const byCat=groupSum(priced,i=>catName(i.cat));
-  const bm=brandDisplayMap('brand'), sm=brandDisplayMap('store');
+  let byCat=groupSum(priced,i=>isAll?BOOKS[bookOf(i)].name:catName(i.cat));
+  if(logs.length){ const m=new Map(byCat.map(([k,o])=>[k,{...o}])); logs.forEach(l=>{ const k=isAll?BOOKS[bookOf(l.it)].name:catName(l.it.cat); const o=m.get(k)||{v:0,n:0}; o.v+=l.cost||0; m.set(k,o); }); byCat=[...m.entries()].filter(([k,o])=>o.v>0||o.n>0).sort((x,y)=>y[1].v-x[1].v); } // 維修／耗材也算進去
+  const bm=brandDisplayMap('brand',scope), sm=brandDisplayMap('store',scope);
   const byBrand=groupSum(priced.filter(i=>i.brand),i=>bm.get(normKey(i.brand))||i.brand);
   const byStore=groupSum(priced.filter(i=>i.store),i=>sm.get(normKey(i.store))||i.store);
-  const worn=S.items.filter(i=>i.price!=null&&wearCount(i)>0);
+  const showCpw=MB!=='appliance';
+  const worn=scope.filter(i=>tracksWear(i)&&i.price!=null&&wearCount(i)>0);
   const best=[...worn].sort((a,b)=>cpw(a)-cpw(b)).slice(0,5);
-  const worst=sortItems(ownedItems().filter(i=>i.price!=null),'cpwDesc').slice(0,5);
-  const methods=METHODS.map(([k,n])=>[n,sumQty(retired.filter(i=>i.retire?.method===k))]).filter(x=>x[1]);
+  const worst=sortItems(scope.filter(i=>owned(i)&&tracksWear(i)&&i.price!=null),'cpwDesc').slice(0,5);
+  const mcount=new Map(); retired.forEach(i=>{ const n=methodName(bookOf(i),i.retire?.method); mcount.set(n,(mcount.get(n)||0)+qtyOf(i)); });
+  const methods=[...mcount.entries()].sort((a,b)=>b[1]-a[1]);
   const pace=isCur&&budget? (()=>{ const d=new Date(); const start=new Date(d.getFullYear(),0,1); const end=new Date(d.getFullYear()+1,0,1); return (d-start)/(end-start); })():null;
-  $('#app').innerHTML=`
-  <div class="vh"><div><h1>花費</h1><div class="sub">${Y==='all'?'全部年份':Y+' 年'}的買與賣</div></div>
+  const bname=isAll?'總':BOOKS[MB].name;
+  $('#app').innerHTML=`${bookTabsHTML('mbook',MB,true)}
+  <div class="vh"><div><h1>花費</h1><div class="sub">${isAll?'全部帳本':BOOKS[MB].name}・${Y==='all'?'全部年份':Y+' 年'}的買與賣</div></div>
     <select class="in" style="width:auto;height:40px" id="yearSel" aria-label="年份">${['all',...years].map(y=>`<option value="${y}" ${y===Y?'selected':''}>${y==='all'?'全部':y+' 年'}</option>`).join('')}</select></div>
   <div class="panel">
     <div class="kpis">
-      <div class="kpi hl"><div class="k">買衣花費</div><div class="v num">${money(spend)}</div></div>
-      <div class="kpi"><div class="k">買了幾件</div><div class="v num">${fmtInt(qty)}<small> 件</small></div></div>
+      <div class="kpi hl"><div class="k">${MB==='closet'?'買衣花費':'花費合計'}</div><div class="v num">${money(spend)}</div></div>
+      <div class="kpi"><div class="k">買了幾${unit}</div><div class="v num">${fmtInt(qty)}<small> ${unit}</small></div></div>
       <div class="kpi"><div class="k">轉賣收入</div><div class="v num">${money(income)}</div></div>
       <div class="kpi"><div class="k">實際淨支出</div><div class="v num">${money(spend-income)}</div></div>
     </div>
+    ${spendLog?`<p class="muted small" style="margin:10px 0 0">其中購買 ${money(spendBuy)}、維修／耗材 ${money(spendLog)}（${logs.length} 筆）。</p>`:''}
     ${bought.length&&priced.length<bought.length?`<p class="muted small" style="margin:10px 0 0">另有 ${bought.length-priced.length} 筆沒填價格，未計入金額。</p>`:''}
-    ${Y==='all'&&S.items.some(i=>!i.date)?`<p class="muted small" style="margin:6px 0 0">「全部」包含 ${S.items.filter(i=>!i.date).length} 筆日期不詳的衣物。</p>`:''}
-    ${isCur?`<div class="budget${budget&&spend>budget?' over':''}">${budget?`<div style="display:flex;justify-content:space-between;font-size:14px"><span>年度預算 <span class="num">${money(budget)}</span></span><span class="num">${spend>budget?`超過 ${money(spend-budget)}`:`還剩 ${money(budget-spend)}`}</span></div>
+    ${Y==='all'&&scope.some(i=>!i.date)?`<p class="muted small" style="margin:6px 0 0">「全部」包含 ${scope.filter(i=>!i.date).length} 筆日期不詳的紀錄。</p>`:''}
+    ${isCur?`<div class="budget${budget&&spend>budget?' over':''}">${budget?`<div style="display:flex;justify-content:space-between;font-size:14px"><span>年度${isAll?'總':''}預算 <span class="num">${money(budget)}</span></span><span class="num">${spend>budget?`超過 ${money(spend-budget)}`:`還剩 ${money(budget-spend)}`}</span></div>
       <div class="track"><div class="fill" style="width:${Math.min(100,spend/budget*100)}%"></div>${pace!=null?`<div class="pace" style="left:${pace*100}%" title="依時間進度應該用到這裡"></div>`:''}</div>
       <div class="muted small">直線是今天的時間進度：花費在線左邊就是有守住。</div>`
-      :`<button class="linkbtn" data-a="nav" data-v="settings" data-sec="budget">設定年度買衣預算</button>`}</div>`:''}
+      :`<button class="linkbtn" data-a="nav" data-v="settings" data-sec="budget">設定年度${bname}預算</button>`}</div>`:''}
   </div>
   ${Y!=='all'?`<div class="panel"><div class="ph2"><h2>每月花費</h2></div><div class="months">${months.map((v,m)=>`<div class="m${isCur&&m===new Date().getMonth()?' cur':''}"><span class="vv">${v?(v>=10000?(v/1000).toFixed(0)+'k':fmtInt(v)):''}</span><div class="b${v?'':' zero'}" style="height:${v?Math.max(4,v/maxM*100):2}%"></div><span class="l">${m+1}</span></div>`).join('')}</div></div>`:''}
   <div class="cols">
-    <div class="panel"><div class="ph2"><h2>花在哪些分類</h2></div>${hbars(byCat,spend)||'<p class="muted small">還沒有資料。</p>'}</div>
-    <div class="panel"><div class="ph2"><h2>品牌</h2></div>${hbars(byBrand.slice(0,8),spend)||'<p class="muted small">填寫品牌後會出現。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>${isAll?'花在哪一本':'花在哪些分類'}</h2></div>${hbars(byCat)||'<p class="muted small">還沒有資料。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>品牌</h2></div>${hbars(byBrand.slice(0,8))||'<p class="muted small">填寫品牌後會出現。</p>'}</div>
   </div>
   <div class="cols" style="margin-top:14px">
-    <div class="panel"><div class="ph2"><h2>店家／平台</h2></div>${hbars(byStore.slice(0,8),spend)||'<p class="muted small">填寫店家後會出現。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>店家／平台</h2></div>${hbars(byStore.slice(0,8))||'<p class="muted small">填寫店家後會出現。</p>'}</div>
     <div class="panel"><div class="ph2"><h2>淘汰紀錄</h2><span class="muted small">${Y==='all'?'全部':Y+' 年'}</span></div>
-      ${methods.length?`<div class="hbars">${methods.map(([n,c])=>`<div class="r"><span class="nm">${n}</span><span class="t"><i style="width:${c/Math.max(...methods.map(m=>m[1]))*100}%;background:var(--mauve)"></i></span><span class="v">${c} 件</span></div>`).join('')}</div>
+      ${methods.length?`<div class="hbars">${methods.map(([n,c])=>`<div class="r"><span class="nm">${n}</span><span class="t"><i style="width:${c/Math.max(...methods.map(m=>m[1]))*100}%;background:var(--mauve)"></i></span><span class="v">${c} ${unit}</span></div>`).join('')}</div>
       ${sold.length?`<div class="list" style="margin-top:8px">${sold.slice(0,6).map(it=>`<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">買 ${money(it.price)}・${esc(it.retire.where||'')}</div></span><span class="rv">+${money(it.retire.income||0)}</span></button>`).join('')}</div>`:''}`
-      :'<p class="muted small" style="margin:0">淘汰衣物時記錄去向，會統計在這裡。</p>'}</div>
+      :'<p class="muted small" style="margin:0">淘汰時記錄去向，會統計在這裡。</p>'}</div>
   </div>
-  <div class="cols" style="margin-top:14px">
-    <div class="panel"><div class="ph2"><h2>最划算</h2><span class="muted small">每穿一次的成本</span></div>
-      ${best.length?`<div class="list">${best.map(it=>cpwRow(it)).join('')}</div>`:'<p class="muted small" style="margin:0">記錄穿著次數後，會算出每件衣服「每穿一次花多少錢」。</p>'}</div>
-    <div class="panel"><div class="ph2"><h2>最不划算</h2><span class="muted small">貴、但很少穿</span></div>
+  ${(MB==='appliance'||isAll)&&logs.length?`<div class="panel" style="margin-top:14px"><div class="ph2"><h2>維修與耗材</h2><span class="muted small num">${money(spendLog)}</span></div>
+    <div class="list">${[...logs].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10).map(l=>`<button class="li" data-a="open" data-id="${l.it.id}"><span class="th"><div class="ph">${photoHTML(l.it)}</div></span><span class="tx"><div>${esc(itemName(l.it))}</div><div class="muted small">${fmtDate(l.date)}・${esc(l.kind||'')}${l.note?'・'+esc(l.note):''}</div></span><span class="rv">${l.cost===0?'免費':l.cost?money(l.cost):'—'}</span></button>`).join('')}</div></div>`:''}
+  ${showCpw?`<div class="cols" style="margin-top:14px">
+    <div class="panel"><div class="ph2"><h2>最划算</h2><span class="muted small">每${MB==='closet'?'穿':'用'}一次的成本</span></div>
+      ${best.length?`<div class="list">${best.map(it=>cpwRow(it)).join('')}</div>`:`<p class="muted small" style="margin:0">記錄${MB==='closet'?'穿著':'使用'}次數後，會算出「每${MB==='closet'?'穿':'用'}一次花多少錢」。</p>`}</div>
+    <div class="panel"><div class="ph2"><h2>最不划算</h2><span class="muted small">貴、但很少${MB==='closet'?'穿':'用'}</span></div>
       ${worst.length?`<div class="list">${worst.map(it=>cpwRow(it)).join('')}</div>`:'<p class="muted small" style="margin:0">還沒有資料。</p>'}</div>
-  </div>`;
+  </div>`:''}`;
   $('#yearSel').onchange=e=>{ moneyYear=e.target.value; render(); };
 }
 function groupSum(arr,keyFn){ const m=new Map(); arr.forEach(i=>{ const k=keyFn(i); const v=m.get(k)||{v:0,n:0}; v.v+=i.price||0; v.n+=qtyOf(i); m.set(k,v); }); return [...m.entries()].sort((a,b)=>b[1].v-a[1].v); }
 function hbars(arr){ if(!arr.length) return ''; const max=Math.max(1,...arr.map(x=>x[1].v)); return `<div class="hbars">${arr.map(([k,o])=>`<div class="r"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="t"><i style="width:${o.v/max*100}%"></i></span><span class="v">${money(o.v)}<span class="faint">・${o.n}</span></span></div>`).join('')}</div>`; }
-function cpwRow(it){ const w=wearCount(it); return `<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${money(it.price)}・穿 ${w} 次</div></span><span class="rv">${w?money(cpw(it))+'<span class="faint small">/次</span>':'<span class="small" style="color:var(--brick)">還沒穿過</span>'}</span></button>`; }
+function cpwRow(it){ const w=wearCount(it), v=BOOKS[bookOf(it)].verb||'用'; return `<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${money(it.price)}・${v} ${w} 次</div></span><span class="rv">${w?money(cpw(it))+'<span class="faint small">/次</span>':`<span class="small" style="color:var(--brick)">還沒${v}過</span>`}</span></button>`; }
 
 /* ---------- 設定 ---------- */
-let pendingSec=null;
+let pendingSec=null, settingsBook=null;
 function renderSettings(){
-  const st=S.settings; const R=S.rates;
+  const st=S.settings; const R=S.rates; const SB=settingsBook||S.book;
+  const bud=st.budgetBy||{};
   $('#app').innerHTML=`
-  <div class="vh"><div><h1>設定</h1><div class="sub">衣櫥帳本 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
+  <div class="vh"><div><h1>設定</h1><div class="sub">生活帳本 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
   <div class="cols">
   <div class="stack">
     <div class="panel" id="sec-backup">
       <div class="ph2"><h2>備份與匯出</h2><span class="muted small">${st.lastBackup?'上次備份 '+fmtDate(ymd(new Date(st.lastBackup))):'還沒有備份'}</span></div>
-      <p class="muted small" style="margin:0 0 12px">備份檔包含照片，可以存到 iCloud 雲碟或 Google 雲端硬碟，換手機或在電腦上看時再匯入。</p>
+      <p class="muted small" style="margin:0 0 12px">備份檔包含衣櫥、電器、物品三本的資料和所有照片（含發票、保固卡），可以存到 iCloud 雲碟或 Google 雲端硬碟，換手機或在電腦上看時再匯入。</p>
       <div class="btnrow"><button class="btn pri" data-a="export">匯出備份</button><button class="btn" data-a="import">匯入備份</button></div>
       <div class="btnrow" style="margin-top:8px"><button class="btn soft" data-a="csv">匯出 Excel 清單</button></div>
       <div id="exportOut"></div>
     </div>
     <div class="panel" id="sec-budget">
       <div class="ph2"><h2>預算與提醒</h2></div>
-      <div class="setrow"><div><div class="lbl">年度買衣預算</div><div class="desc">花費頁會顯示用了多少、有沒有超過時間進度</div></div><input class="in num" id="budget" inputmode="numeric" placeholder="不設定" style="width:130px;text-align:right" value="${st.budget??''}"></div>
-      <div class="setrow"><div><div class="lbl">「久未穿」的天數</div><div class="desc">超過這麼久沒穿就列入淘汰候選</div></div><select class="in" id="idleDays" style="width:120px">${[90,180,270,365,540,730].map(d=>`<option value="${d}" ${st.idleDays===d?'selected':''}>${d} 天</option>`).join('')}</select></div>
-      <div class="setrow"><div><div class="lbl">放照片時自動選顏色</div><div class="desc">在手機上分析照片，不會上傳。偶爾會把陰影看成灰色，可以再點選修改</div></div><input type="checkbox" id="autoColor" style="width:22px;height:22px;accent-color:var(--mauve);flex:none" ${st.autoColor!==false?'checked':''}></div>
+      ${[...BOOK_KEYS,'all'].map(k=>`<div class="setrow"><div><div class="lbl">${k==='all'?'年度總預算（三本合計）':'年度'+BOOKS[k].name+'預算'}</div>${k==='closet'?'<div class="desc">花費頁會顯示用了多少、有沒有超過時間進度</div>':''}</div><input class="in num" data-budget="${k}" inputmode="numeric" placeholder="不設定" style="width:130px;text-align:right" value="${bud[k]??''}"></div>`).join('')}
+      <div class="setrow"><div><div class="lbl">「久未穿／久未用」的天數</div><div class="desc">超過這麼久沒穿、沒用就列入淘汰候選</div></div><select class="in" id="idleDays" style="width:120px">${[90,180,270,365,540,730].map(d=>`<option value="${d}" ${st.idleDays===d?'selected':''}>${d} 天</option>`).join('')}</select></div>
+      <div class="setrow"><div><div class="lbl">放照片時自動選顏色</div><div class="desc">衣櫥和物品適用。在手機上分析照片，不會上傳；偶爾會把陰影看成灰色，可以再點選修改</div></div><input type="checkbox" id="autoColor" style="width:22px;height:22px;accent-color:var(--mauve);flex:none" ${st.autoColor!==false?'checked':''}></div>
       <div class="setrow"><div><div class="lbl">外觀</div></div><div class="seg-ctl">${[['auto','跟隨系統'],['light','淺色'],['dark','深色']].map(([k,n])=>`<button data-a="theme" data-k="${k}" class="${(st.theme||'auto')===k?'on':''}">${n}</button>`).join('')}</div></div>
     </div>
     <div class="panel" id="sec-names">
       <div class="ph2"><h2>品牌、店家、位置整理</h2></div>
-      <p class="muted small" style="margin:0 0 10px">打錯字或同一個品牌有不同寫法時，在這裡改名；改成已有的名稱就會合併。</p>
+      <p class="muted small" style="margin:0 0 10px">打錯字或同一個品牌有不同寫法時，在這裡改名；改成已有的名稱就會合併。三本一起整理。</p>
       <div class="seg-ctl" style="margin-bottom:8px">${[['brand','品牌'],['store','店家'],['location','位置']].map(([k,n])=>`<button data-a="namesTab" data-k="${k}" class="${namesTab===k?'on':''}">${n}</button>`).join('')}</div>
       <div class="list" id="namesList">${namesListHTML()}</div>
     </div>
     <div class="panel" id="sec-rates">
       <div class="ph2"><h2>匯率</h2><button class="btn sm" data-a="rates">立即更新</button></div>
-      <p class="muted small" style="margin:0 0 8px">${R?`自動匯率更新於 ${fmtDate(ymd(new Date(R.updated||R.fetched)))}，有網路時每 12 小時自動更新。`:'還沒有取得自動匯率，連上網路後會自動更新。'}新增衣物時會用當下匯率，之後匯率變動不會改到舊紀錄。想用刷卡實際匯率，可以在建檔時直接改「台幣金額」，或在右邊填固定匯率。</p>
+      <p class="muted small" style="margin:0 0 8px">${R?`自動匯率更新於 ${fmtDate(ymd(new Date(R.updated||R.fetched)))}，有網路時每 12 小時自動更新。`:'還沒有取得自動匯率，連上網路後會自動更新。'}建檔時會用當下匯率，之後匯率變動不會改到舊紀錄。想用刷卡實際匯率，可以在建檔時直接改「台幣金額」，或在右邊填固定匯率。</p>
       <table class="rt">${CURRENCIES.filter(c=>c[0]!=='TWD').map(([c,n])=>{ const a=R?.rates?.[c]?1/R.rates[c]:null; return `<tr><td>${c}<div class="faint tiny">${n}</div></td><td class="v">${a?'自動 '+(a<0.01?a.toPrecision(3):a.toFixed(4)):'自動 —'}</td><td style="text-align:right"><input data-mr="${c}" inputmode="decimal" placeholder="手動" value="${st.manualRates?.[c]||''}" aria-label="${n}手動匯率"></td></tr>`; }).join('')}</table>
       <p class="faint tiny" style="margin:8px 0 0">匯率來源：<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:inherit">ExchangeRate-API</a>，僅供參考。</p>
     </div>
@@ -955,8 +1097,9 @@ function renderSettings(){
   <div class="stack">
     <div class="panel" id="sec-cats">
       <div class="ph2"><h2>分類與上限</h2></div>
-      <p class="muted small" style="margin:0 0 10px">「上限」是你給自己的件數目標，超過時盤點頁會標紅，新增時也會提醒你淘汰一件。</p>
-      ${catEditorHTML()}
+      <div class="seg-ctl" style="margin-bottom:10px">${BOOK_KEYS.map(k=>`<button data-a="sbook" data-k="${k}" class="${SB===k?'on':''}">${BOOKS[k].name}</button>`).join('')}</div>
+      <p class="muted small" style="margin:0 0 10px">「上限」是你給自己的數量目標，超過時盤點頁會標紅，新增時也會提醒你淘汰一${BOOKS[SB].unit}。${SB==='goods'?'每個分類可以選要不要記使用次數、追蹤有效期限。':''}</p>
+      ${catEditorHTML(SB)}
       <div class="btnrow" style="margin-top:10px"><button class="btn sm" data-a="addgroup">新增大類</button></div>
     </div>
     <div class="panel" id="sec-opts">
@@ -972,18 +1115,19 @@ function renderSettings(){
       <div class="ph2"><h2>iPhone 使用小提醒</h2></div>
       <ol class="tips small">
         <li>用 Safari 開網址 → 分享 → <b>加入主畫面</b>，之後都從主畫面圖示開。</li>
-        <li>Safari 分頁和主畫面 App 的資料<b>分開存</b>，請固定用主畫面那個。</li>
+        <li>Safari 分頁和主畫面 App 的資料<b>分開存</b>，請固定用主畫面那個；刪掉主畫面圖示會連資料一起刪除，刪之前先匯出備份。</li>
         <li>沒有網路也能開、能新增；只有更新匯率需要網路。</li>
+        <li>保固、效期提醒只會顯示在 App 裡（盤點頁和下方「盤點」的紅點），不會推播通知。</li>
         <li>手機空間不足或很久沒開時，iOS 可能清掉網站資料，請每個月匯出一次備份。</li>
       </ol>
     </div>
     <div class="panel">
       <div class="ph2"><h2>清除資料</h2></div>
-      <p class="muted small" style="margin:0 0 10px">刪除這台裝置上的所有衣物、照片與設定。建議先匯出備份。</p>
+      <p class="muted small" style="margin:0 0 10px">刪除這台裝置上衣櫥、電器、物品三本的所有資料、照片與設定。建議先匯出備份。</p>
       <button class="btn danger" data-a="wipe">清除所有資料</button>
     </div>
   </div></div>`;
-  $('#budget').onchange=async e=>{ const v=parseNum(e.target.value); if(v!=null&&(isNaN(v)||v<0)){ e.target.classList.add('err'); toast('預算請填數字'); return; } e.target.classList.remove('err'); st.budget=v?Math.round(v):null; e.target.value=st.budget??''; await saveSettings(); toast('已儲存預算'); };
+  $$('[data-budget]').forEach(inp=>inp.onchange=async e=>{ const k=inp.dataset.budget; const v=parseNum(inp.value); if(v!=null&&(isNaN(v)||v<0)){ inp.classList.add('err'); toast('預算請填數字'); return; } inp.classList.remove('err'); st.budgetBy=st.budgetBy||{}; if(v) st.budgetBy[k]=Math.round(v); else delete st.budgetBy[k]; inp.value=st.budgetBy[k]??''; await saveSettings(); toast(v?'已儲存預算':'已取消這項預算'); });
   $('#autoColor').onchange=async e=>{ st.autoColor=e.target.checked; await saveSettings(); toast(e.target.checked?'已開啟自動選色':'已關閉自動選色'); };
   $('#idleDays').onchange=async e=>{ st.idleDays=+e.target.value; await saveSettings(); toast('已更新'); };
   $$('[data-mr]').forEach(inp=>inp.onchange=async()=>{ const v=parseNum(inp.value); if(v!=null&&(isNaN(v)||v<=0)){ inp.classList.add('err'); toast('匯率請填大於 0 的數字'); return; } inp.classList.remove('err'); st.manualRates=st.manualRates||{}; if(v) st.manualRates[inp.dataset.mr]=v; else delete st.manualRates[inp.dataset.mr]; await saveSettings(); toast(v?`${inp.dataset.mr} 改用固定匯率 ${v}`:`${inp.dataset.mr} 改回自動匯率`); });
@@ -995,38 +1139,50 @@ function namesListHTML(){
   const m=new Map(); S.items.forEach(it=>{ const v=(it[namesTab]||'').trim(); if(!v) return; m.set(v,(m.get(v)||0)+qtyOf(it)); });
   const arr=[...m.entries()].sort((a,b)=>a[0].localeCompare(b[0],'zh-Hant'));
   if(!arr.length) return '<p class="muted small" style="margin:6px 0 0">還沒有資料。</p>';
-  return arr.map(([v,n])=>`<button class="li" data-a="rename" data-v="${esc(v)}"><span class="tx"><div>${esc(v)}</div></span><span class="rv muted">${n} 件　改名</span></button>`).join('');
+  return arr.map(([v,n])=>`<button class="li" data-a="rename" data-v="${esc(v)}"><span class="tx"><div>${esc(v)}</div></span><span class="rv muted">${n} 筆　改名</span></button>`).join('');
 }
-function catEditorHTML(){
-  return S.settings.groups.map((g,gi)=>{ const cs=cats().filter(c=>c.group===g);
-    return `<div class="catgroup" data-g="${esc(g)}"><h4 style="display:flex;align-items:center;gap:6px">${esc(g)}<span style="margin-left:auto;display:flex;gap:2px" class="cated"><span class="ops"><button data-a="grpup" data-k="${gi}" ${gi===0?'disabled':''} aria-label="大類上移">${ICON.up}</button><button data-a="grpdown" data-k="${gi}" ${gi===S.settings.groups.length-1?'disabled':''} aria-label="大類下移">${ICON.down}</button><button data-a="grpren" data-k="${gi}" aria-label="大類改名" style="font-size:12px;width:auto;padding:0 6px">改名</button>${cs.length?'':`<button data-a="grpdel" data-k="${gi}" aria-label="刪除大類">${ICON.trash}</button>`}</span></span></h4>
+function catFlagsHTML(c){
+  if(c.book==='closet') return `<label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未穿」提醒</label>`;
+  if(c.book==='goods') return `<span class="flags"><label class="idle-t"><input type="checkbox" data-f="wear" ${c.wear?'checked':''}> 記錄使用次數</label>${c.wear?`<label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未用」</label>`:''}<label class="idle-t"><input type="checkbox" data-f="expiry" ${c.expiry?'checked':''}> 追蹤有效期限</label></span>`;
+  return '';
+}
+function catEditorHTML(book){
+  const gs=groups(book);
+  return gs.map((g,gi)=>{ const cs=cats(book).filter(c=>c.group===g);
+    return `<div class="catgroup" data-g="${esc(g)}"><h4 style="display:flex;align-items:center;gap:6px">${esc(g)}<span style="margin-left:auto;display:flex;gap:2px" class="cated"><span class="ops"><button data-a="grpup" data-k="${gi}" ${gi===0?'disabled':''} aria-label="大類上移">${ICON.up}</button><button data-a="grpdown" data-k="${gi}" ${gi===gs.length-1?'disabled':''} aria-label="大類下移">${ICON.down}</button><button data-a="grpren" data-k="${gi}" aria-label="大類改名" style="font-size:12px;width:auto;padding:0 6px">改名</button>${cs.length?'':`<button data-a="grpdel" data-k="${gi}" aria-label="刪除大類">${ICON.trash}</button>`}</span></span></h4>
       ${cs.map((c,i)=>`<div class="cated" data-c="${c.id}"><input class="nm" value="${esc(c.name)}" aria-label="分類名稱" data-f="name"><input class="lim num" value="${c.limit??''}" placeholder="上限" inputmode="numeric" aria-label="${esc(c.name)} 上限" data-f="limit">
         <span class="ops"><button data-a="catup" data-k="${c.id}" ${i===0?'disabled':''} aria-label="上移">${ICON.up}</button><button data-a="catdown" data-k="${c.id}" ${i===cs.length-1?'disabled':''} aria-label="下移">${ICON.down}</button><button data-a="catdel" data-k="${c.id}" aria-label="刪除">${ICON.trash}</button></span>
-        <label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未穿」提醒</label></div>`).join('')}
+        ${catFlagsHTML(c)}</div>`).join('')}
       <button class="linkbtn" data-a="addcat" data-k="${esc(g)}" style="margin:4px 0 2px">＋ 在「${esc(g)}」新增分類</button></div>`; }).join('');
 }
 function bindCatEditor(){
   $$('#sec-cats .cated[data-c]').forEach(row=>{ const c=catById(row.dataset.c);
-    row.querySelector('[data-f=name]').onchange=async e=>{ const v=e.target.value.trim(); if(!v){ e.target.value=c.name; toast('分類名稱不能空白'); return; } if(S.settings.cats.some(x=>x!==c&&x.name===v)){ e.target.value=c.name; toast('已經有同名的分類'); return; } c.name=v; await saveSettings(); toast('已改名'); };
-    row.querySelector('[data-f=limit]').onchange=async e=>{ const v=parseNum(e.target.value); if(v!=null&&(isNaN(v)||v<1||!Number.isInteger(v))){ e.target.classList.add('err'); toast('上限請填 1 以上的整數，或留空'); return; } e.target.classList.remove('err'); c.limit=v||null; await saveSettings(); toast(v?`${c.name} 上限 ${v} 件`:`${c.name} 不設上限`); };
-    row.querySelector('[data-f=idle]').onchange=async e=>{ c.idle=e.target.checked; await saveSettings(); };
+    row.querySelector('[data-f=name]').onchange=async e=>{ const v=e.target.value.trim(); if(!v){ e.target.value=c.name; toast('分類名稱不能空白'); return; } if(S.settings.cats.some(x=>x!==c&&x.book===c.book&&x.name===v)){ e.target.value=c.name; toast('已經有同名的分類'); return; } c.name=v; await saveSettings(); toast('已改名'); };
+    row.querySelector('[data-f=limit]').onchange=async e=>{ const v=parseNum(e.target.value); if(v!=null&&(isNaN(v)||v<1||!Number.isInteger(v))){ e.target.classList.add('err'); toast('上限請填 1 以上的整數，或留空'); return; } e.target.classList.remove('err'); c.limit=v||null; await saveSettings(); toast(v?`${c.name} 上限 ${v} ${BOOKS[c.book].unit}`:`${c.name} 不設上限`); };
+    row.querySelectorAll('input[type=checkbox][data-f]').forEach(cb=>cb.onchange=async()=>{ c[cb.dataset.f]=cb.checked; await saveSettings(); if(cb.dataset.f==='wear') render(); });
   });
 }
 
 /* ---------- 彈性新增選項 ---------- */
-async function addCategory(group){
+function newCatFlags(group,book){ // 新分類沿用同一大類第一個分類的設定（例如保養品裡新增的會自動追蹤效期）
+  const sib=cats(book).find(c=>c.group===group);
+  if(sib) return {idle:sib.idle,wear:!!sib.wear,expiry:!!sib.expiry};
+  return book==='closet'?{idle:true,wear:false,expiry:false}:{idle:false,wear:false,expiry:false};
+}
+async function addCategory(group,book=S.book){
   const st=S.settings; const name=await askText(`在「${group}」新增分類`,'分類名稱','');
-  if(!name) return null; if(st.cats.some(c=>c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
-  const c={id:'c_'+uid(),name,group,limit:null,idle:true,order:Math.max(0,...st.cats.map(c=>c.order))+1};
+  if(!name) return null; if(st.cats.some(c=>c.book===book&&c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
+  const c={id:'c_'+uid(),name,group,book,limit:null,...newCatFlags(group,book),order:Math.max(0,...st.cats.map(c=>c.order))+1};
   st.cats.push(c); await saveSettings(); toast('已新增分類「'+name+'」'); return c.id;
 }
-async function addGroup(withCat){
-  const st=S.settings; const g=await askText('新增大類','大類名稱（例如：洋裝、運動服、包包）','');
-  if(!g) return null; if(st.groups.includes(g)){ toast('已經有「'+g+'」這個大類了'); return null; }
-  if(!withCat){ st.groups.push(g); await saveSettings(); toast('已新增大類「'+g+'」，記得在裡面新增分類'); return null; }
+async function addGroup(withCat,book=S.book){
+  const st=S.settings; const gs=groups(book);
+  const g=await askText('新增大類',`大類名稱（例如：${book==='closet'?'洋裝、運動服':book==='appliance'?'寵物用品、戶外裝備':'香氛、運動用品'}）`,'');
+  if(!g) return null; if(gs.includes(g)){ toast('已經有「'+g+'」這個大類了'); return null; }
+  if(!withCat){ gs.push(g); await saveSettings(); toast('已新增大類「'+g+'」，記得在裡面新增分類'); return null; }
   const name=await askText(`「${g}」裡的第一個分類`,'分類名稱',g);
-  if(!name) return null; if(st.cats.some(c=>c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
-  st.groups.push(g); const c={id:'c_'+uid(),name,group:g,limit:null,idle:true,order:Math.max(0,...st.cats.map(c=>c.order))+1};
+  if(!name) return null; if(st.cats.some(c=>c.book===book&&c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
+  gs.push(g); const c={id:'c_'+uid(),name,group:g,book,limit:null,...newCatFlags(g,book),order:Math.max(0,...st.cats.map(c=>c.order))+1};
   st.cats.push(c); await saveSettings(); toast('已新增「'+g+'」與分類「'+name+'」'); return c.id;
 }
 function colorSheet(c){
@@ -1053,8 +1209,8 @@ async function addChannel(){
   if(st.channels.includes(v)){ toast('已經有「'+v+'」了'); return v; }
   st.channels.push(v); await saveSettings(); toast('已新增管道「'+v+'」'); return v;
 }
-function catPickHTML(sel){
-  return S.settings.groups.map(g=>{ const cs=cats().filter(c=>c.group===g);
+function catPickHTML(sel,book=S.book){
+  return groups(book).map(g=>{ const cs=cats(book).filter(c=>c.group===g);
     return `<div class="pickgrp"><div class="g">${esc(g)}</div><div class="pick">${cs.map(c=>`<button type="button" class="chip${sel===c.id?' on':''}" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}<button type="button" class="chip add" data-addcat="${esc(g)}" aria-label="在${esc(g)}新增分類" title="在「${esc(g)}」新增分類">＋${cs.length?'':' 新增分類'}</button></div></div>`; }).join('')
     + `<button type="button" class="linkbtn" data-addgrp style="margin:2px 0 4px">＋ 新增大類</button>`;
 }
@@ -1063,40 +1219,58 @@ function channelOptions(cur){ const list=[...(S.settings.channels||DEFAULT_CHANN
   return `<option value="">—</option>${list.map(c=>`<option value="${esc(c)}" ${cur===c?'selected':''}>${esc(c)}</option>`).join('')}<option value="__add">＋ 新增管道…</option>`; }
 
 /* ---------- 新增／編輯表單 ---------- */
-const lastEntry = () => lsGet('closet.lastEntry')||{};
+const lastEntry = () => { const l=lsGet('closet.lastEntry')||{}; return l.at && Date.now()-l.at<12*3600e3 ? l : {}; }; // 12 小時內連續建檔才沿用上次幣別
+const WAR_CHIPS=[[0,'無'],[6,'半年'],[12,'1 年'],[24,'2 年'],[36,'3 年']];
+const PAO_CHIPS=[[0,'不確定'],[6,'6 個月'],[12,'12 個月'],[24,'24 個月'],[36,'36 個月']];
+const NAME_HINT={closet:'可不填，會自動用「顏色＋分類」',appliance:'可不填，會自動用「品牌＋分類」',goods:'可不填，會自動用「品牌（或顏色）＋分類」'};
 function openItemForm(item,opts={}){
   const isNew=!item; const batch=opts.batch; // batch: {files:[], index}
   const carry=opts.carry||{};
+  const book = item ? bookOf(item) : (carry.book||opts.book||S.book); const B=BOOKS[book];
   const it = item ? JSON.parse(JSON.stringify(item)) : {
-    id:uid(), cat:carry.cat||'', name:'', colors:[], brand:carry.brand||'', size:'', seasons:carry.seasons||[],
+    id:uid(), book, cat:carry.cat||'', name:'', colors:[], brand:carry.brand||'', size:'', seasons:carry.seasons||[],
     date: carry.date!==undefined?carry.date:today(), store:carry.store||'', channel:carry.channel||'', currency:carry.currency||lastEntry().currency||'TWD',
     priceOrig:null, rate:carry.rate||null, price:null, qty:1, location:carry.location||'', note:'', photo:null,
+    model:'', serial:'', warrantyMonths:carry.warrantyMonths??null, warrantyUntil:'', docs:[], logs:[], openedAt:'', expiry:'', paoMonths:null,
     status:'active', wears:[], createdAt:Date.now()
   };
+  it.book=book; it.docs=it.docs||[]; it.colors=it.colors||[];
   let photoFile=null, photoPreview=null, removePhoto=false;
-  let rateTouched=!!(item&&item.currency!=='TWD');
   if(isNew && it.currency!=='TWD' && !it.rate){ const r=currentRate(it.currency); it.rate=r?+r.toPrecision(5):null; }
-  const brands=[...brandDisplayMap('brand').values()], stores=[...brandDisplayMap('store').values()], locs=[...new Set([...DEFAULT_LOCATIONS,...brandDisplayMap('location').values()])];
-  const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isNew?'新增衣物':'編輯衣物';
+  if(isNew && book==='appliance' && it.warrantyMonths>0 && it.date) it.warrantyUntil=addMonths(it.date,it.warrantyMonths);
+  const scope=BI(book);
+  const brands=[...brandDisplayMap('brand',scope).values()], stores=[...brandDisplayMap('store',S.items).values()], locs=[...new Set([...LOCS_BY[book],...brandDisplayMap('location',scope).values()])];
+  const expCat=()=>book==='goods' && !!catById(it.cat)?.expiry;
+  const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isNew?'新增'+B.noun:'編輯'+B.noun;
   const body=`
   ${batch?`<div class="batchbar"><span class="num">${batch.index+1} / ${batch.files.length}</span><span class="track"><i style="width:${(batch.index)/batch.files.length*100}%"></i></span><span>已存 ${batch.saved||0}</span></div>`:''}
   <div class="formgrid"><div class="photo-col">
     <button type="button" class="photo-in" id="fPhoto" aria-label="選擇照片"></button>
     <p class="faint tiny" style="margin:6px 2px ${isNew&&!batch?'8px':'14px'}">${isIOS?'可以拍照或從相簿選。':'可以拖曳照片進來，或按 Ctrl／⌘+V 貼上截圖。'}照片會縮小後存在本機。</p>
-    ${isNew&&!batch?`<button type="button" class="batchlink" data-batchstart>${ICON.camera}<span><b>一次選多張照片</b><br><span class="faint">批次建檔，每張自動選好顏色</span></span></button>`:''}
+    ${isNew&&!batch?`<button type="button" class="batchlink" data-batchstart>${ICON.camera}<span><b>一次選多張照片</b><br><span class="faint">批次建檔，${B.colors?'每張自動選好顏色':'每張只要選分類'}</span></span></button>`:''}
   </div><div>
     <div class="flabel">分類<span class="req">*</span></div>
-    <div id="fCats" style="margin-bottom:4px">${catPickHTML(it.cat)}</div>
+    <div id="fCats" style="margin-bottom:4px">${catPickHTML(it.cat,book)}</div>
     <div class="ferr hide" id="eCat">請選一個分類</div>
-    <div class="flabel" style="margin-top:12px">顏色 <span class="faint" style="font-weight:400">（最多 3 個，第一個是主色）</span></div>
+    ${B.colors?`<div class="flabel" style="margin-top:12px">顏色 <span class="faint" style="font-weight:400">（最多 3 個，第一個是主色）</span></div>
     <div class="autocol hide" id="fAuto" aria-live="polite"></div>
-    <div class="swatches" id="fColors" style="margin-bottom:14px">${colorPickHTML()}</div>
+    <div class="swatches" id="fColors" style="margin-bottom:14px">${colorPickHTML()}</div>`:'<div style="height:10px"></div>'}
     <div class="similar hide" id="fSimilar"></div>
-    <label class="f"><span>名稱</span><input class="in" id="fName" value="${esc(it.name)}" placeholder="可不填，會自動用「顏色＋分類」" autocomplete="off"></label>
+    <label class="f"><span>名稱</span><input class="in" id="fName" value="${esc(it.name)}" placeholder="${NAME_HINT[book]}" autocomplete="off"></label>
     <div class="frow"><label class="f"><span>品牌</span><input class="in" id="fBrand" list="dlBrand" value="${esc(it.brand)}" autocomplete="off"></label>
-      <label class="f"><span>尺寸</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"></label></div>
-    <div class="flabel">季節</div>
-    <div class="pick" id="fSeasons" style="margin-bottom:14px">${SEASONS.map(s=>`<button type="button" class="chip${(it.seasons||[]).includes(s)?' on':''}" data-se="${s}">${s}</button>`).join('')}</div>
+      ${B.size?`<label class="f"><span>${B.size}</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"${book==='goods'?' placeholder="例如 50ml"':''}></label>`
+        :`<label class="f"><span>型號</span><input class="in" id="fModel" value="${esc(it.model||'')}" autocomplete="off" autocapitalize="characters"></label>`}</div>
+    ${book==='appliance'?`<label class="f"><span>序號</span><input class="in" id="fSerial" value="${esc(it.serial||'')}" autocomplete="off" autocapitalize="characters" placeholder="通常在機身背面或底部的貼紙"></label>`:''}
+    ${B.seasons?`<div class="flabel">季節</div>
+    <div class="pick" id="fSeasons" style="margin-bottom:14px">${SEASONS.map(s=>`<button type="button" class="chip${(it.seasons||[]).includes(s)?' on':''}" data-se="${s}">${s}</button>`).join('')}</div>`:''}
+    ${book==='goods'?`<div id="fExpBox" class="fsec${expCat()?'':' hide'}">
+      <div class="frow"><label class="f"><span>開封日</span><input class="in" type="date" id="fOpen" value="${esc(it.openedAt||'')}" max="${today()}"></label>
+        <label class="f"><span>有效期限（包裝上）</span><input class="in" type="date" id="fExp" value="${esc(it.expiry||'')}"></label></div>
+      <button type="button" class="linkbtn" id="fOpenToday" style="margin:-6px 0 12px">今天開封</button>
+      <div class="flabel">開封後可用 <span class="faint" style="font-weight:400">（瓶身上的開罐圖示，例如 12M）</span></div>
+      <div class="pick" id="fPao" style="margin-bottom:10px">${PAO_CHIPS.map(([m,n])=>`<button type="button" class="chip${(it.paoMonths||0)===m?' on':''}" data-pao="${m}">${n}</button>`).join('')}</div>
+      <div class="calc" id="fExpCalc"></div><div class="ferr hide" id="eExp" style="margin:-6px 0 12px"></div>
+    </div>`:''}
     <div class="fsec">
     <div class="frow"><label class="f"><span>購入日期</span><input class="in" type="date" id="fDate" value="${esc(it.date||'')}" max="${today()}"></label>
       <label class="f"><span>數量</span><span class="stepper"><button type="button" data-step="-1" aria-label="減少">−</button><input id="fQty" inputmode="numeric" value="${qtyOf(it)}" aria-label="數量"><button type="button" data-step="1" aria-label="增加">＋</button></span></label></div>
@@ -1109,7 +1283,17 @@ function openItemForm(item,opts={}){
     <div class="fx"><label class="f" style="margin-top:-4px"><span>匯率（1 外幣＝？台幣）</span><input class="in num" id="fRate" inputmode="decimal" value="${it.rate??''}"></label></div>
     <div class="calc" id="fCalc"></div>
     <div class="ferr hide" id="ePrice" style="margin:-6px 0 12px"></div>
-    <label class="f"><span>存放位置</span><input class="in" id="fLoc" list="dlLoc" value="${esc(it.location)}" placeholder="衣櫃、收納箱 A…" autocomplete="off"></label>
+    </div>
+    ${book==='appliance'?`<div class="fsec">
+      <div class="flabel">保固</div>
+      <div class="pick" id="fWar" style="margin-bottom:10px">${WAR_CHIPS.map(([m,n])=>`<button type="button" class="chip${it.warrantyMonths===m?' on':''}" data-war="${m}">${n}</button>`).join('')}</div>
+      <label class="f"><span>保固到期日</span><input class="in" type="date" id="fWarU" value="${esc(it.warrantyUntil||'')}"></label>
+      <div class="calc" id="fWarCalc"></div>
+      <div class="flabel">發票／保固卡照片</div>
+      <div class="docs" id="fDocs"></div>
+    </div>`:''}
+    <div class="fsec">
+    <label class="f"><span>存放位置</span><input class="in" id="fLoc" list="dlLoc" value="${esc(it.location)}" placeholder="${B.locHint}" autocomplete="off"></label>
     <label class="f"><span>備註</span><textarea class="in" id="fNote" rows="2">${esc(it.note)}</textarea></label>
     </div>
   </div></div>
@@ -1118,14 +1302,14 @@ function openItemForm(item,opts={}){
   <datalist id="dlLoc">${locs.map(b=>`<option value="${esc(b)}">`).join('')}</datalist>`;
   const foot = batch
     ? `<button class="btn" data-skip>略過這張</button><button class="btn pri grow2" data-save>${batch.index===batch.files.length-1?'儲存並完成':'儲存，下一張'}</button>`
-    : isNew ? `<button class="btn soft" data-again>儲存，再加一件</button><button class="btn pri" data-save>儲存</button>`
+    : isNew ? `<button class="btn soft" data-again>儲存，再加一${B.unit}</button><button class="btn pri" data-save>儲存</button>`
             : `<button class="btn danger" data-del aria-label="刪除">${ICON.trash}</button><button class="btn" data-cancel>取消</button><button class="btn pri grow2" data-save>儲存</button>`;
-  const w=openSheet({title,body,foot,wide:true,onClose:()=>{ if(photoPreview) URL.revokeObjectURL(photoPreview); if(rotURL) URL.revokeObjectURL(rotURL); document.removeEventListener('paste',onPaste); }});
-  const B=w.querySelector('.sh-b');
+  let rot=0, rotURL=null, drawTk=0;
+  const keepDocs=[...it.docs], newDocs=[];
+  const w=openSheet({title,body,foot,wide:true,onClose:()=>{ if(photoPreview) URL.revokeObjectURL(photoPreview); if(rotURL) URL.revokeObjectURL(rotURL); newDocs.forEach(d=>URL.revokeObjectURL(d.url)); document.removeEventListener('paste',onPaste); }});
 
   // 照片
   const box=$('#fPhoto',w);
-  let rot=0, rotURL=null, drawTk=0;
   const ctrls=()=>`<span class="rm" data-rmph role="button" aria-label="移除照片">${ICON.close.replace('<svg','<svg width="16" height="16"')}</span><span class="rots"><span role="button" data-rot="-90" aria-label="向左旋轉">${ICON.rotl}</span><span role="button" data-rot="90" aria-label="向右旋轉">${ICON.rotr}</span></span><span class="chg">換一張</span>`;
   async function drawPhoto(){
     const tk=++drawTk; const src = photoPreview || (it.photo && !removePhoto ? await imgURL(it.photo,'full') : null);
@@ -1134,20 +1318,20 @@ function openItemForm(item,opts={}){
       box.classList.add('has'); box.innerHTML=`<img src="${shown}" alt="">${ctrls()}`; }
     else { box.classList.remove('has'); box.innerHTML=`<span class="hint">${ICON.camera}拍照或選照片<br><span class="faint small">可以不放照片</span></span>`; }
   }
-  function setFile(file){ if(!file) return; if(file.type && !file.type.startsWith('image/') && !/\.hei[cf]$/i.test(file.name)){ toast('請選擇照片檔'); return; } photoFile=file; if(photoPreview) URL.revokeObjectURL(photoPreview); photoPreview=URL.createObjectURL(file); removePhoto=false; rot=0; drawPhoto(); autoColor(photoPreview); }
+  function setFile(file){ if(!file) return; if(file.type && !file.type.startsWith('image/') && !/\.hei[cf]$/i.test(file.name)){ toast('請選擇照片檔'); return; } photoFile=file; if(photoPreview) URL.revokeObjectURL(photoPreview); photoPreview=URL.createObjectURL(file); removePhoto=false; rot=0; drawPhoto(); if(B.colors) autoColor(photoPreview); }
   // 照片自動選色：還沒手動選顏色時直接選好；已經選了就只給建議
   let colorsTouched=!!(item && item.colors && item.colors.length), detectToken=0;
   const chipsOf=keys=>keys.map(k=>`<span class="ac"><i style="background:${swBg(k)}"></i>${esc(COLOR[k]?.n||'')}</span>`).join('');
   async function autoColor(src){
-    const box=$('#fAuto',w); if(S.settings.autoColor===false){ box.classList.add('hide'); return; }
-    const tk=++detectToken; box.classList.remove('hide'); box.innerHTML='<span class="muted">正在看照片的顏色…</span>';
+    const ab=$('#fAuto',w); if(!ab) return; if(S.settings.autoColor===false){ ab.classList.add('hide'); return; }
+    const tk=++detectToken; ab.classList.remove('hide'); ab.innerHTML='<span class="muted">正在看照片的顏色…</span>';
     let keys=[]; try{ keys=pickColors(await detectColors(src)); }catch(e){ keys=[]; }
     if(tk!==detectToken || !w.isConnected) return;
-    if(!keys.length){ box.innerHTML='<span class="muted">看不出照片的顏色，請手動選。</span>'; return; }
+    if(!keys.length){ ab.innerHTML='<span class="muted">看不出照片的顏色，請手動選。</span>'; return; }
     if(!colorsTouched){ it.colors=keys.slice(); drawColors(); updateSimilar();
-      box.innerHTML=`<span>已依照片選好</span>${chipsOf(keys)}<span class="muted">不對可以直接點選修改</span>`; }
-    else { box.innerHTML=`<span>照片看起來是</span>${chipsOf(keys)}<button type="button" class="linkbtn" data-applyauto>套用</button>`;
-      box.querySelector('[data-applyauto]').onclick=()=>{ it.colors=keys.slice(); drawColors(); updateSimilar(); box.innerHTML=`<span>已套用</span>${chipsOf(keys)}`; }; }
+      ab.innerHTML=`<span>已依照片選好</span>${chipsOf(keys)}<span class="muted">不對可以直接點選修改</span>`; }
+    else { ab.innerHTML=`<span>照片看起來是</span>${chipsOf(keys)}<button type="button" class="linkbtn" data-applyauto>套用</button>`;
+      ab.querySelector('[data-applyauto]').onclick=()=>{ it.colors=keys.slice(); drawColors(); updateSimilar(); ab.innerHTML=`<span>已套用</span>${chipsOf(keys)}`; }; }
   }
   box.onclick=e=>{ const rb=e.target.closest('[data-rot]'); if(rb){ rot=(rot+ +rb.dataset.rot+360)%360; drawPhoto(); return; }
     if(e.target.closest('[data-rmph]')){ photoFile=null; if(photoPreview){URL.revokeObjectURL(photoPreview);photoPreview=null;} removePhoto=true; rot=0; drawPhoto(); return; } const inp=$('#fileOne'); inp.value=''; inp.onchange=()=>setFile(inp.files[0]); inp.click(); };
@@ -1158,32 +1342,69 @@ function openItemForm(item,opts={}){
   if(batch) setFile(batch.files[batch.index]); else drawPhoto();
 
   // 分類、顏色、季節
-  const pickCat=id=>{ it.cat=id; $$('#fCats [data-cat]',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===id)); $('#eCat',w).classList.add('hide'); updateSimilar(); };
+  const pickCat=id=>{ it.cat=id; $$('#fCats [data-cat]',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===id)); $('#eCat',w).classList.add('hide'); updateSimilar();
+    const eb=$('#fExpBox',w); if(eb){ eb.classList.toggle('hide',!expCat()); expCalc(); } };
   $('#fCats',w).onclick=async e=>{
     const add=e.target.closest('[data-addcat]'), grp=e.target.closest('[data-addgrp]'), b=e.target.closest('[data-cat]');
-    if(add||grp){ const id= add? await addCategory(add.dataset.addcat) : await addGroup(true); if(id){ $('#fCats',w).innerHTML=catPickHTML(it.cat); pickCat(id); } return; }
+    if(add||grp){ const id= add? await addCategory(add.dataset.addcat,book) : await addGroup(true,book); if(id){ $('#fCats',w).innerHTML=catPickHTML(it.cat,book); pickCat(id); } return; }
     if(b) pickCat(b.dataset.cat); };
   const drawColors=()=>$$('#fColors .swatch',w).forEach(s=>{ const i=it.colors.indexOf(s.dataset.col); s.classList.toggle('on',i>=0); s.title=i===0?'主色':''; });
-  $('#fColors',w).onclick=async e=>{
-    if(e.target.closest('[data-addcol]')){ const k=await addCustomColor(); if(!k) return; $('#fColors',w).innerHTML=colorPickHTML(); if(it.colors.length<3) it.colors.push(k); else toast('已新增，但已選滿 3 個顏色'); drawColors(); updateSimilar(); return; }
-    const b=e.target.closest('[data-col]'); if(!b) return; colorsTouched=true; detectToken++; $('#fAuto',w).classList.add('hide'); const k=b.dataset.col; const i=it.colors.indexOf(k); if(i>=0) it.colors.splice(i,1); else { if(it.colors.length>=3){ toast('最多選 3 個顏色'); return; } it.colors.push(k); } drawColors(); updateSimilar(); };
-  drawColors();
+  if(B.colors){
+    $('#fColors',w).onclick=async e=>{
+      if(e.target.closest('[data-addcol]')){ const k=await addCustomColor(); if(!k) return; $('#fColors',w).innerHTML=colorPickHTML(); if(it.colors.length<3) it.colors.push(k); else toast('已新增，但已選滿 3 個顏色'); drawColors(); updateSimilar(); return; }
+      const b=e.target.closest('[data-col]'); if(!b) return; colorsTouched=true; detectToken++; $('#fAuto',w).classList.add('hide'); const k=b.dataset.col; const i=it.colors.indexOf(k); if(i>=0) it.colors.splice(i,1); else { if(it.colors.length>=3){ toast('最多選 3 個顏色'); return; } it.colors.push(k); } drawColors(); updateSimilar(); };
+    drawColors();
+  }
   const fCh=$('#fChannel',w); let chPrev=fCh.value;
   fCh.onchange=async()=>{ if(fCh.value!=='__add'){ chPrev=fCh.value; return; } const v=await addChannel(); fCh.innerHTML=channelOptions(v||chPrev); fCh.value=v||chPrev; chPrev=fCh.value; };
-  $('#fSeasons',w).onclick=e=>{ const b=e.target.closest('[data-se]'); if(!b) return; const s=b.dataset.se; it.seasons=it.seasons||[]; const i=it.seasons.indexOf(s); if(i>=0) it.seasons.splice(i,1); else it.seasons.push(s); b.classList.toggle('on',i<0); };
+  $('#fSeasons',w)?.addEventListener('click',e=>{ const b=e.target.closest('[data-se]'); if(!b) return; const s=b.dataset.se; it.seasons=it.seasons||[]; const i=it.seasons.indexOf(s); if(i>=0) it.seasons.splice(i,1); else it.seasons.push(s); b.classList.toggle('on',i<0); });
   function updateSimilar(){
     const el=$('#fSimilar',w); if(!it.cat){ el.classList.add('hide'); return; }
-    const same=ownedItems().filter(x=>x.id!==it.id && x.cat===it.cat);
-    const sameCol=it.colors[0]? same.filter(x=>(x.colors||[]).includes(it.colors[0])) : [];
+    const same=ownedItems(book).filter(x=>x.id!==it.id && x.cat===it.cat);
+    const sameCol=B.colors&&it.colors[0]? same.filter(x=>(x.colors||[]).includes(it.colors[0])) : [];
     const c=catById(it.cat); const n=sumQty(same);
     if(!n){ el.classList.add('hide'); return; }
     const show=(sameCol.length?sameCol:same).slice(0,8);
     el.classList.remove('hide');
-    el.innerHTML=`你已經有 <b class="num">${n}</b> 件${esc(c.name)}${sameCol.length?`，其中 <b class="num">${sumQty(sameCol)}</b> 件是${COLOR[it.colors[0]].n}色`:''}${c.limit?`（上限 ${c.limit}）`:''}。
+    el.innerHTML=`你已經有 <b class="num">${n}</b> ${B.unit}${esc(c.name)}${sameCol.length?`，其中 <b class="num">${sumQty(sameCol)}</b> ${B.unit}是${COLOR[it.colors[0]].n}色`:''}${c.limit?`（上限 ${c.limit}）`:''}。
       <div class="minis">${show.map(x=>`<div class="mini"><div class="ph">${photoHTML(x)}</div></div>`).join('')}</div>`;
     hydrateImages(el);
   }
   updateSimilar();
+
+  // 物品：效期
+  let pao=it.paoMonths||0;
+  function expCalc(){ const el=$('#fExpCalc',w); if(!el) return; const o=$('#fOpen',w).value, ex=$('#fExp',w).value; const c=[]; if(ex) c.push(ex); if(o&&pao) c.push(addMonths(o,pao)); const e=c.sort()[0];
+    if(!e){ el.textContent='填開封日＋開封後可用，或填包裝上的有效期限，會自動算出實際到期日。'; return; }
+    const n=daysUntil(e); el.innerHTML=`實際到期：<b>${fmtDate(e)}</b>　${n<0?`<span style="color:var(--brick);font-weight:700">已過期 ${-n} 天</span>`:n===0?'今天到期':`還有 ${n} 天`}`; }
+  if(book==='goods'){
+    $('#fPao',w).onclick=e=>{ const b=e.target.closest('[data-pao]'); if(!b) return; pao=+b.dataset.pao; $$('#fPao .chip',w).forEach(x=>x.classList.toggle('on',x===b)); expCalc(); };
+    $('#fOpen',w).oninput=expCalc; $('#fExp',w).oninput=expCalc;
+    $('#fOpenToday',w).onclick=()=>{ $('#fOpen',w).value=today(); expCalc(); };
+    expCalc();
+  }
+  // 電器：保固、單據
+  let warM=it.warrantyMonths;
+  function warCalc(){ const el=$('#fWarCalc',w); if(!el) return; const u=$('#fWarU',w).value; if(!u){ el.textContent=warM>0&&!$('#fDate',w).value?'先填購入日期，就會自動算出保固到期日；也可以直接選日期。':''; return; }
+    const n=daysUntil(u); el.innerHTML=n<0?`<span style="color:var(--brick);font-weight:700">已過保 ${-n} 天</span>`:`保固還有 ${n} 天`; }
+  function applyWar(){ const d=$('#fDate',w).value; if(warM>0&&d) $('#fWarU',w).value=addMonths(d,warM); else if(warM===0) $('#fWarU',w).value=''; warCalc(); }
+  function drawDocs(){ const el=$('#fDocs',w); if(!el) return;
+    el.innerHTML=keepDocs.map(id=>`<span class="doc"><img alt="" data-img="${esc(id)}"><button type="button" data-rmdoc="${esc(id)}" aria-label="移除這張">×</button></span>`).join('')
+      + newDocs.map(d=>`<span class="doc"><img alt="" src="${d.url}" class="ok"><button type="button" data-rmnew="${d.key}" aria-label="移除這張">×</button></span>`).join('')
+      + `<button type="button" class="doc add" data-adddoc>${ICON.camera}<span>加入</span></button>`;
+    hydrateImages(el); }
+  if(book==='appliance'){
+    $('#fWar',w).onclick=e=>{ const b=e.target.closest('[data-war]'); if(!b) return; warM=+b.dataset.war; $$('#fWar .chip',w).forEach(x=>x.classList.toggle('on',x===b)); applyWar(); };
+    $('#fWarU',w).oninput=()=>{ warM=null; $$('#fWar .chip',w).forEach(x=>x.classList.remove('on')); warCalc(); };
+    ['input','change'].forEach(ev=>$('#fDate',w).addEventListener(ev,()=>{ if(warM>0) applyWar(); else warCalc(); }));
+    $('#fDocs',w).onclick=e=>{
+      const r=e.target.closest('[data-rmdoc]'), rn=e.target.closest('[data-rmnew]');
+      if(r){ keepDocs.splice(keepDocs.indexOf(r.dataset.rmdoc),1); drawDocs(); return; }
+      if(rn){ const i=newDocs.findIndex(d=>d.key===rn.dataset.rmnew); if(i>=0){ URL.revokeObjectURL(newDocs[i].url); newDocs.splice(i,1); } drawDocs(); return; }
+      if(e.target.closest('[data-adddoc]')){ const inp=$('#fileDocs'); inp.value=''; inp.onchange=()=>{ [...inp.files].slice(0,10).forEach(f=>{ if(f.type&&!f.type.startsWith('image/')) return; newDocs.push({key:uid(),file:f,url:URL.createObjectURL(f)}); }); drawDocs(); }; inp.click(); }
+    };
+    drawDocs(); warCalc();
+  }
 
   // 價格
   const fCur=$('#fCur',w), fAmt=$('#fAmt',w), fTwd=$('#fTwd',w), fRate=$('#fRate',w), fQty=$('#fQty',w);
@@ -1192,7 +1413,7 @@ function openItemForm(item,opts={}){
     $$('.fx',w).forEach(x=>x.classList.toggle('hide',!foreign)); $('#fPriceRow',w).classList.toggle('twd',!foreign);
     $('#lAmt',w).textContent= foreign? `金額（${cur}）` : '金額（台幣）';
     const q=Math.max(1,parseInt(fQty.value)||1); const amt=parseNum(fAmt.value); const twd=foreign?parseNum(fTwd.value):amt;
-    const parts=[]; if(q>1 && twd>0) parts.push(`${q} 件共 ${money(twd)}，平均每件 ${money(twd/q)}`);
+    const parts=[]; if(q>1 && twd>0) parts.push(`${q} ${B.unit}共 ${money(twd)}，平均每${B.unit} ${money(twd/q)}`);
     if(foreign && !fRate.value) parts.push(currentRate(cur)?'':'目前沒有這個幣別的匯率，請自己填匯率或台幣金額。');
     $('#fCalc',w).textContent=parts.filter(Boolean).join('　');
   }
@@ -1200,7 +1421,7 @@ function openItemForm(item,opts={}){
   fCur.onchange=()=>{ const cur=fCur.value; if(cur!=='TWD'){ const r=currentRate(cur); fRate.value=r?+r.toPrecision(5):''; recalcTwd(); } else { fRate.value=''; fTwd.value=''; } priceUI(); };
   fAmt.oninput=recalcTwd; fRate.oninput=recalcTwd;
   fTwd.oninput=()=>{ const a=parseNum(fAmt.value), t=parseNum(fTwd.value); if(a>0 && t>0) fRate.value=+(t/a).toPrecision(5); priceUI(); };
-  w.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{ fQty.value=Math.max(1,(parseInt(fQty.value)||1)+ +b.dataset.step); priceUI(); });
+  w.querySelectorAll('.stepper [data-step]').forEach(b=>b.onclick=()=>{ fQty.value=Math.max(1,(parseInt(fQty.value)||1)+ +b.dataset.step); priceUI(); });
   fQty.oninput=priceUI;
   priceUI();
 
@@ -1209,6 +1430,8 @@ function openItemForm(item,opts={}){
     if(!it.cat){ $('#eCat',w).classList.remove('hide'); ok=false; errs.push('#fCats'); }
     const d=$('#fDate',w).value; const eD=$('#eDate',w); eD.classList.add('hide');
     if(d && d>today()){ eD.textContent='購入日期不能晚於今天'; eD.classList.remove('hide'); ok=false; errs.push('#fDate'); }
+    if(book==='goods' && expCat()){ const o=$('#fOpen',w).value, eE=$('#eExp',w); eE.classList.add('hide');
+      if(o && o>today()){ eE.textContent='開封日不能晚於今天'; eE.classList.remove('hide'); ok=false; errs.push('#fOpen'); } }
     const cur=fCur.value; const amt=parseNum(fAmt.value); const twd=parseNum(fTwd.value); const rate=parseNum(fRate.value);
     const eP=$('#ePrice',w); eP.classList.add('hide'); [fAmt,fTwd,fRate].forEach(x=>x.classList.remove('err'));
     const bad=(el,msg)=>{ el.classList.add('err'); eP.textContent=msg; eP.classList.remove('hide'); ok=false; errs.push('#'+el.id); };
@@ -1221,101 +1444,155 @@ function openItemForm(item,opts={}){
     const q=parseInt(fQty.value); if(!q||q<1||q>999){ fQty.value=Math.max(1,Math.min(999,q||1)); }
     if(!ok){ const el=$(errs[0],w); el?.scrollIntoView({behavior:'smooth',block:'center'}); return null; }
     Object.assign(it,{
-      name:$('#fName',w).value.trim(), brand:$('#fBrand',w).value.trim(), size:$('#fSize',w).value.trim(),
-      date:d||'', store:$('#fStore',w).value.trim(), channel:$('#fChannel',w).value, currency:cur, qty:Math.max(1,Math.min(999,parseInt(fQty.value)||1)),
+      name:$('#fName',w).value.trim(), brand:$('#fBrand',w).value.trim(),
+      date:d||'', store:$('#fStore',w).value.trim(), channel:$('#fChannel',w).value==='__add'?'':$('#fChannel',w).value, currency:cur, qty:Math.max(1,Math.min(999,parseInt(fQty.value)||1)),
       location:$('#fLoc',w).value.trim(), note:$('#fNote',w).value.trim(),
       priceOrig: amt==null?null:amt, rate: cur==='TWD'?null:(rate||null),
       price: amt==null? null : (cur==='TWD'? Math.round(amt*100)/100 : (twd!=null?Math.round(twd):null))
     });
+    if($('#fSize',w)) it.size=$('#fSize',w).value.trim();
+    if(book==='appliance'){ it.model=$('#fModel',w).value.trim(); it.serial=$('#fSerial',w).value.trim(); it.warrantyUntil=$('#fWarU',w).value||''; it.warrantyMonths=warM; }
+    if(book==='goods' && expCat()){ it.openedAt=$('#fOpen',w).value||''; it.expiry=$('#fExp',w).value||''; it.paoMonths=pao||null; }
     return it;
   }
   async function save(){
     const data=collect(); if(!data) return false;
     const btns=$$('.sh-f button',w); btns.forEach(b=>b.disabled=true);
     try{
-      const oldPhoto=item?.photo;
+      const oldPhoto=item?.photo, oldDocs=item?.docs||[];
       if(photoFile){ const p=await processImage(photoFile,rot); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); data.photo=pid; }
       else if(rot && data.photo && !removePhoto){ // 旋轉已存的照片：用原本的大圖重新存一份
         const im=await loadImage(await imgURL(data.photo,'full')); const pid=uid();
         await DB.put('images',{id:pid,full:await encode(im,1400,.9,rot),thumb:await encode(im,520,.8,rot)}); data.photo=pid; }
       else if(removePhoto) data.photo=null;
+      if(book==='appliance'){ const ids=[...keepDocs];
+        for(const d of newDocs){ const p=await processImage(d.file,0,1800); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); ids.push(pid); }
+        data.docs=ids; }
       await putItem(data);
       if(oldPhoto && oldPhoto!==data.photo) await deleteImageIfUnused(oldPhoto);
-      lsSet('closet.lastEntry',{currency:data.currency});
+      for(const d of oldDocs) if(!(data.docs||[]).includes(d)) await deleteImageIfUnused(d);
+      lsSet('closet.lastEntry',{currency:data.currency,at:Date.now()});
       return data;
     }catch(e){ toast(e.message||'儲存失敗，請再試一次'); btns.forEach(b=>b.disabled=false); return false; }
   }
-  const carryOf=d=>({cat:d.cat,brand:d.brand,seasons:[...(d.seasons||[])],date:d.date,store:d.store,channel:d.channel,currency:d.currency,rate:d.rate,location:d.location});
+  const carryOf=d=>({book,cat:d.cat,brand:d.brand,seasons:[...(d.seasons||[])],date:d.date,store:d.store,channel:d.channel,currency:d.currency,rate:d.rate,location:d.location,warrantyMonths:book==='appliance'?d.warrantyMonths:undefined});
   w.querySelector('[data-save]').onclick=async()=>{
     const d=await save(); if(!d) return;
     if(batch){ w.close(); nextBatch(batch,carryOf(d),true); return; }
     w.close(); render(); toast(isNew?'已新增「'+itemName(d)+'」':'已儲存');
     if(isNew) setTimeout(()=>maybeOverLimit(d.cat),400);
   };
-  w.querySelector('[data-again]')?.addEventListener('click',async()=>{ const d=await save(); if(!d) return; w.close(); render(); toast('已新增「'+itemName(d)+'」，繼續下一件'); setTimeout(()=>openItemForm(null,{carry:carryOf(d)}),360); });
+  w.querySelector('[data-again]')?.addEventListener('click',async()=>{ const d=await save(); if(!d) return; w.close(); render(); toast('已新增「'+itemName(d)+'」，繼續下一'+B.unit); setTimeout(()=>openItemForm(null,{carry:carryOf(d)}),360); });
   w.querySelector('[data-skip]')?.addEventListener('click',()=>{ w.close(); nextBatch(batch,carryOf(collectLoose()),false); });
   w.querySelector('[data-cancel]')?.addEventListener('click',()=>w.close());
   w.querySelector('[data-batchstart]')?.addEventListener('click',()=>{ startBatch(); w.close(); });
   w.querySelector('[data-del]')?.addEventListener('click',async()=>{ if(await confirmSheet({title:'刪除這筆紀錄？',msg:'刪除會讓花費統計也少掉這一筆。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})){ w.close(); sheets.slice().forEach(s=>s.close()); await deleteWithUndo([item.id]); } });
-  function collectLoose(){ return {cat:it.cat,brand:$('#fBrand',w).value.trim(),seasons:it.seasons,date:$('#fDate',w).value,store:$('#fStore',w).value.trim(),channel:$('#fChannel',w).value,currency:fCur.value,rate:parseNum(fRate.value)||null,location:$('#fLoc',w).value.trim()}; }
+  function collectLoose(){ return {cat:it.cat,brand:$('#fBrand',w).value.trim(),seasons:it.seasons,date:$('#fDate',w).value,store:$('#fStore',w).value.trim(),channel:$('#fChannel',w).value,currency:fCur.value,rate:parseNum(fRate.value)||null,location:$('#fLoc',w).value.trim(),warrantyMonths:warM}; }
   return w;
 }
 function nextBatch(batch,carry,saved){
   batch.saved=(batch.saved||0)+(saved?1:0); batch.cats=batch.cats||new Set(); if(saved&&carry.cat) batch.cats.add(carry.cat);
   if(batch.index+1<batch.files.length){ setTimeout(()=>openItemForm(null,{batch:{...batch,index:batch.index+1},carry}),330); }
-  else { render(); toast(`批次建檔完成，共存了 ${batch.saved} 件`);
-    const over=[...batch.cats].filter(id=>{ const c=catById(id); return c?.limit && sumQty(ownedItems().filter(i=>i.cat===id))>c.limit; });
+  else { render(); toast(`批次建檔完成，共存了 ${batch.saved} ${BK().unit}`);
+    const over=[...batch.cats].filter(id=>{ const c=catById(id); return c?.limit && sumQty(ownedItems(c.book).filter(i=>i.cat===id))>c.limit; });
     if(over.length) setTimeout(()=>maybeOverLimit(over[0]),500); }
 }
-function startBatch(){ const inp=$('#fileMany'); inp.value=''; inp.onchange=()=>{ const files=[...inp.files]; if(!files.length) return; if(files.length>60){ toast('一次最多 60 張，先處理前 60 張'); } openItemForm(null,{batch:{files:files.slice(0,60),index:0,saved:0}}); }; inp.click(); }
+function startBatch(){ const inp=$('#fileMany'); inp.value=''; inp.onchange=()=>{ const files=[...inp.files]; if(!files.length) return; if(files.length>60){ toast('一次最多 60 張，先處理前 60 張'); } openItemForm(null,{book:S.book,batch:{files:files.slice(0,60),index:0,saved:0}}); }; inp.click(); }
 function maybeOverLimit(catId){
-  const c=catById(catId); if(!c?.limit) return; const own=ownedItems().filter(i=>i.cat===catId); const n=sumQty(own); if(n<=c.limit) return;
-  const cand=sortItems(own,'idle').slice(0,8);
-  const w=openSheet({title:`${c.name}超過上限了`,body:`<p style="margin:0 0 10px">你給自己的上限是 <b class="num">${c.limit}</b> 件，現在有 <b class="num" style="color:var(--brick)">${n}</b> 件。進一件、出一件，要不要挑一件淘汰？</p>
-    <p class="muted small" style="margin:0 0 8px">依「最久沒穿」排序：</p><div class="minis">${cand.map(it=>`<button class="mini" data-pick="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${esc(itemName(it))}</div></button>`).join('')}</div>`,
+  const c=catById(catId); if(!c?.limit) return; const B=BOOKS[c.book]; const own=ownedItems(c.book).filter(i=>i.cat===catId); const n=sumQty(own); if(n<=c.limit) return;
+  const byIdle=own.some(tracksWear); const cand=sortItems(own,byIdle?'idle':'old').slice(0,8);
+  const w=openSheet({title:`${c.name}超過上限了`,body:`<p style="margin:0 0 10px">你給自己的上限是 <b class="num">${c.limit}</b> ${B.unit}，現在有 <b class="num" style="color:var(--brick)">${n}</b> ${B.unit}。進一${B.unit}、出一${B.unit}，要不要挑一${B.unit}淘汰？</p>
+    <p class="muted small" style="margin:0 0 8px">依「${byIdle?B.idle.replace('久未','最久沒'):'最早買的'}」排序：</p><div class="minis">${cand.map(it=>`<button class="mini" data-pick="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${esc(itemName(it))}</div></button>`).join('')}</div>`,
     foot:`<button class="btn" data-later>先不要</button>`});
   w.querySelector('[data-later]').onclick=()=>w.close();
   w.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ w.close(); setTimeout(()=>openRetire([b.dataset.pick]),340); });
 }
 
 /* ---------- 詳細 ---------- */
+function viewImage(id,title='照片'){ const w=openSheet({title,wide:true,body:`<div class="viewer"><img alt="" data-img="${esc(id)}" data-kind="full"></div>`}); hydrateImages(w); }
 function openDetail(id){
   const it=S.items.find(i=>i.id===id); if(!it) return;
+  const bk=bookOf(it), B=BOOKS[bk];
   const c=catById(it.cat); const w_=wearCount(it); const lw=lastWear(it); const wornToday=(it.wears||[]).includes(today());
   const colors=(it.colors||[]).map(k=>`<span class="chip" style="height:28px"><i class="sw" style="background:${swBg(k)}"></i>${COLOR[k]?.n}</span>`).join('');
-  const priceLine = it.price==null? '—' : (it.currency&&it.currency!=='TWD'&&it.priceOrig!=null? `${money(it.priceOrig,it.currency)}（約 ${money(it.price)}，匯率 ${it.rate??'—'}）` : money(it.price)) + (qtyOf(it)>1&&it.price!=null?`<div class="faint small">${qtyOf(it)} 件，平均每件 ${money(it.price/qtyOf(it))}</div>`:'');
+  const priceLine = it.price==null? '—' : (it.currency&&it.currency!=='TWD'&&it.priceOrig!=null? `${money(it.priceOrig,it.currency)}（約 ${money(it.price)}，匯率 ${it.rate??'—'}）` : money(it.price)) + (qtyOf(it)>1&&it.price!=null?`<div class="faint small">${qtyOf(it)} ${B.unit}，平均每${B.unit} ${money(it.price/qtyOf(it))}</div>`:'');
   const facts=[
     ['分類',`${esc(c?.group&&c.group!==c.name?c.group+'・':'')}${esc(catName(it.cat))}`],
-    it.brand&&['品牌',esc(it.brand)], it.size&&['尺寸',esc(it.size)],
+    it.brand&&['品牌',esc(it.brand)], it.model&&['型號',esc(it.model)], it.serial&&['序號',`<span class="num" style="user-select:all">${esc(it.serial)}</span>`],
+    it.size&&[B.size||'尺寸',esc(it.size)],
     it.seasons?.length&&['季節',esc(it.seasons.join('、'))],
     ['購入',`${fmtDate(it.date)}${it.date?`<span class="faint small">（${fmtAge(it.date)}）</span>`:''}`],
     it.store&&['在哪買',esc(it.store)+(it.channel?`<span class="faint small">・${esc(it.channel)}</span>`:'')],
     !it.store&&it.channel&&['管道',esc(it.channel)],
-    ['價格',priceLine], qtyOf(it)>1&&['數量',qtyOf(it)+' 件'],
+    ['價格',priceLine], qtyOf(it)>1&&['數量',qtyOf(it)+' '+B.unit],
     it.location&&['存放',esc(it.location)], it.lastChecked&&['上次盤點',fmtDate(it.lastChecked)],
     it.note&&['備註',esc(it.note).replace(/\n/g,'<br>')]
   ].filter(Boolean);
   let actions='';
   if(it.status==='active') actions=`<button class="btn" data-sell>想賣掉</button><button class="btn" data-retire>淘汰</button><button class="btn" data-edit>編輯</button>`;
   else if(it.status==='selling') actions=`<button class="btn" data-unsell>取消待售</button><button class="btn soft" data-sold>已賣出</button><button class="btn" data-edit>編輯</button>`;
-  else actions=`<button class="btn" data-restore>放回衣櫥</button><button class="btn" data-edit>編輯</button>`;
+  else actions=`<button class="btn" data-restore>放回${B.name}</button><button class="btn" data-edit>編輯</button>`;
+  // 電器：保固、單據、維修耗材
+  let extra='';
+  if(bk==='appliance'){
+    const ws=warrantyState(it);
+    extra+=`<div class="infobox${ws&&ws.k==='expired'?' bad':ws&&ws.k==='soon'?' warn':''}"><b>保固</b>　${it.warrantyUntil?`到 ${fmtDate(it.warrantyUntil)}　${ws? (ws.k==='expired'?`已過保 ${-ws.n} 天`:ws.n===0?'今天到期':`還有 ${ws.n} 天`):''}`:'<span class="muted">沒有填保固，可以按「編輯」補上</span>'}</div>`;
+    if((it.docs||[]).length) extra+=`<div class="flabel" style="margin-top:14px">發票／保固卡</div><div class="docs">${it.docs.map(d=>`<button type="button" class="doc" data-viewdoc="${esc(d)}"><img alt="" data-img="${esc(d)}"></button>`).join('')}</div>`;
+    const logs=[...(it.logs||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    extra+=`<div class="ph2" style="margin:18px 0 6px"><h2 style="font-size:15px;margin:0">維修與耗材</h2>${logs.length?`<span class="muted small num">共 ${money(logsCost(it))}</span>`:''}</div>
+      ${logs.length?`<div class="list">${logs.map(l=>`<button class="li" data-log="${esc(l.id)}"><span class="tx"><div>${esc(l.kind||'紀錄')}${l.note?'・'+esc(l.note):''}</div><div class="muted small">${fmtDate(l.date)}</div></span><span class="rv">${l.cost===0?'免費':l.cost?money(l.cost):'—'}</span></button>`).join('')}</div>`:'<p class="muted small" style="margin:0 0 6px">送修、換濾網、保養都可以記下來，花費會算進「花費」頁。</p>'}
+      <button class="btn sm soft" data-addlog style="margin-top:6px">＋ 新增紀錄</button>`;
+  }
+  // 物品：效期
+  if(tracksExpiry(it)){
+    const es=expiryState(it), e=effExpiry(it);
+    extra+=`<div class="infobox${es&&es.k==='expired'?' bad':es&&es.k==='soon'?' warn':''}"><b>效期</b>　${e?`到 ${fmtDate(e)}　${es?(es.k==='expired'?`已過期 ${-es.n} 天`:es.n===0?'今天到期':`還有 ${es.n} 天`):''}`:'<span class="muted">還沒有記開封日或有效期限</span>'}
+      <div class="muted small" style="margin-top:4px">${[it.openedAt?'開封 '+fmtDate(it.openedAt):'',it.paoMonths?'開封後 '+it.paoMonths+' 個月':'',it.expiry?'包裝期限 '+fmtDate(it.expiry):''].filter(Boolean).join('・')}</div>
+      ${owned(it)&&!it.openedAt?'<button class="btn sm soft" data-opentoday style="margin-top:8px">今天開封</button>':''}</div>`;
+  }
   const body=`<div class="dt-grid"><div class="dt-photo">${it.photo?`<img alt="" data-img="${esc(it.photo)}" data-kind="full">`:photoHTML(it)}</div><div>
-    <div class="dt-tag">${colors}${it.status==='selling'?'<span class="badge sell" style="align-self:center">待售</span>':''}${isIdle(it)?'<span class="badge idle" style="align-self:center">久未穿</span>':''}</div>
-    ${it.status==='retired'?`<div class="retinfo"><b>${METHOD[it.retire?.method]||'已淘汰'}</b>　${fmtDate(it.retire?.date)}${it.retire?.method==='sold'?`<br>收入 <span class="num">${money(it.retire.income||0)}</span>${it.price!=null?`，回收了買價的 ${it.price?Math.round((it.retire.income||0)/it.price*100):0}%`:''}`:''}${it.retire?.where?`<br><span class="muted">${esc(it.retire.where)}</span>`:''}${it.retire?.note?`<br><span class="muted">${esc(it.retire.note)}</span>`:''}</div>`:''}
+    <div class="dt-tag">${colors}${it.status==='selling'?'<span class="badge sell" style="align-self:center">待售</span>':''}${isIdle(it)?`<span class="badge idle" style="align-self:center">${B.idle}</span>`:''}</div>
+    ${it.status==='retired'?`<div class="retinfo"><b>${methodName(bk,it.retire?.method)}</b>　${fmtDate(it.retire?.date)}${it.retire?.method==='sold'?`<br>收入 <span class="num">${money(it.retire.income||0)}</span>${it.price!=null?`，回收了買價的 ${it.price?Math.round((it.retire.income||0)/it.price*100):0}%`:''}`:''}${it.retire?.where?`<br><span class="muted">${esc(it.retire.where)}</span>`:''}${it.retire?.note?`<br><span class="muted">${esc(it.retire.note)}</span>`:''}</div>`:''}
     ${it.status==='selling'?`<div class="retinfo">預計售價 <b class="num">${it.sell?.ask!=null?money(it.sell.ask):'未填'}</b>${it.sell?.platform?`・${esc(it.sell.platform)}`:''}${it.sell?.listedAt?`<br><span class="muted">${fmtDate(it.sell.listedAt)} 開始賣，已經 ${daysSince(it.sell.listedAt)} 天</span>`:''}</div>`:''}
-    ${owned(it)?`<div class="wearbox"><div><b>${w_}</b><span>穿過次數</span></div><div><b>${lw?fmtShort(lw):'—'}</b><span>最後一次</span></div><div><b>${it.price==null?'—':money(cpw(it)).replace('NT$','')}</b><span>每次成本</span></div></div>
-      <button class="btn ${wornToday?'':'pri'} block" data-wear>${wornToday?'今天已記錄・取消':'今天穿了'}</button>`:''}
+    ${owned(it)&&tracksWear(it)?`<div class="wearbox"><div><b>${w_}</b><span>${B.verb}過次數</span></div><div><b>${lw?fmtShort(lw):'—'}</b><span>最後一次</span></div><div><b>${it.price==null?'—':money(cpw(it)).replace('NT$','')}</b><span>每次成本</span></div></div>
+      <button class="btn ${wornToday?'':'pri'} block" data-wear>${wornToday?'今天已記錄・取消':`今天${B.verb}了`}</button>`:''}
+    ${extra}
     <dl class="facts" style="margin-top:16px">${facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
   </div></div>`;
   const w=openSheet({title:itemName(it),body,foot:actions,wide:true});
   const re=()=>{ w.close(); setTimeout(()=>openDetail(id),340); };
-  w.querySelector('[data-wear]')?.addEventListener('click',async()=>{ const t=today(); it.wears=it.wears||[]; if(it.wears.includes(t)) it.wears=it.wears.filter(d=>d!==t); else it.wears.push(t); await putItem(it); render(); w.close(); toast(it.wears.includes(t)?`已記錄，這件穿了 ${wearCount(it)} 次`:'已取消今天的紀錄'); });
+  w.querySelector('[data-wear]')?.addEventListener('click',async()=>{ const t=today(); it.wears=it.wears||[]; if(it.wears.includes(t)) it.wears=it.wears.filter(d=>d!==t); else it.wears.push(t); await putItem(it); render(); w.close(); toast(it.wears.includes(t)?`已記錄，${B.verb}了 ${wearCount(it)} 次`:'已取消今天的紀錄'); });
   w.querySelector('[data-edit]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openItemForm(it),340); });
   w.querySelector('[data-retire]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openRetire([id]),340); });
   w.querySelector('[data-sell]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openSell(id),340); });
   w.querySelector('[data-sold]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openRetire([id],{method:'sold'}),340); });
   w.querySelector('[data-unsell]')?.addEventListener('click',async()=>{ it.status='active'; await putItem(it); render(); re(); toast('已取消待售'); });
-  w.querySelector('[data-restore]')?.addEventListener('click',async()=>{ it.status='active'; delete it.retire; await putItem(it); render(); re(); toast('已放回衣櫥'); });
+  w.querySelector('[data-restore]')?.addEventListener('click',async()=>{ it.status='active'; delete it.retire; await putItem(it); render(); re(); toast('已放回'+B.name); });
+  w.querySelector('[data-opentoday]')?.addEventListener('click',async()=>{ it.openedAt=today(); await putItem(it); render(); re(); toast('已記錄今天開封'); });
+  w.querySelectorAll('[data-viewdoc]').forEach(b=>b.onclick=()=>viewImage(b.dataset.viewdoc,'發票／保固卡'));
+  w.querySelector('[data-addlog]')?.addEventListener('click',()=>openLog(it,null,re));
+  w.querySelectorAll('[data-log]').forEach(b=>b.onclick=()=>openLog(it,(it.logs||[]).find(l=>l.id===b.dataset.log),re));
+}
+const LOG_KINDS=['維修','耗材','保養','其他'];
+function openLog(it,log,after){
+  let kind=log?.kind||'維修';
+  const w=openSheet({title:log?'編輯紀錄':'新增維修／耗材紀錄',body:`
+    <div class="flabel">類型</div><div class="pick" id="lgK" style="margin-bottom:14px">${LOG_KINDS.map(k=>`<button type="button" class="chip${k===kind?' on':''}" data-k="${k}">${k}</button>`).join('')}</div>
+    <div class="frow"><label class="f"><span>日期</span><input class="in" type="date" id="lgD" value="${esc(log?.date||today())}" max="${today()}"></label>
+      <label class="f"><span>花費（台幣）</span><input class="in num" id="lgC" inputmode="numeric" value="${log?.cost??''}" placeholder="保固內免費填 0"></label></div>
+    <label class="f"><span>內容</span><input class="in" id="lgN" value="${esc(log?.note||'')}" placeholder="例如：換濾網、更換電池、主機板送修"></label>
+    <div class="ferr hide" id="lgE"></div>`,
+    foot:`${log?'<button class="btn danger" data-del aria-label="刪除這筆">'+ICON.trash+'</button>':''}<button class="btn" data-c>取消</button><button class="btn pri grow2" data-ok>儲存</button>`});
+  $('#lgK',w).onclick=e=>{ const b=e.target.closest('[data-k]'); if(!b) return; kind=b.dataset.k; $$('#lgK .chip',w).forEach(x=>x.classList.toggle('on',x===b)); };
+  w.querySelector('[data-c]').onclick=()=>w.close();
+  w.querySelector('[data-del]')?.addEventListener('click',async()=>{ it.logs=(it.logs||[]).filter(l=>l.id!==log.id); await putItem(it); w.close(); render(); toast('已刪除紀錄'); after&&after(); });
+  w.querySelector('[data-ok]').onclick=async()=>{
+    const d=$('#lgD',w).value||today(), cost=parseNum($('#lgC',w).value), err=$('#lgE',w);
+    if(d>today()){ err.textContent='日期不能晚於今天'; err.classList.remove('hide'); return; }
+    if(cost!=null&&(isNaN(cost)||cost<0)){ err.textContent='花費請填 0 以上的數字'; err.classList.remove('hide'); $('#lgC',w).classList.add('err'); return; }
+    const rec={id:log?.id||uid(),date:d,kind,note:$('#lgN',w).value.trim(),cost:cost==null?null:Math.round(cost)};
+    it.logs=[...(it.logs||[]).filter(l=>l.id!==rec.id),rec]; await putItem(it); w.close(); render(); toast(log?'已更新紀錄':'已新增紀錄'); after&&after();
+  };
 }
 function fmtShort(s){ const d=daysSince(s); if(d===0) return '今天'; if(d===1) return '昨天'; if(d<31) return d+' 天前'; const [y,m,dd]=s.split('-'); return y===String(new Date().getFullYear())? `${+m}月${+dd}日` : `${y}年`; }
 function fmtAge(s){ const d=daysSince(s); if(d<1) return '今天'; if(d<31) return d+' 天前'; if(d<365) return Math.round(d/30.4)+' 個月前'; return (d/365).toFixed(1).replace('.0','')+' 年前'; }
@@ -1323,29 +1600,33 @@ function fmtAge(s){ const d=daysSince(s); if(d<1) return '今天'; if(d<31) retu
 /* ---------- 淘汰／待售 ---------- */
 function openSell(id){
   const it=S.items.find(i=>i.id===id);
-  const w=openSheet({title:'放到待售',body:`<p class="muted small" style="margin:0 0 12px">待售的衣物還算在衣櫥裡，賣出後再按「已賣出」記錄收入。</p>
+  const w=openSheet({title:'放到待售',body:`<p class="muted small" style="margin:0 0 12px">待售的東西還算在擁有中，賣出後再按「已賣出」記錄收入。</p>
     <div class="frow"><label class="f"><span>預計售價（台幣）</span><input class="in num" id="sAsk" inputmode="numeric" value="${it.sell?.ask??''}"></label><label class="f"><span>開始賣的日期</span><input class="in" type="date" id="sDate" value="${it.sell?.listedAt||today()}" max="${today()}"></label></div>
-    <label class="f"><span>平台</span><input class="in" id="sPlat" list="dlPlat" value="${esc(it.sell?.platform||'')}" placeholder="蝦皮、旋轉拍賣、二手店…"></label><datalist id="dlPlat">${['蝦皮','旋轉拍賣 Carousell','Facebook 社團','二手衣店','朋友'].map(p=>`<option value="${p}">`).join('')}</datalist><div class="ferr hide" id="sErr"></div>`,
+    <label class="f"><span>平台</span><input class="in" id="sPlat" list="dlPlat" value="${esc(it.sell?.platform||'')}" placeholder="蝦皮、旋轉拍賣、二手店…"></label><datalist id="dlPlat">${['蝦皮','旋轉拍賣 Carousell','Facebook 社團','二手店','朋友'].map(p=>`<option value="${p}">`).join('')}</datalist><div class="ferr hide" id="sErr"></div>`,
     foot:`<button class="btn" data-c>取消</button><button class="btn pri" data-ok>放到待售</button>`});
   w.querySelector('[data-c]').onclick=()=>w.close();
   w.querySelector('[data-ok]').onclick=async()=>{ const a=parseNum($('#sAsk',w).value); if(a!=null&&(isNaN(a)||a<0)){ $('#sErr',w).textContent='售價請填數字'; $('#sErr',w).classList.remove('hide'); return; }
     it.status='selling'; it.sell={ask:a==null?null:Math.round(a),platform:$('#sPlat',w).value.trim(),listedAt:$('#sDate',w).value||today()}; await putItem(it); w.close(); render(); toast('已放到待售'); };
 }
+const RETIRE_HINT={closet:'例如：起毛球、尺寸不合',appliance:'例如：馬達壞了、換新機',goods:'例如：用完了、膚況不適合'};
 function openRetire(ids,opt={}){
   const items=ids.map(id=>S.items.find(i=>i.id===id)).filter(i=>i&&owned(i)); if(!items.length) return;
-  const single=items.length===1?items[0]:null; let method=opt.method||'donate';
-  const methods = single? METHODS : METHODS.filter(m=>m[0]!=='sold');
-  const body=`${single?'':`<p style="margin:0 0 12px">一次淘汰 <b>${sumQty(items)}</b> 件。<span class="muted small">賣掉的請逐件記錄，才能填各自的收入。</span></p>`}
+  const bk=bookOf(items[0]), B=BOOKS[bk];
+  const single=items.length===1?items[0]:null;
+  let method=opt.method||(bk==='appliance'?'recycle':bk==='goods'&&items.every(tracksExpiry)?'usedup':'donate');
+  if(bk==='goods'&&method==='donate'&&!METHODS_BY.goods.some(m=>m[0]==='donate')) method='trash';
+  const methods = single? METHODS_BY[bk] : METHODS_BY[bk].filter(m=>m[0]!=='sold');
+  const body=`${single?'':`<p style="margin:0 0 12px">一次淘汰 <b>${sumQty(items)}</b> ${B.unit}。<span class="muted small">賣掉的請逐${B.unit}記錄，才能填各自的收入。</span></p>`}
     <div class="flabel">去向</div><div class="pick" id="rM" style="margin-bottom:14px">${methods.map(([k,n])=>`<button type="button" class="chip${k===method?' on':''}" data-m="${k}">${n}</button>`).join('')}</div>
     <div class="frow"><label class="f"><span>日期</span><input class="in" type="date" id="rDate" value="${today()}" max="${today()}"></label>
-    ${single&&qtyOf(single)>1?`<label class="f"><span>淘汰幾件（共 ${qtyOf(single)}）</span><span class="stepper"><button type="button" data-step="-1">−</button><input id="rQty" inputmode="numeric" value="${qtyOf(single)}"><button type="button" data-step="1">＋</button></span></label>`:'<span></span>'}</div>
+    ${single&&qtyOf(single)>1?`<label class="f"><span>淘汰幾${B.unit}（共 ${qtyOf(single)}）</span><span class="stepper"><button type="button" data-step="-1">−</button><input id="rQty" inputmode="numeric" value="${qtyOf(single)}"><button type="button" data-step="1">＋</button></span></label>`:'<span></span>'}</div>
     <div id="rSold" class="${method==='sold'?'':'hide'}"><div class="frow"><label class="f"><span>賣得多少（台幣）</span><input class="in num" id="rInc" inputmode="numeric" value="${single?.sell?.ask??''}"></label><label class="f"><span>賣到哪</span><input class="in" id="rWhere" value="${esc(single?.sell?.platform||'')}" placeholder="蝦皮、二手店…"></label></div>
       <div class="calc" id="rCalc"></div></div>
-    <label class="f"><span>備註</span><input class="in" id="rNote" placeholder="例如：起毛球、尺寸不合"></label><div class="ferr hide" id="rErr"></div>`;
-  const w=openSheet({title:single?'淘汰「'+itemName(single)+'」':'淘汰衣物',body,foot:`<button class="btn" data-c>取消</button><button class="btn pri" data-ok>確定淘汰</button>`});
+    <label class="f"><span>備註</span><input class="in" id="rNote" placeholder="${RETIRE_HINT[bk]}"></label><div class="ferr hide" id="rErr"></div>`;
+  const w=openSheet({title:single?'淘汰「'+itemName(single)+'」':'淘汰'+B.noun,body,foot:`<button class="btn" data-c>取消</button><button class="btn pri" data-ok>確定淘汰</button>`});
   const calc=()=>{ if(!single||method!=='sold') return; const inc=parseNum($('#rInc',w).value); const q=single&&$('#rQty',w)?Math.max(1,parseInt($('#rQty',w).value)||1):qtyOf(single); const cost=single.price!=null?single.price*q/qtyOf(single):null; $('#rCalc',w).textContent= inc>0&&cost? `買價 ${money(cost)}，賣回 ${Math.round(inc/cost*100)}%，實際花了 ${money(cost-inc)}`:''; };
   $('#rM',w).onclick=e=>{ const b=e.target.closest('[data-m]'); if(!b) return; method=b.dataset.m; $$('#rM .chip',w).forEach(x=>x.classList.toggle('on',x===b)); $('#rSold',w).classList.toggle('hide',method!=='sold'); calc(); };
-  $('#rInc',w).oninput=calc; w.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{ const r=$('#rQty',w); r.value=Math.max(1,Math.min(qtyOf(single),(parseInt(r.value)||1)+ +b.dataset.step)); calc(); });
+  $('#rInc',w).oninput=calc; w.querySelectorAll('.stepper [data-step]').forEach(b=>b.onclick=()=>{ const r=$('#rQty',w); r.value=Math.max(1,Math.min(qtyOf(single),(parseInt(r.value)||1)+ +b.dataset.step)); calc(); });
   calc();
   w.querySelector('[data-c]').onclick=()=>w.close();
   w.querySelector('[data-ok]').onclick=async()=>{
@@ -1354,20 +1635,19 @@ function openRetire(ids,opt={}){
     let income=null; if(method==='sold'){ income=parseNum($('#rInc',w).value); if(income==null||isNaN(income)||income<0){ err.textContent='請填賣得的金額（送出去沒收錢可以填 0）'; err.classList.remove('hide'); $('#rInc',w).classList.add('err'); return; } income=Math.round(income); }
     const retire={date,method,income,where:method==='sold'?$('#rWhere',w).value.trim():'',note:$('#rNote',w).value.trim()};
     const before=items.map(i=>JSON.parse(JSON.stringify(i)));
-    const created=[];
     if(single && $('#rQty',w)){
       const q=Math.max(1,Math.min(qtyOf(single),parseInt($('#rQty',w).value)||1));
       if(q<qtyOf(single)){ // 部分淘汰：拆出一筆已淘汰的紀錄，價格按比例分
-        const total=qtyOf(single); const part={...JSON.parse(JSON.stringify(single)),id:uid(),qty:q,status:'retired',retire,createdAt:single.createdAt};
+        const total=qtyOf(single); const part={...JSON.parse(JSON.stringify(single)),id:uid(),qty:q,status:'retired',retire,createdAt:single.createdAt,logs:[]};
         if(single.price!=null){ part.price=Math.round(single.price*q/total); single.price=single.price-part.price; }
         if(single.priceOrig!=null){ part.priceOrig=Math.round(single.priceOrig*q/total*100)/100; single.priceOrig=Math.round((single.priceOrig-part.priceOrig)*100)/100; }
-        delete part.sell; single.qty=total-q; await putItem(part); await putItem(single); created.push(part.id);
-        w.close(); render(); toast(`已淘汰 ${q} 件，還留 ${single.qty} 件`,{label:'復原',fn:async()=>{ await removeItem(part.id); await putItem(before[0]); render(); toast('已復原'); }}); return;
+        delete part.sell; single.qty=total-q; await putItem(part); await putItem(single);
+        w.close(); render(); toast(`已淘汰 ${q} ${B.unit}，還留 ${single.qty} ${B.unit}`,{label:'復原',fn:async()=>{ await removeItem(part.id); await putItem(before[0]); render(); toast('已復原'); }}); return;
       }
     }
     for(const it of items){ it.status='retired'; it.retire={...retire}; delete it.sell; await putItem(it); }
     w.close(); S.sel.clear(); S.selecting=false; render();
-    toast(`已記錄：${METHOD[method]} ${sumQty(items)} 件`,{label:'復原',fn:async()=>{ for(const b of before) await putItem(b); render(); toast('已復原'); }});
+    toast(`已記錄：${methodName(bk,method)} ${sumQty(items)} ${B.unit}`,{label:'復原',fn:async()=>{ for(const b of before) await putItem(b); render(); toast('已復原'); }});
   };
 }
 async function deleteWithUndo(ids){
@@ -1377,44 +1657,47 @@ async function deleteWithUndo(ids){
   S.sel.clear(); S.selecting=false; render();
   let undone=false;
   toast(`已刪除 ${recs.length} 筆`,{label:'復原',fn:async()=>{ undone=true; for(const c of copies) await putItem(c); render(); toast('已復原'); }});
-  setTimeout(async()=>{ if(undone) return; for(const c of copies) if(!S.items.some(i=>i.id===c.id)) await deleteImageIfUnused(c.photo); },6500);
+  setTimeout(async()=>{ if(undone) return; for(const c of copies) if(!S.items.some(i=>i.id===c.id)){ await deleteImageIfUnused(c.photo); for(const d of (c.docs||[])) await deleteImageIfUnused(d); } },6500);
 }
 
 /* ---------- 買前先查 ---------- */
 function openBuyCheck(){
-  let cat='', col='';
-  const w=openSheet({title:'想買之前，先查一下',wide:true,body:`<p class="muted small" style="margin:0 0 12px">在店裡看到喜歡的？先選分類和顏色，看看家裡已經有幾件。</p>
-    <div id="bcCats">${S.settings.groups.map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; return `<div class="pickgrp"><div class="pick">${cs.map(c=>`<button type="button" class="chip" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}</div></div>`; }).join('')}</div>
-    <div class="swatches" id="bcCols" style="margin:10px 0 16px">${COLORS.map(([k,n])=>`<button type="button" class="swatch" data-col="${k}"><i style="background:${swBg(k)}"></i>${n}</button>`).join('')}</div>
+  let cat='', col=''; const B=BK(), bk=S.book;
+  const w=openSheet({title:'想買之前，先查一下',wide:true,body:`<p class="muted small" style="margin:0 0 12px">在店裡看到喜歡的？先選分類${B.colors?'和顏色':''}，看看家裡已經有幾${B.unit}。</p>
+    <div id="bcCats">${groups().map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; return `<div class="pickgrp"><div class="g">${esc(g)}</div><div class="pick">${cs.map(c=>`<button type="button" class="chip" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}</div></div>`; }).join('')}</div>
+    ${B.colors?`<div class="swatches" id="bcCols" style="margin:10px 0 16px">${COLORS.map(([k,n])=>`<button type="button" class="swatch" data-col="${k}"><i style="background:${swBg(k)}"></i>${esc(n)}</button>`).join('')}</div>`:'<div style="height:12px"></div>'}
     <div id="bcOut"></div>`});
   const draw=()=>{
     const out=$('#bcOut',w);
     if(!cat&&!col){ out.innerHTML=''; return; }
     let arr=ownedItems(); if(cat) arr=arr.filter(i=>i.cat===cat); if(col) arr=arr.filter(i=>(i.colors||[]).includes(col));
-    const n=sumQty(arr); const c=cat?catById(cat):null; const label=`${col?COLOR[col].n+'色':''}${c?c.name:'衣物'}`;
+    const n=sumQty(arr); const c=cat?catById(cat):null; const label=`${col?COLOR[col].n+'色':''}${c?c.name:B.noun}`;
     const catN=cat?sumQty(ownedItems().filter(i=>i.cat===cat)):null;
     const lastBuy=arr.map(i=>i.date).filter(Boolean).sort().pop();
-    const avgWear=arr.length?arr.reduce((s,i)=>s+wearCount(i),0)/arr.length:0;
-    const never=arr.filter(i=>!wearCount(i)).length;
+    const wearArr=arr.filter(tracksWear);
+    const avgWear=wearArr.length?wearArr.reduce((s,i)=>s+wearCount(i),0)/wearArr.length:0;
+    const never=wearArr.filter(i=>!wearCount(i)).length;
     let verdict='';
     if(n===0) verdict='家裡還沒有這種的。';
-    else if(c?.limit && catN>=c.limit) verdict=`${c.name}已經 ${catN} 件，到上限 ${c.limit} 了。真的要買，記得淘汰一件。`;
-    else if(n>=5) verdict='已經不少了，這件跟家裡的有什麼不一樣？';
-    else verdict='想想看會跟哪幾件搭。';
-    out.innerHTML=`<div class="panel" style="background:var(--surface2);margin:0"><p class="lede" style="font-size:17px">你已經有 <b>${n}</b> 件${esc(label)}。</p>
-      <p class="muted small" style="margin:4px 0 10px">${[lastBuy?`最近一次買是 ${fmtDate(lastBuy)}`:'',arr.length?`平均每件穿了 ${avgWear.toFixed(1)} 次`:'',never?`${never} 筆還沒穿過`:''].filter(Boolean).join('，')}</p>
+    else if(c?.limit && catN>=c.limit) verdict=`${c.name}已經 ${catN} ${B.unit}，到上限 ${c.limit} 了。真的要買，記得淘汰一${B.unit}。`;
+    else if(bk==='appliance') verdict=n>=2?'已經有好幾台了，舊的還堪用嗎？要換的話記得把舊的淘汰。':'家裡已經有了，是要換新還是多一台？';
+    else if(n>=5) verdict='已經不少了，這個跟家裡的有什麼不一樣？';
+    else verdict=bk==='closet'?'想想看會跟哪幾件搭。':'想想看多一個會不會用得到。';
+    const v=B.verb;
+    out.innerHTML=`<div class="panel" style="background:var(--surface2);margin:0"><p class="lede" style="font-size:17px">你已經有 <b>${n}</b> ${B.unit}${esc(label)}。</p>
+      <p class="muted small" style="margin:4px 0 10px">${[lastBuy?`最近一次買是 ${fmtDate(lastBuy)}`:'',v&&wearArr.length?`平均每${B.unit}${v}了 ${avgWear.toFixed(1)} 次`:'',v&&never?`${never} 筆還沒${v}過`:''].filter(Boolean).join('，')}</p>
       <p style="margin:0 0 12px;font-weight:600;${c?.limit&&catN>=c.limit?'color:var(--brick)':''}">${verdict}</p>
       ${arr.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px">${sortItems(arr,'new').slice(0,30).map(it=>`<button class="tile" data-open="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="ts" style="margin-top:4px"><span>${esc(it.brand||itemName(it))}</span></div></button>`).join('')}</div>`:''}</div>`;
     hydrateImages(out);
     out.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
   };
   $('#bcCats',w).onclick=e=>{ const b=e.target.closest('[data-cat]'); if(!b) return; cat=cat===b.dataset.cat?'':b.dataset.cat; $$('#bcCats .chip',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===cat)); draw(); };
-  $('#bcCols',w).onclick=e=>{ const b=e.target.closest('[data-col]'); if(!b) return; col=col===b.dataset.col?'':b.dataset.col; $$('#bcCols .swatch',w).forEach(x=>x.classList.toggle('on',x.dataset.col===col)); draw(); };
+  $('#bcCols',w)?.addEventListener('click',e=>{ const b=e.target.closest('[data-col]'); if(!b) return; col=col===b.dataset.col?'':b.dataset.col; $$('#bcCols .swatch',w).forEach(x=>x.classList.toggle('on',x.dataset.col===col)); draw(); });
 }
 
 /* ---------- 盤點模式 ---------- */
 function openCheck(){
-  const own=ownedItems();
+  const own=ownedItems(), bk=S.book;
   const w=openSheet({title:'盤點模式',body:`<p style="margin:0 0 12px">要盤點哪些？</p><div class="pick" id="ckScope"><button class="chip on" data-k="">全部（${sumQty(own)}）</button>${cats().map(c=>{ const n=own.filter(i=>i.cat===c.id); return n.length?`<button class="chip" data-k="${c.id}">${esc(c.name)}（${sumQty(n)}）</button>`:''; }).join('')}</div>
     <label class="setrow" style="margin-top:10px;cursor:pointer"><span><span class="lbl">跳過 30 天內盤點過的</span></span><input type="checkbox" id="ckSkip" checked></label>`,
     foot:`<button class="btn pri block" data-go>開始</button>`});
@@ -1424,12 +1707,12 @@ function openCheck(){
     let q=own.filter(i=>!scope||i.cat===scope); if($('#ckSkip',w).checked) q=q.filter(i=>!i.lastChecked||daysSince(i.lastChecked)>30);
     q=sortItems(q,'old').sort((a,b)=>(catById(a.cat)?.order??0)-(catById(b.cat)?.order??0));
     w.close(); if(!q.length){ toast('這個範圍最近都盤點過了'); return; }
-    setTimeout(()=>runCheck(q.map(i=>i.id)),340);
+    setTimeout(()=>runCheck(q.map(i=>i.id),bk),340);
   };
 }
-function runCheck(ids){
-  let i=0; const res={keep:0,retire:0,lost:0,skip:0};
-  const w=openSheet({title:'盤點中',body:'<div id="ckBody"></div>',foot:'<div class="btnrow" style="width:100%"><button class="btn" data-k="lost">找不到</button><button class="btn" data-k="retire">要淘汰</button><button class="btn pri" data-k="keep">還在</button></div>',onClose:()=>{ S.settings.lastCheckAt=Date.now(); saveSettings(); render(); }});
+function runCheck(ids,bk=S.book){
+  let i=0; const res={keep:0,retire:0,lost:0,skip:0}; const B=BOOKS[bk];
+  const w=openSheet({title:'盤點中',body:'<div id="ckBody"></div>',foot:'<div class="btnrow" style="width:100%"><button class="btn" data-k="lost">找不到</button><button class="btn" data-k="retire">要淘汰</button><button class="btn pri" data-k="keep">還在</button></div>',onClose:()=>{ S.settings.lastCheckBy=S.settings.lastCheckBy||{}; S.settings.lastCheckBy[bk]=Date.now(); saveSettings(); render(); }});
   const foot=w.querySelector('.sh-f');
   const draw=()=>{
     while(i<ids.length && !S.items.find(x=>x.id===ids[i]&&owned(x))) i++;
@@ -1437,10 +1720,11 @@ function runCheck(ids){
     if(i>=ids.length){ w.setTitle('盤點完成'); foot.innerHTML='<button class="btn pri block" data-done>完成</button>'; foot.querySelector('[data-done]').onclick=()=>w.close();
       body.innerHTML=`<div class="checkcard"><p class="lede">盤點了 <b>${res.keep+res.retire+res.lost}</b> 筆</p><p class="muted">還在 ${res.keep}・淘汰 ${res.retire}・找不到 ${res.lost}${res.skip?`・略過 ${res.skip}`:''}</p></div>`; return; }
     const it=S.items.find(x=>x.id===ids[i]);
+    const extra=[it.date?fmtAge(it.date)+'買的':'購入日期不詳', tracksWear(it)?`${B.verb}過 ${wearCount(it)} 次`:'', warrantyState(it)?(warrantyState(it).k==='expired'?'已過保':'保固中'):'', expiryState(it)?(expiryState(it).k==='expired'?'已過期':''):''].filter(Boolean).join('・');
     body.innerHTML=`<div class="prog"><i style="width:${i/ids.length*100}%"></i></div><div class="checkcard"><div class="ph">${it.photo?`<img alt="" data-img="${esc(it.photo)}">`:photoHTML(it)}</div>
       <div style="font-weight:700;font-size:17px">${esc(itemName(it))}${qtyOf(it)>1?` <span class="num">×${qtyOf(it)}</span>`:''}</div>
       <div class="muted small">${esc(catName(it.cat))}${it.brand?'・'+esc(it.brand):''}${it.location?'・放在'+esc(it.location):''}</div>
-      <div class="muted small">${it.date?fmtAge(it.date)+'買的':'購入日期不詳'}・穿過 ${wearCount(it)} 次</div>
+      <div class="muted small">${extra}</div>
       <div style="margin-top:10px"><span class="muted small">${i+1} / ${ids.length}</span>　<button class="linkbtn" data-skip>略過</button></div></div>`;
     hydrateImages(body); body.querySelector('[data-skip]').onclick=()=>{ res.skip++; i++; draw(); };
   };
@@ -1455,21 +1739,23 @@ function runCheck(ids){
 
 /* ---------- 篩選面板 ---------- */
 function openFilters(){
-  const f=JSON.parse(JSON.stringify(S.f));
-  const opts=(field)=>{ const m=brandDisplayMap(field); const cnt=new Map(); S.items.filter(it=>matchItem(it,{...S.f,cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''})).forEach(it=>{ const k=normKey(it[field]); if(k) cnt.set(k,(cnt.get(k)||0)+qtyOf(it)); }); return [...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,m.get(k)||k,n]); };
-  const sec=(title,key,items,render)=>items.length?`<div class="flabel" style="margin-top:14px">${title}</div><div class="pick" data-key="${key}">${items.map(render).join('')}</div>`:'';
-  const ownedNow=S.items.filter(it=>matchItem(it,{...S.f,cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}));
-  const body=`<div class="flabel">排序</div><select class="in" id="fsSort">${SORTS.map(([k,n])=>`<option value="${k}" ${f.sort===k?'selected':''}>${n}</option>`).join('')}</select>
+  const f=JSON.parse(JSON.stringify(S.f)), B=BK();
+  const base={...S.f,cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''};
+  const ownedNow=BI().filter(it=>matchItem(it,base));
+  const opts=(field)=>{ const m=brandDisplayMap(field); const cnt=new Map(); ownedNow.forEach(it=>{ const k=normKey(it[field]); if(k) cnt.set(k,(cnt.get(k)||0)+qtyOf(it)); }); return [...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,m.get(k)||k,n]); };
+  const sec=(title,key,items,rend)=>items.length?`<div class="flabel" style="margin-top:14px">${title}</div><div class="pick" data-key="${key}">${items.map(rend).join('')}</div>`:'';
+  const sorts=sortsFor();
+  const body=`<div class="flabel">排序</div><select class="in" id="fsSort">${sorts.map(([k,n])=>`<option value="${k}" ${f.sort===k?'selected':''}>${n}</option>`).join('')}</select>
     ${sec('分類','cats',cats().filter(c=>ownedNow.some(i=>i.cat===c.id)),c=>`<button type="button" class="chip${f.cats.includes(c.id)?' on':''}" data-v="${c.id}">${esc(c.name)}</button>`)}
-    ${sec('顏色','colors',COLORS.filter(([k])=>ownedNow.some(i=>(i.colors||[]).includes(k))),([k,n])=>`<button type="button" class="chip${f.colors.includes(k)?' on':''}" data-v="${k}"><i class="sw" style="background:${swBg(k)}"></i>${n}</button>`)}
+    ${B.colors?sec('顏色','colors',COLORS.filter(([k])=>ownedNow.some(i=>(i.colors||[]).includes(k))),([k,n])=>`<button type="button" class="chip${f.colors.includes(k)?' on':''}" data-v="${k}"><i class="sw" style="background:${swBg(k)}"></i>${esc(n)}</button>`):''}
     ${sec('品牌','brands',opts('brand'),([k,n,c])=>`<button type="button" class="chip${f.brands.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}
-    ${sec('季節','seasons',SEASONS.filter(s=>ownedNow.some(i=>(i.seasons||[]).includes(s))),s=>`<button type="button" class="chip${f.seasons.includes(s)?' on':''}" data-v="${s}">${s}</button>`)}
+    ${B.seasons?sec('季節','seasons',SEASONS.filter(s=>ownedNow.some(i=>(i.seasons||[]).includes(s))),s=>`<button type="button" class="chip${f.seasons.includes(s)?' on':''}" data-v="${s}">${s}</button>`):''}
     ${sec('店家／平台','stores',opts('store'),([k,n,c])=>`<button type="button" class="chip${f.stores.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}
     ${sec('存放位置','locations',opts('location'),([k,n,c])=>`<button type="button" class="chip${f.locations.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}`;
   const w=openSheet({title:'篩選與排序',body,foot:`<button class="btn" data-reset>全部清除</button><button class="btn pri grow2" data-apply>套用</button>`});
   w.querySelector('.sh-b').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; const key=b.closest('[data-key]').dataset.key; const v=b.dataset.v; const arr=f[key]; const i=arr.indexOf(v); if(i>=0) arr.splice(i,1); else arr.push(v); b.classList.toggle('on',i<0); });
   w.querySelector('[data-reset]').onclick=()=>{ ['cats','colors','brands','stores','seasons','locations'].forEach(k=>f[k]=[]); f.sort='new'; $('#fsSort',w).value='new'; $$('.chip.on',w).forEach(c=>c.classList.remove('on')); };
-  w.querySelector('[data-apply]').onclick=()=>{ f.sort=$('#fsSort',w).value; S.f={...f,q:S.f.q,status:S.f.status}; saveFilters(); w.close(); render(); };
+  w.querySelector('[data-apply]').onclick=()=>{ f.sort=$('#fsSort',w).value; setF({...f,q:S.f.q,status:S.f.status}); w.close(); render(); };
 }
 
 /* ---------- 匯出／匯入 ---------- */
@@ -1488,56 +1774,65 @@ async function deliverFile(file,label,onDone){
     const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),30000); onDone&&onDone(); toast('已開始下載');
   };
 }
+const usedImageIds = () => new Set(S.items.flatMap(i=>[i.photo,...(i.docs||[])]).filter(Boolean));
 async function doExport(){
   const out=$('#exportOut'); out.innerHTML='<p class="muted small" style="margin:12px 0 0">正在打包…</p>';
   try{
-    const imgs=await DB.getAll('images'); const used=new Set(S.items.map(i=>i.photo).filter(Boolean));
-    const payload={app:'closet-ledger',version:1,exportedAt:Date.now(),items:S.items,settings:{...S.settings,lastBackup:undefined},
+    const imgs=await DB.getAll('images'); const used=usedImageIds();
+    const payload={app:'life-ledger',version:2,exportedAt:Date.now(),items:S.items,settings:{...S.settings,lastBackup:undefined},
       images:imgs.filter(i=>used.has(i.id)).map(i=>({id:i.id,full:{type:i.full.type,b64:abToB64(i.full.buf)},thumb:{type:i.thumb.type,b64:abToB64(i.thumb.buf)}}))};
-    const file=new File([JSON.stringify(payload)],`衣櫥帳本備份-${stamp()}.json`,{type:'application/json'});
+    const file=new File([JSON.stringify(payload)],`生活帳本備份-${stamp()}.json`,{type:'application/json'});
     deliverFile(file,'備份',async()=>{ S.settings.lastBackup=Date.now(); await saveSettings(); $('#navSet').classList.toggle('dot',backupDue()); });
   }catch(e){ out.innerHTML=`<p class="ferr">匯出失敗：${esc(e.message)}</p>`; }
 }
 function csvCell(v){ v=v==null?'':String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function doCSV(){
-  const head=['狀態','大類','分類','名稱','顏色','品牌','尺寸','季節','數量','購入日期','在哪買','管道','幣別','原幣金額','匯率','台幣金額','存放位置','穿過次數','最後穿著','每次成本','淘汰日期','去向','轉賣收入','賣到哪','備註'];
-  const st={active:'在衣櫥',selling:'待售',retired:'已淘汰'};
-  const rows=sortItems(S.items,'new').map(it=>[st[it.status],catById(it.cat)?.group||'',catName(it.cat),itemName(it),(it.colors||[]).map(c=>COLOR[c]?.n).join('、'),it.brand,it.size,(it.seasons||[]).join(''),qtyOf(it),it.date,it.store,it.channel,it.currency,it.priceOrig,it.rate,it.price,it.location,wearCount(it),lastWear(it),it.price!=null&&wearCount(it)?Math.round(cpw(it)):'',it.retire?.date,METHOD[it.retire?.method]||'',it.retire?.income,it.retire?.where,[it.note,it.retire?.note].filter(Boolean).join('／')]);
+  const head=['帳本','狀態','大類','分類','名稱','顏色','品牌','尺寸／規格','型號','序號','季節','數量','購入日期','在哪買','管道','幣別','原幣金額','匯率','台幣金額','存放位置','使用次數','最後使用','每次成本','保固到期','開封日','有效期限','實際到期','維修耗材次數','維修耗材花費','淘汰日期','去向','轉賣收入','賣到哪','備註'];
+  const st={active:'擁有中',selling:'待售',retired:'已淘汰'};
+  const order=it=>BOOK_KEYS.indexOf(bookOf(it));
+  const rows=sortItems(S.items,'new').sort((a,b)=>order(a)-order(b)).map(it=>{ const bk=bookOf(it), tw=tracksWear(it);
+    return [BOOKS[bk].name,st[it.status],catById(it.cat)?.group||'',catName(it.cat),itemName(it),(it.colors||[]).map(c=>COLOR[c]?.n).join('、'),it.brand,it.size,it.model,it.serial,(it.seasons||[]).join(''),qtyOf(it),it.date,it.store,it.channel,it.currency,it.priceOrig,it.rate,it.price,it.location,
+      tw?wearCount(it):'',tw?lastWear(it):'',tw&&it.price!=null&&wearCount(it)?Math.round(cpw(it)):'',it.warrantyUntil,it.openedAt,it.expiry,effExpiry(it),(it.logs||[]).length||'',logsCost(it)||'',
+      it.retire?.date,it.status==='retired'?methodName(bk,it.retire?.method):'',it.retire?.income,it.retire?.where,[it.note,it.retire?.note].filter(Boolean).join('／')]; });
   const csv='﻿'+[head,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
-  deliverFile(new File([csv],`衣櫥清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
+  deliverFile(new File([csv],`生活帳本清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
 }
 function doImport(){
   const inp=$('#fileBackup'); inp.value='';
   inp.onchange=async()=>{
     const file=inp.files[0]; if(!file) return;
-    let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是衣櫥帳本的備份檔'); return; }
-    if(data?.app!=='closet-ledger'||!Array.isArray(data.items)){ toast('這個檔案不是衣櫥帳本的備份檔'); return; }
-    const w=openSheet({title:'匯入備份',body:`<p style="margin:0 0 6px">備份檔裡有 <b>${data.items.length}</b> 筆衣物、${(data.images||[]).length} 張照片（${fmtDate(ymd(new Date(data.exportedAt)))} 匯出）。</p>
+    let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是生活帳本（衣櫥帳本）的備份檔'); return; }
+    if(!['life-ledger','closet-ledger'].includes(data?.app)||!Array.isArray(data.items)){ toast('這個檔案不是生活帳本（衣櫥帳本）的備份檔'); return; }
+    data.items.forEach(i=>{ if(!i.book) i.book='closet'; });
+    const cnt=BOOK_KEYS.map(k=>[BOOKS[k].name,data.items.filter(i=>i.book===k).length]).filter(x=>x[1]).map(([n,c])=>`${n} ${c}`).join('、')||'0';
+    const w=openSheet({title:'匯入備份',body:`<p style="margin:0 0 6px">備份檔裡有 <b>${data.items.length}</b> 筆（${cnt}）、${(data.images||[]).length} 張照片（${fmtDate(ymd(new Date(data.exportedAt)))} 匯出）。</p>
       <p class="muted small" style="margin:0 0 12px">這台裝置現在有 ${S.items.length} 筆。</p>
-      <div class="list"><button class="li" data-mode="merge"><span class="tx"><div>合併</div><div class="muted small">兩邊的都留下；同一筆衣物以較新修改的為準</div></span></button>
+      <div class="list"><button class="li" data-mode="merge"><span class="tx"><div>合併</div><div class="muted small">兩邊的都留下；同一筆以較新修改的為準</div></span></button>
       <button class="li" data-mode="replace"><span class="tx"><div style="color:var(--brick)">全部取代</div><div class="muted small">刪掉這台裝置的資料，完全換成備份檔的內容</div></span></button></div>`});
     w.querySelectorAll('[data-mode]').forEach(b=>b.onclick=async()=>{
       const mode=b.dataset.mode;
       if(mode==='replace' && S.items.length && !(await confirmSheet({title:'確定全部取代？',msg:`這台裝置上的 ${S.items.length} 筆資料會被刪除，無法復原。`,ok:'全部取代',danger:true}))) return;
       try{
         const imgs=(data.images||[]).map(i=>({id:i.id,full:{type:i.full.type,buf:b64ToAb(i.full.b64)},thumb:{type:i.thumb.type,buf:b64ToAb(i.thumb.b64)}}));
+        const ds=migrateSettings(data.settings||{});
         let added=0,updated=0;
         if(mode==='replace'){
           await DB.clear('items'); await DB.clear('images'); urlCache.forEach(u=>URL.revokeObjectURL(u)); urlCache.clear();
           await DB.putMany('images',imgs); await DB.putMany('items',data.items); S.items=data.items.slice(); added=data.items.length;
-          if(data.settings){ S.settings={...defaultSettings(),...data.settings,lastBackup:S.settings.lastBackup,firstUse:S.settings.firstUse}; rebuildColors(); await saveSettings(); }
+          if(data.settings){ S.settings={...ds,lastBackup:S.settings.lastBackup,firstUse:S.settings.firstUse}; rebuildColors(); await saveSettings(); }
         } else {
+          const wasEmptyDevice=!S.items.length;
           const have=new Map(S.items.map(i=>[i.id,i])); const toPut=[];
           data.items.forEach(it=>{ const h=have.get(it.id); if(!h){ toPut.push(it); added++; } else if((it.updatedAt||0)>(h.updatedAt||0)){ toPut.push(it); updated++; } });
           const haveImg=new Set((await DB.getAll('images')).map(i=>i.id)); await DB.putMany('images',imgs.filter(i=>!haveImg.has(i.id)));
           await DB.putMany('items',toPut); toPut.forEach(it=>{ const k=S.items.findIndex(x=>x.id===it.id); if(k>=0) S.items[k]=it; else S.items.push(it); });
-          if(data.settings?.cats){ // 合併分類：補上這台沒有的分類
-            data.settings.groups?.forEach(g=>{ if(!S.settings.groups.includes(g)) S.settings.groups.push(g); });
-            data.settings.cats.forEach(c=>{ if(!catById(c.id)) S.settings.cats.push({...c,order:S.settings.cats.length}); });
-            await saveSettings(); }
-          if(data.settings){ // 合併自訂顏色與管道
-            const cc=S.settings.customColors||[]; (data.settings.customColors||[]).forEach(c=>{ if(!cc.some(x=>x.k===c.k)) cc.push(c); }); S.settings.customColors=cc;
-            const ch=S.settings.channels||[...DEFAULT_CHANNELS]; (data.settings.channels||[]).forEach(c=>{ if(!ch.includes(c)) ch.push(c); }); S.settings.channels=ch;
+          const wasEmpty=wasEmptyDevice;
+          if(data.settings && wasEmpty){ S.settings={...ds,lastBackup:S.settings.lastBackup,firstUse:S.settings.firstUse}; rebuildColors(); await saveSettings(); } // 空的裝置：直接用備份的設定
+          else if(data.settings){ // 合併分類、大類、自訂顏色與管道
+            BOOK_KEYS.forEach(bk=>{ const gs=S.settings.groupsBy[bk]; (ds.groupsBy[bk]||[]).forEach(g=>{ if(!gs.includes(g)) gs.push(g); }); });
+            ds.cats.forEach(c=>{ if(!catById(c.id)) S.settings.cats.push({...c,order:S.settings.cats.length+100}); });
+            const cc=S.settings.customColors||[]; (ds.customColors||[]).forEach(c=>{ if(!cc.some(x=>x.k===c.k)) cc.push(c); }); S.settings.customColors=cc;
+            const ch=S.settings.channels||[...DEFAULT_CHANNELS]; (ds.channels||[]).forEach(c=>{ if(!ch.includes(c)) ch.push(c); }); S.settings.channels=ch;
             rebuildColors(); await saveSettings(); }
         }
         w.close(); render(); toast(mode==='replace'?`已匯入 ${added} 筆`:`新增 ${added} 筆、更新 ${updated} 筆`);
@@ -1550,9 +1845,12 @@ function doImport(){
 /* ---------- 事件 ---------- */
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]'); if(!b) return; const a=b.dataset.a;
-  const st=S.settings;
+  const st=S.settings; const SB=settingsBook||S.book;
   switch(a){
-    case 'nav': if(b.dataset.sec) pendingSec=b.dataset.sec; setView(b.dataset.v); break;
+    case 'nav': if(b.dataset.sec) pendingSec=b.dataset.sec; if(b.dataset.v==='settings') settingsBook=S.book; if(b.dataset.v==='money') moneyBook=null; setView(b.dataset.v); break;
+    case 'book': setBook(b.dataset.k); window.scrollTo(0,0); break;
+    case 'mbook': if(b.dataset.k==='all') moneyBook='all'; else { moneyBook=null; if(b.dataset.k!==S.book){ setBook(b.dataset.k); break; } } render(); break;
+    case 'sbook': settingsBook=b.dataset.k; render(); setTimeout(()=>$('#sec-cats')?.scrollIntoView({block:'start'}),30); break;
     case 'add': openItemForm(null); break;
     case 'batch': startBatch(); break;
     case 'status': S.f.status=b.dataset.k; saveFilters(); render(); break;
@@ -1563,12 +1861,12 @@ document.addEventListener('click',async e=>{
     case 'selmode': S.selecting=!S.selecting; S.sel.clear(); render(); break;
     case 'tile': if(S.selecting){ const id=b.dataset.id; S.sel.has(id)?S.sel.delete(id):S.sel.add(id); b.classList.toggle('sel'); renderSelbar(); } else openDetail(b.dataset.id); break;
     case 'open': openDetail(b.dataset.id); break;
-    case 'gocat': S.f={...S.f,status:'own',cats:[b.dataset.k],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}; saveFilters(); setView('closet'); break;
-    case 'seeidle': S.f={...S.f,status:'own',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:'',sort:'idle'}; saveFilters(); setView('closet'); break;
+    case 'gocat': setF({...S.f,status:'own',cats:[b.dataset.k],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}); setView('closet'); break;
+    case 'seeidle': setF({...S.f,status:'own',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:'',sort:'idle'}); setView('closet'); break;
     case 'buycheck': openBuyCheck(); break;
     case 'check': openCheck(); break;
-    case 'bulkwear': { const t=today(); let n=0; for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it&&owned(it)&&!(it.wears||[]).includes(t)){ it.wears=[...(it.wears||[]),t]; await putItem(it); n++; } } S.selecting=false; S.sel.clear(); render(); toast(n?`已記錄 ${n} 件今天穿了`:'選的都已經記錄過今天了'); break; }
-    case 'bulkloc': { const locs=[...new Set([...DEFAULT_LOCATIONS,...brandDisplayMap('location').values()])];
+    case 'bulkwear': { const t=today(); let n=0; for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it&&owned(it)&&tracksWear(it)&&!(it.wears||[]).includes(t)){ it.wears=[...(it.wears||[]),t]; await putItem(it); n++; } } S.selecting=false; S.sel.clear(); render(); toast(n?`已記錄 ${n} 筆今天${BK().verb}了`:'選的都已經記錄過今天了，或這些分類不記錄次數'); break; }
+    case 'bulkloc': { const locs=[...new Set([...LOCS_BY[S.book],...brandDisplayMap('location').values()])];
       const w=openSheet({title:`改存放位置（${S.sel.size} 筆）`,body:`<label class="f"><span>移到</span><input class="in" id="blLoc" list="dlBl" placeholder="例如：收納箱 A"></label><datalist id="dlBl">${locs.map(l=>`<option value="${esc(l)}">`).join('')}</datalist>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>移過去</button>'});
       w.querySelector('[data-c]').onclick=()=>w.close();
       w.querySelector('[data-ok]').onclick=async()=>{ const v=$('#blLoc',w).value.trim(); for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it){ it.location=v; await putItem(it); } } const n=S.sel.size; w.close(); S.selecting=false; S.sel.clear(); render(); toast(v?`已把 ${n} 筆移到「${v}」`:`已清除 ${n} 筆的存放位置`); };
@@ -1582,34 +1880,34 @@ document.addEventListener('click',async e=>{
     case 'theme': st.theme=b.dataset.k; applyTheme(); await saveSettings(); render(); break;
     case 'namesTab': namesTab=b.dataset.k; render(); break;
     case 'rename': { const old=b.dataset.v; const label={brand:'品牌',store:'店家',location:'存放位置'}[namesTab];
-      const w=openSheet({title:`${label}改名`,body:`<label class="f"><span>「${esc(old)}」改成</span><input class="in" id="rnV" value="${esc(old)}"></label><p class="muted small" style="margin:0">會一起改掉所有用到「${esc(old)}」的衣物。改成已有的名稱就會合併在一起。</p>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>改名</button>'});
+      const w=openSheet({title:`${label}改名`,body:`<label class="f"><span>「${esc(old)}」改成</span><input class="in" id="rnV" value="${esc(old)}"></label><p class="muted small" style="margin:0">會一起改掉三本裡所有用到「${esc(old)}」的紀錄。改成已有的名稱就會合併在一起。</p>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>改名</button>'});
       w.querySelector('[data-c]').onclick=()=>w.close();
       w.querySelector('[data-ok]').onclick=async()=>{ const v=$('#rnV',w).value.trim(); if(!v){ toast('名稱不能空白'); return; } let n=0; for(const it of S.items){ if((it[namesTab]||'').trim()===old){ it[namesTab]=v; await putItem(it); n++; } } w.close(); render(); toast(`已更新 ${n} 筆`); }; break; }
-    case 'addcat': { if(await addCategory(b.dataset.k)) render(); break; }
+    case 'addcat': { if(await addCategory(b.dataset.k,SB)) render(); break; }
     case 'addcolor': { if(await addCustomColor()) render(); break; }
     case 'editcolor': { const c=(st.customColors||[]).find(x=>x.k===b.dataset.k); if(!c) return; const used=S.items.filter(i=>(i.colors||[]).includes(c.k));
-      const w=openSheet({title:`顏色「${c.n}」`,body:`<p class="muted small" style="margin:0 0 12px">有 ${used.length} 筆衣物用到這個顏色。</p><div class="btnrow"><button class="btn" data-edit>改名稱或色彩</button><button class="btn danger" data-del>刪除這個顏色</button></div>`});
+      const w=openSheet({title:`顏色「${c.n}」`,body:`<p class="muted small" style="margin:0 0 12px">有 ${used.length} 筆用到這個顏色。</p><div class="btnrow"><button class="btn" data-edit>改名稱或色彩</button><button class="btn danger" data-del>刪除這個顏色</button></div>`});
       w.querySelector('[data-edit]').onclick=async()=>{ w.close(); const r=await colorSheet(c); if(!r) return; Object.assign(c,r); rebuildColors(); await saveSettings(); render(); toast('已更新顏色'); };
-      w.querySelector('[data-del]').onclick=async()=>{ w.close(); if(!(await confirmSheet({title:`刪除顏色「${c.n}」？`,msg:used.length?`${used.length} 筆衣物會拿掉這個顏色，其他資料不受影響。`:'沒有衣物用到這個顏色。',ok:'刪除',danger:true}))) return;
-        for(const it of used){ it.colors=it.colors.filter(x=>x!==c.k); await putItem(it); } st.customColors=st.customColors.filter(x=>x!==c); S.f.colors=S.f.colors.filter(x=>x!==c.k); saveFilters(); rebuildColors(); await saveSettings(); render(); toast('已刪除顏色'); };
+      w.querySelector('[data-del]').onclick=async()=>{ w.close(); if(!(await confirmSheet({title:`刪除顏色「${c.n}」？`,msg:used.length?`${used.length} 筆會拿掉這個顏色，其他資料不受影響。`:'沒有紀錄用到這個顏色。',ok:'刪除',danger:true}))) return;
+        for(const it of used){ it.colors=it.colors.filter(x=>x!==c.k); await putItem(it); } st.customColors=st.customColors.filter(x=>x!==c); Object.values(S.fBy).forEach(f=>{ f.colors=f.colors.filter(x=>x!==c.k); }); saveFilters(); rebuildColors(); await saveSettings(); render(); toast('已刪除顏色'); };
       break; }
     case 'addchannel': { if(await addChannel()) render(); break; }
     case 'chren': { const i=+b.dataset.k; st.channels=st.channels||[...DEFAULT_CHANNELS]; const old=st.channels[i]; const v=await askText('管道改名','管道名稱',old); if(!v||v===old) return; if(st.channels.includes(v)){ toast('已經有「'+v+'」了'); return; }
-      st.channels[i]=v; let n=0; for(const it of S.items){ if(it.channel===old){ it.channel=v; await putItem(it); n++; } } await saveSettings(); render(); toast(n?`已改名，並更新 ${n} 筆衣物`:'已改名'); break; }
+      st.channels[i]=v; let n=0; for(const it of S.items){ if(it.channel===old){ it.channel=v; await putItem(it); n++; } } await saveSettings(); render(); toast(n?`已改名，並更新 ${n} 筆`:'已改名'); break; }
     case 'chdel': { const i=+b.dataset.k; st.channels=st.channels||[...DEFAULT_CHANNELS]; const c=st.channels[i]; const n=S.items.filter(it=>it.channel===c).length;
-      if(await confirmSheet({title:`刪除管道「${c}」？`,msg:n?`選單裡不再出現，但已經記錄的 ${n} 筆衣物會保留「${c}」。`:'選單裡不再出現這個選項。',ok:'刪除',danger:true})){ st.channels.splice(i,1); await saveSettings(); render(); toast('已刪除'); } break; }
-    case 'addgroup': { await addGroup(false); render(); break; }
-    case 'grpren': { const gi=+b.dataset.k; const old=st.groups[gi]; const name=await askText('大類改名','大類名稱',old); if(!name||name===old) return; if(st.groups.includes(name)){ toast('已經有這個大類'); return; } st.groups[gi]=name; st.cats.forEach(c=>{ if(c.group===old) c.group=name; }); await saveSettings(); render(); break; }
-    case 'grpdel': { const gi=+b.dataset.k; st.groups.splice(gi,1); await saveSettings(); render(); break; }
-    case 'grpup': case 'grpdown': { const gi=+b.dataset.k, j=a==='grpup'?gi-1:gi+1; [st.groups[gi],st.groups[j]]=[st.groups[j],st.groups[gi]]; await saveSettings(); render(); break; }
-    case 'catup': case 'catdown': { const c=catById(b.dataset.k); const sib=cats().filter(x=>x.group===c.group); const i=sib.indexOf(c); const o=sib[a==='catup'?i-1:i+1]; if(o){ [c.order,o.order]=[o.order,c.order]; await saveSettings(); render(); } break; }
+      if(await confirmSheet({title:`刪除管道「${c}」？`,msg:n?`選單裡不再出現，但已經記錄的 ${n} 筆會保留「${c}」。`:'選單裡不再出現這個選項。',ok:'刪除',danger:true})){ st.channels.splice(i,1); await saveSettings(); render(); toast('已刪除'); } break; }
+    case 'addgroup': { await addGroup(false,SB); render(); break; }
+    case 'grpren': { const gs=groups(SB); const gi=+b.dataset.k; const old=gs[gi]; const name=await askText('大類改名','大類名稱',old); if(!name||name===old) return; if(gs.includes(name)){ toast('已經有這個大類'); return; } gs[gi]=name; st.cats.forEach(c=>{ if(c.book===SB&&c.group===old) c.group=name; }); await saveSettings(); render(); break; }
+    case 'grpdel': { groups(SB).splice(+b.dataset.k,1); await saveSettings(); render(); break; }
+    case 'grpup': case 'grpdown': { const gs=groups(SB); const gi=+b.dataset.k, j=a==='grpup'?gi-1:gi+1; [gs[gi],gs[j]]=[gs[j],gs[gi]]; await saveSettings(); render(); break; }
+    case 'catup': case 'catdown': { const c=catById(b.dataset.k); const sib=cats(c.book).filter(x=>x.group===c.group); const i=sib.indexOf(c); const o=sib[a==='catup'?i-1:i+1]; if(o){ [c.order,o.order]=[o.order,c.order]; await saveSettings(); render(); } break; }
     case 'catdel': { const c=catById(b.dataset.k); const used=S.items.filter(i=>i.cat===c.id);
-      if(!used.length){ if(await confirmSheet({title:`刪除分類「${c.name}」？`,msg:'這個分類沒有衣物，可以直接刪除。',ok:'刪除',danger:true})){ st.cats=st.cats.filter(x=>x!==c); await saveSettings(); render(); } return; }
-      const others=cats().filter(x=>x!==c); if(!others.length) return;
+      if(!used.length){ if(await confirmSheet({title:`刪除分類「${c.name}」？`,msg:'這個分類沒有紀錄，可以直接刪除。',ok:'刪除',danger:true})){ st.cats=st.cats.filter(x=>x!==c); await saveSettings(); render(); } return; }
+      const others=cats(c.book).filter(x=>x!==c); if(!others.length){ toast('這是這本唯一的分類，不能刪除'); return; }
       const w=openSheet({title:`刪除分類「${c.name}」`,body:`<p style="margin:0 0 12px">這個分類還有 ${used.length} 筆紀錄（含已淘汰），要先移到哪個分類？</p><select class="in" id="mvTo">${others.map(o=>`<option value="${o.id}">${esc(o.group)}・${esc(o.name)}</option>`).join('')}</select>`,foot:'<button class="btn" data-c>取消</button><button class="btn danger" data-ok>移過去並刪除</button>'});
       w.querySelector('[data-c]').onclick=()=>w.close();
-      w.querySelector('[data-ok]').onclick=async()=>{ const to=$('#mvTo',w).value; for(const it of used){ it.cat=to; await putItem(it); } st.cats=st.cats.filter(x=>x!==c); S.f.cats=S.f.cats.filter(x=>x!==c.id); saveFilters(); await saveSettings(); w.close(); render(); toast(`已移到「${catName(to)}」並刪除分類`); }; break; }
-    case 'wipe': if(await confirmSheet({title:'清除所有資料？',msg:`會刪掉 ${S.items.length} 筆衣物、所有照片與設定，無法復原。`,ok:'下一步',danger:true})){
+      w.querySelector('[data-ok]').onclick=async()=>{ const to=$('#mvTo',w).value; for(const it of used){ it.cat=to; await putItem(it); } st.cats=st.cats.filter(x=>x!==c); Object.values(S.fBy).forEach(f=>{ f.cats=f.cats.filter(x=>x!==c.id); }); saveFilters(); await saveSettings(); w.close(); render(); toast(`已移到「${catName(to)}」並刪除分類`); }; break; }
+    case 'wipe': if(await confirmSheet({title:'清除所有資料？',msg:`會刪掉衣櫥、電器、物品共 ${S.items.length} 筆紀錄、所有照片與設定，無法復原。`,ok:'下一步',danger:true})){
       if(await confirmSheet({title:'最後確認',msg:'真的要清除嗎？',ok:'全部清除',danger:true})){ await DB.clear('items'); await DB.clear('images'); await DB.clear('meta'); urlCache.clear(); S.items=[]; S.settings=defaultSettings(); rebuildColors(); await saveSettings(); setView('closet'); toast('已清除所有資料'); } } break;
   }
 });
@@ -1629,9 +1927,12 @@ function applyTheme(){ const t=S.settings?.theme||'auto'; if(t==='auto') documen
   try{ await DB.open(); }
   catch(e){ $('#app').innerHTML=`<div class="empty"><h3>無法開啟本機資料庫</h3><p>${/blocked/.test(e.message)?'App 在另一個分頁開著，請關掉其他分頁後重新整理。':'可能是「私密瀏覽」模式或瀏覽器停用了網站資料。請改用一般模式開啟。'}</p></div>`; return; }
   S.items=await DB.getAll('items');
-  const st=await DB.get('meta','settings'); S.settings=st?{...defaultSettings(),...st.value}:defaultSettings(); if(!st) await saveSettings(); rebuildColors();
+  const old=S.items.filter(i=>!i.book); if(old.length){ old.forEach(i=>{ i.book='closet'; }); await DB.putMany('items',old); } // 舊版衣物歸到「衣櫥」
+  const st=await DB.get('meta','settings'); S.settings=migrateSettings(st?st.value:null); await saveSettings(); rebuildColors();
   const r=await DB.get('meta','rates'); S.rates=r?r.value:null;
-  const f=lsGet('closet.f'); if(f) S.f={...S.f,...f};
+  const fBy=lsGet('closet.fBy'), f1=lsGet('closet.f');
+  BOOK_KEYS.forEach(k=>{ S.fBy[k]={...newF(),...(fBy?.[k]||(k==='closet'&&f1)||{})}; });
+  const bk=lsGet('closet.book'); if(BOOKS[bk]) S.book=bk; S.f=S.fBy[S.book];
   const v=lsGet('closet.view'); if(v) S.view=v;
   applyTheme(); render();
   refreshRates(false).then(ch=>{ if(ch && S.view==='settings') render(); });
