@@ -1,5 +1,5 @@
 // 衣櫥帳本 service worker — 更新 App 時把版本號 +1
-const CACHE = 'closet-v5';
+const CACHE = 'closet-v6';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/favicon-64.png'];
 
