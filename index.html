@@ -1,0 +1,1620 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>衣櫥帳本</title>
+<meta name="description" content="衣物建檔、盤點、花費統計與淘汰紀錄">
+<meta name="theme-color" content="#E7E5E0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1F1E1C" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="衣櫥帳本">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<style>
+:root{
+  --bg:#E7E5E0;--surface:#F6F5F1;--surface2:#EEECE7;--ink:#34302C;--ink2:#6F6962;--ink3:#9A948C;--line:#D9D5CE;
+  --mauve:#957A80;--mauve-ink:#7C6268;--mauve-soft:#E7DCDD;--sage:#7F8E78;--sage-soft:#DCE2D7;--brick:#A66B5B;--brick-soft:#F0DDD6;
+  --shadow:0 1px 2px rgba(52,48,44,.06),0 10px 30px rgba(52,48,44,.07);
+  --f:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei UI","Microsoft JhengHei",sans-serif;
+  --num:"Avenir Next","Avenir","Segoe UI Variable Display","Segoe UI",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+  --nav-h:62px;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1F1E1C;--surface:#2A2826;--surface2:#33302D;--ink:#ECE7E1;--ink2:#ACA59D;--ink3:#7F7871;--line:#3E3A36;
+  --mauve:#B99DA3;--mauve-ink:#D3B9BE;--mauve-soft:#433A3C;--sage:#A3B19B;--sage-soft:#343A31;--brick:#CF9483;--brick-soft:#48342E;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1F1E1C;--surface:#2A2826;--surface2:#33302D;--ink:#ECE7E1;--ink2:#ACA59D;--ink3:#7F7871;--line:#3E3A36;
+  --mauve:#B99DA3;--mauve-ink:#D3B9BE;--mauve-soft:#433A3C;--sage:#A3B19B;--sage-soft:#343A31;--brick:#CF9483;--brick-soft:#48342E;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f);min-height:100vh;min-height:100dvh;overflow-x:hidden}
+body.locked{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+button:disabled{cursor:default;opacity:.45}
+:focus-visible{outline:2px solid var(--mauve);outline-offset:2px}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.muted{color:var(--ink2)}.faint{color:var(--ink3)}
+.small{font-size:13px}.tiny{font-size:12px}
+.hide{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* 版面 */
+.app{max-width:1240px;margin:0 auto;padding:calc(14px + var(--safe-t)) 16px calc(var(--nav-h) + var(--safe-b) + 24px)}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 14px}
+.vh h1{font-size:28px;line-height:1.15;margin:0;font-weight:700;letter-spacing:.04em}
+.vh .sub{font-size:13px;color:var(--ink2);margin-top:4px}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:inline-grid;place-items:center;color:var(--ink2);background:var(--surface);flex:none}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.on{background:var(--ink);color:var(--surface)}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--line);
+  padding:0 8px var(--safe-b);display:grid;grid-template-columns:repeat(5,1fr);height:calc(var(--nav-h) + var(--safe-b))}
+.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--ink3);letter-spacing:.05em}
+.nav button svg{width:23px;height:23px}
+.nav button.on{color:var(--ink)}
+.nav .add span{width:48px;height:48px;border-radius:16px;background:var(--ink);color:var(--surface);display:grid;place-items:center;box-shadow:var(--shadow);transition:transform .15s}
+.nav .add:active span{transform:scale(.94)}
+.nav .add svg{width:24px;height:24px}
+.nav .dot{position:relative}
+.nav .dot::after{content:"";position:absolute;top:-1px;right:-4px;width:7px;height:7px;border-radius:50%;background:var(--brick)}
+@media (min-width:900px){
+  .nav{top:0;right:auto;width:200px;height:auto;display:flex;flex-direction:column;gap:4px;padding:28px 14px;border-top:0;border-right:1px solid var(--line)}
+  .nav::before{content:"衣櫥帳本";order:-2;font-weight:700;letter-spacing:.12em;font-size:17px;padding:0 12px 18px}
+  .nav button{flex-direction:row;justify-content:flex-start;gap:12px;font-size:15px;padding:10px 12px;border-radius:12px}
+  .nav button.on{background:var(--surface2)}
+  .nav .add{order:-1;margin-bottom:12px}
+  .nav .add span{width:100%;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px}
+  .nav .add span svg{width:20px;height:20px}
+  .nav .add span::after{content:"新增衣物"}
+  .nav .add .lbl{display:none}
+  .app{margin-left:200px;padding:28px 36px 48px;max-width:1300px}
+  .vh h1{font-size:32px}
+}
+
+/* 色譜 */
+.rail{margin:4px 0 16px}
+.rail .bar{display:flex;height:46px;border-radius:14px;overflow:hidden;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)}
+.rail .seg{position:relative;min-width:6px;height:100%;transition:flex-grow .5s cubic-bezier(.2,.8,.2,1),opacity .2s,transform .2s;transform-origin:bottom}
+.rail .seg{box-shadow:inset 0 0 0 1px rgba(128,128,128,.22)}
+.rail.has-sel .seg:not(.sel){opacity:.28}
+.rail .seg.sel{transform:scaleY(1.06)}
+.rail .legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:12.5px;color:var(--ink2)}
+.rail .legend button{display:inline-flex;align-items:center;gap:6px;padding:2px 0}
+.rail .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)}
+.rail .legend b{font-weight:600;color:var(--ink)}
+.rail.anim .seg{animation:grow .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+/* 搜尋與篩選 */
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:12px;padding:0 12px;height:42px;box-shadow:inset 0 0 0 1px var(--line)}
+.search svg{width:18px;height:18px;color:var(--ink3);flex:none}
+.search input{flex:1;border:0;background:none;outline:none;font-size:16px;min-width:0}
+.seg-ctl{display:inline-flex;background:var(--surface2);border-radius:12px;padding:3px;gap:2px}
+.seg-ctl button{padding:6px 12px;border-radius:9px;font-size:13.5px;color:var(--ink2);white-space:nowrap}
+.seg-ctl button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.chips::-webkit-scrollbar{display:none}
+@media (min-width:900px){.chips{margin:0;padding-left:0;padding-right:0;flex-wrap:wrap}}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:13.5px;color:var(--ink);white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--surface);box-shadow:none}
+.chip .x{opacity:.6;font-size:15px;line-height:1}
+.chip i.sw{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)}
+.countline{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink2);margin:2px 0 10px}
+.linkbtn{color:var(--mauve-ink);font-weight:600;font-size:13.5px}
+
+/* 衣物格 */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
+@media (min-width:560px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1100px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media (min-width:900px) and (max-width:1099px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile{display:block;text-align:left;position:relative;min-width:0}
+.ph{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--surface2)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .25s}
+.ph img.ok{opacity:1}
+.ph .ph-fallback{position:absolute;inset:0;display:grid;place-items:center;font-size:15px;font-weight:600;letter-spacing:.1em}
+.tile .badges{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:4px;flex-wrap:wrap;pointer-events:none}
+.badge{font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(246,245,241,.92);color:#34302C;font-weight:600}
+.badge.sell{background:var(--mauve);color:#fff}.badge.idle{background:#e9e1cf;color:#5d5340}.badge.ret{background:#34302C;color:#F6F5F1}
+.badge.qty{margin-left:auto}
+.tile .tt{margin-top:8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .ts{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px}
+.tile .ts .num{margin-left:auto;flex:none;color:var(--ink)}
+.tile.retired .ph{filter:grayscale(.85);opacity:.7}
+.tile .tick{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(246,245,241,.9);box-shadow:inset 0 0 0 2px var(--ink3);display:none}
+.selecting .tile .tick{display:block}
+.selecting .tile .badges .qty{display:none}
+.tile.sel .tick{background:var(--ink);box-shadow:none}
+.tile.sel .tick::after{content:"";position:absolute;left:9px;top:5px;width:6px;height:11px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.tile.sel .ph{outline:3px solid var(--ink);outline-offset:-3px}
+.empty{text-align:center;padding:48px 20px;color:var(--ink2)}
+.empty h3{color:var(--ink);font-size:18px;margin:12px 0 6px}
+.empty svg{width:54px;height:54px;color:var(--ink3)}
+
+/* 面板 */
+.panel{background:var(--surface);border-radius:20px;padding:18px;margin-bottom:14px}
+.panel h2{font-size:17px;margin:0 0 4px;letter-spacing:.03em}
+.panel .ph2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+.cols{display:grid;gap:14px}
+@media (min-width:900px){.cols{grid-template-columns:1fr 1fr;align-items:start}.cols>.panel{margin-bottom:0}}
+.stack>*+*{margin-top:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 16px;border-radius:12px;background:var(--surface2);font-weight:600;font-size:14.5px;white-space:nowrap}
+.btn.pri{background:var(--ink);color:var(--surface)}
+.btn.soft{background:var(--mauve-soft);color:var(--mauve-ink)}
+.btn.danger{background:var(--brick-soft);color:var(--brick)}
+.btn.sm{height:34px;padding:0 12px;font-size:13.5px;border-radius:10px}
+.btn.block{width:100%}
+.btn svg{width:18px;height:18px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btnrow>.btn{flex:1}
+
+/* 總覽 */
+.lede{font-size:19px;line-height:1.5;font-weight:500;margin:0 0 4px}
+.lede b{font-family:var(--num);font-weight:700;font-size:1.25em}
+.streak{display:flex;align-items:center;gap:14px}
+.streak .big{font-family:var(--num);font-size:44px;font-weight:600;line-height:1}
+.catgroup+.catgroup{margin-top:14px}
+.catgroup h4{margin:0 0 6px;font-size:13px;color:var(--ink2);font-weight:600;letter-spacing:.06em}
+.catrow{display:grid;grid-template-columns:5.2em 1fr auto;align-items:center;gap:10px;padding:7px 0;width:100%;text-align:left}
+.catrow .nm{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.catrow .track{height:10px;border-radius:6px;background:var(--surface2);position:relative;overflow:hidden}
+.catrow .fill{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--sage);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.catrow.over .fill{background:var(--brick)}
+.catrow .limitmark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
+.catrow .ct{font-family:var(--num);font-size:14px;min-width:4.6em;text-align:right}
+.catrow.over .ct{color:var(--brick);font-weight:700}
+.minis{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.minis::-webkit-scrollbar{display:none}
+.mini{flex:none;width:76px;text-align:left}
+.mini .ph{border-radius:10px}
+.mini .cap{font-size:11.5px;color:var(--ink2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--brick-soft);color:var(--brick);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.notice b{color:inherit}
+.notice .btn{margin-left:auto;flex:none}
+
+/* 花費 */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (min-width:700px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface2);border-radius:14px;padding:12px 14px}
+.kpi .k{font-size:12.5px;color:var(--ink2)}
+.kpi .v{font-family:var(--num);font-size:22px;font-weight:600;margin-top:2px;white-space:nowrap}
+.kpi .v small{font-size:12px;font-weight:500;color:var(--ink2);margin-right:2px}
+.kpi.hl{background:var(--ink);color:var(--surface)}.kpi.hl .k,.kpi.hl .v small{color:color-mix(in srgb,var(--surface) 70%,transparent)}
+.budget{margin-top:14px}
+.budget .track{height:12px;border-radius:7px;background:var(--surface2);position:relative;overflow:hidden;margin:8px 0 6px}
+.budget .fill{position:absolute;inset:0 auto 0 0;background:var(--mauve);border-radius:7px}
+.budget.over .fill{background:var(--brick)}
+.budget .pace{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.45}
+.months{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:150px;margin-top:8px}
+.months .m{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:0}
+.months .b{width:100%;max-width:26px;border-radius:6px 6px 3px 3px;background:var(--mauve);min-height:2px;transition:height .6s cubic-bezier(.2,.8,.2,1)}
+.months .b.zero{background:var(--line)}
+.months .l{font-size:11px;color:var(--ink3);font-family:var(--num)}
+.months .m.cur .l{color:var(--ink);font-weight:700}
+.months .vv{font-size:10px;color:var(--ink2);font-family:var(--num);white-space:nowrap;height:13px}
+.hbars .r{display:grid;grid-template-columns:5.4em 1fr auto;gap:10px;align-items:center;padding:6px 0;font-size:14px}
+.hbars .r .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbars .r .t{height:8px;border-radius:5px;background:var(--surface2);position:relative;overflow:hidden}
+.hbars .r .t i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:var(--sage)}
+.hbars .r .v{font-family:var(--num);font-size:13.5px;text-align:right;white-space:nowrap}
+.list .li{display:flex;align-items:center;gap:12px;padding:9px 0;width:100%;text-align:left}
+.list .li+.li{border-top:1px solid var(--line)}
+.list .li .th{width:42px;height:56px;flex:none}
+.list .li .th .ph{border-radius:8px;aspect-ratio:auto;height:100%}
+.list .li .tx{flex:1;min-width:0}
+.list .li .tx div:first-child{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list .li .rv{font-family:var(--num);text-align:right;white-space:nowrap}
+
+/* 設定 */
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0}
+.setrow+.setrow{border-top:1px solid var(--line)}
+.setrow .lbl{font-weight:500}
+.setrow .desc{font-size:12.5px;color:var(--ink2)}
+.cated{display:grid;grid-template-columns:1fr 4.6em auto;gap:6px;align-items:center;padding:6px 0}
+.cated input.nm{height:38px}
+.cated input.lim{height:38px;text-align:center}
+.cated .ops{display:flex;gap:2px}
+.cated .ops button{width:32px;height:32px;border-radius:9px;color:var(--ink2);display:grid;place-items:center}
+.cated .ops button:hover{background:var(--surface2)}
+.cated .ops svg{width:16px;height:16px}
+.cated .idle-t{grid-column:1/-1;font-size:12.5px;color:var(--ink2);display:flex;gap:8px;align-items:center;margin-top:-2px;cursor:pointer}
+.cated .idle-t input{width:18px;height:18px;padding:0;margin:0;flex:none;border-radius:4px;box-shadow:none;background:none;accent-color:var(--mauve)}
+.tips{margin:0;padding-left:20px}.tips li{margin:6px 0}
+.rt{width:100%;border-collapse:collapse;font-size:13.5px}
+.rt td{padding:6px 4px;border-top:1px solid var(--line)}
+.rt td.v{font-family:var(--num);color:var(--ink2)}
+.rt input{width:96px;height:34px;text-align:right}
+
+/* 表單 */
+label.f{display:block;margin-bottom:14px}
+label.f>span,.flabel{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:6px;letter-spacing:.03em}
+.flabel .req{color:var(--brick);margin-left:2px}
+input.in,select.in,textarea.in,.cated input,.rt input{width:100%;height:44px;border-radius:12px;border:0;background:var(--surface2);padding:0 12px;font-size:16px;outline:none;box-shadow:inset 0 0 0 1px transparent;transition:box-shadow .15s}
+textarea.in{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
+input.in:focus,select.in:focus,textarea.in:focus,.cated input:focus,.rt input:focus{box-shadow:inset 0 0 0 2px var(--mauve)}
+input.in.err,select.in.err{box-shadow:inset 0 0 0 2px var(--brick)}
+select.in{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+input[type=date].in{display:block;-webkit-appearance:none;appearance:none;min-height:44px;line-height:44px}
+.ferr{color:var(--brick);font-size:13px;margin-top:6px;font-weight:600}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frow3{display:grid;grid-template-columns:8.6em 1fr 1fr;gap:10px}.frow3.twd{grid-template-columns:8.6em 1fr}
+.fsec{border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick .chip{height:34px}
+.pickgrp{margin-bottom:8px}
+.pickgrp .g{font-size:12px;color:var(--ink3);margin:0 0 4px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:3px;width:44px;font-size:11.5px;color:var(--ink2)}
+.swatch i{width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35);position:relative;transition:transform .15s}
+.swatch.on i{transform:scale(1.05);box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.swatch.on{color:var(--ink);font-weight:700}
+.autocol{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;background:var(--sage-soft);border-radius:12px;padding:8px 12px;margin:-2px 0 12px}
+.autocol .ac{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+.autocol .ac i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)}
+.swatch.add i{display:grid;place-items:center;background:var(--surface2);box-shadow:inset 0 0 0 1.5px var(--ink3);font-style:normal;font-size:18px;color:var(--ink2)}
+.chip.add{color:var(--ink2);box-shadow:inset 0 0 0 1.5px var(--line);background:transparent;border:1.5px dashed var(--ink3);box-shadow:none;padding:0 11px}
+.cpick{-webkit-appearance:none;appearance:none;width:64px;height:64px;border:0;padding:0;border-radius:50%;background:none;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)}
+.cpick::-webkit-color-swatch-wrapper{padding:0}.cpick::-webkit-color-swatch{border:0;border-radius:50%}.cpick::-moz-color-swatch{border:0;border-radius:50%}
+.photo-in{position:relative;border-radius:16px;overflow:hidden;background:var(--surface2);aspect-ratio:4/5;max-height:46vh;width:100%;display:grid;place-items:center;color:var(--ink2);border:1.5px dashed var(--line);text-align:center}
+.photo-in.has{border:0}
+.photo-in img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-in .hint{padding:16px;font-size:14px;line-height:1.5}
+.photo-in .hint svg{width:34px;height:34px;display:block;margin:0 auto 8px;color:var(--ink3)}
+.photo-in .rm{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(30,28,26,.6);color:#fff;display:grid;place-items:center;z-index:2}
+.photo-in .chg{position:absolute;bottom:10px;right:10px;z-index:2;background:rgba(30,28,26,.6);color:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
+.photo-in.drag{border-color:var(--mauve);background:var(--mauve-soft)}
+.similar{background:var(--surface2);border-radius:14px;padding:10px 12px;margin:-4px 0 14px;font-size:13.5px}
+.similar .minis{margin-top:8px}
+.similar .mini{width:54px}
+.formgrid{display:block}
+@media (min-width:900px){.formgrid{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:start}.formgrid .photo-col{position:sticky;top:0}}
+.batchbar{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);margin-bottom:10px}
+.batchbar .track{flex:1;height:6px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.batchbar .track i{display:block;height:100%;background:var(--mauve);transition:width .3s}
+.calc{font-size:13px;color:var(--ink2);margin-top:-6px;margin-bottom:12px}
+.stepper{display:inline-flex;align-items:center;background:var(--surface2);border-radius:12px;height:44px}
+.stepper button{width:42px;height:44px;font-size:20px;color:var(--ink2)}
+.stepper input{width:44px;text-align:center;border:0;background:none;font-size:16px;outline:none;font-family:var(--num)}
+
+/* 底部動作條 */
+.selbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + var(--safe-b) + 10px);z-index:31;background:var(--ink);color:var(--surface);border-radius:18px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow);transform:translateY(20px);opacity:0;pointer-events:none;transition:.22s}
+.selbar.in{transform:none;opacity:1;pointer-events:auto}
+.selbar .cnt{font-weight:600;margin-right:auto;white-space:nowrap}
+.selbar button{color:var(--surface);padding:8px 9px;border-radius:10px;font-size:14px;white-space:nowrap;flex:none}
+.selbar button.x{display:grid;place-items:center;width:36px;height:36px;padding:0;background:rgba(255,255,255,.12)}
+body.selbar-on .toast{bottom:calc(var(--nav-h) + var(--safe-b) + 84px)}
+body.locked .toast{top:calc(var(--safe-t) + 14px);bottom:auto;transform:translate(-50%,-16px)}
+body.locked .toast.in{transform:translate(-50%,0)}
+.selbar button:hover{background:rgba(255,255,255,.1)}
+@media (min-width:900px){.selbar{left:calc(200px + 36px);right:36px;bottom:24px;max-width:760px}}
+
+/* Sheet */
+.sw-wrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sw-wrap .scrim{position:absolute;inset:0;background:rgba(32,29,26,.38);opacity:0;transition:opacity .25s}
+.sheet{position:relative;background:var(--surface);width:100%;max-height:calc(100dvh - var(--safe-t) - 18px);border-radius:22px 22px 0 0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.85,.25,1);box-shadow:0 -10px 40px rgba(0,0,0,.18)}
+.sw-wrap.in .scrim{opacity:1}
+.sw-wrap.in .sheet{transform:none}
+.sh-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px 20px}
+.sh-h h3{margin:0;font-size:18px;flex:1;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-b{padding:4px 20px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1}
+.sh-f{padding:12px 16px calc(12px + var(--safe-b));border-top:1px solid var(--line);display:flex;gap:8px}
+.sh-f .btn{flex:1}
+.sh-f .btn.grow2{flex:2}
+@media (min-width:700px){
+  .sw-wrap{align-items:center;padding:24px}
+  .sheet{max-width:560px;border-radius:22px;transform:translateY(24px) scale(.98);opacity:0;transition:transform .25s cubic-bezier(.2,.85,.25,1),opacity .2s;max-height:calc(100dvh - 48px)}
+  .sheet.wide{max-width:820px}
+  .sw-wrap.in .sheet{opacity:1}
+  .sh-f{padding-bottom:12px}
+}
+.grabber{width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0}
+@media (min-width:700px){.grabber{display:none}}
+
+/* 詳細 */
+.dt-photo{border-radius:18px;overflow:hidden;background:var(--surface2);aspect-ratio:4/5;max-height:52vh;margin:0 auto 14px;position:relative}
+.dt-photo img{width:100%;height:100%;object-fit:contain;display:block;background:var(--surface2)}
+.dt-photo .ph-fallback{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:600;letter-spacing:.15em}
+@media (min-width:700px){.dt-grid{display:grid;grid-template-columns:220px 1fr;gap:20px}.dt-photo{margin:0;max-height:none}}
+.dt-tag{display:inline-flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:0}
+.facts dt{color:var(--ink2)}
+.facts dd{margin:0;word-break:break-word}
+.wearbox{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.wearbox div{background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
+.wearbox b{display:block;font-family:var(--num);font-size:20px;font-weight:600}
+.wearbox span{font-size:12px;color:var(--ink2)}
+.retinfo{background:var(--surface2);border-radius:14px;padding:12px 14px;margin:12px 0;font-size:14px}
+.checkcard{text-align:center}
+.checkcard .ph{max-width:260px;margin:0 auto 12px}
+.prog{height:6px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:14px}
+.prog i{display:block;height:100%;background:var(--sage);transition:width .3s}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + var(--safe-b) + 18px);transform:translate(-50%,16px);z-index:80;background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:14px;font-size:14px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px)}
+.toast.in{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--mauve-soft);font-weight:700;white-space:nowrap}
+@media (min-width:900px){.toast{bottom:28px;left:calc(50% + 100px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite"></main>
+<nav class="nav" id="nav" aria-label="主選單">
+  <button data-a="nav" data-v="closet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg><span class="lbl">衣櫥</span></button>
+  <button data-a="nav" data-v="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">盤點</span></button>
+  <button class="add" data-a="add" aria-label="新增衣物"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="lbl sr">新增</span></button>
+  <button data-a="nav" data-v="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/><path d="M7 6V4.8C7 4.4 7.4 4 7.8 4h8.4c.4 0 .8.4.8.8V6"/></svg><span class="lbl">花費</span></button>
+  <button data-a="nav" data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="lbl" id="navSet">設定</span></button>
+</nav>
+<div class="selbar" id="selbar"></div>
+<div class="toast" id="toast" role="status"></div>
+<input type="file" id="fileOne" accept="image/*" class="hide">
+<input type="file" id="fileMany" accept="image/*" multiple class="hide">
+<input type="file" id="fileBackup" accept=".json,application/json" class="hide">
+
+<script>
+'use strict';
+const APP_VERSION = '1.2.0';
+
+/* ---------- 基本資料 ---------- */
+const BASE_COLORS = [
+  ['black','黑','#2E2C2B'],['white','白','#F7F6F2'],['grey','灰','#A09D99'],['beige','米','#E4DACA'],['khaki','卡其','#BFA98A'],
+  ['brown','咖啡','#7A5A45'],['navy','深藍','#2F3A56'],['blue','藍','#5B7FA8'],['lightblue','淺藍','#A9C3DC'],['green','綠','#6F8F6A'],
+  ['olive','軍綠','#6B6A45'],['red','紅','#B0413E'],['wine','酒紅','#6E2F3A'],['pink','粉','#E3B5B8'],['purple','紫','#8A76A0'],
+  ['yellow','黃','#E2C766'],['orange','橘','#D98C4A'],['multi','花色','multi']
+];
+let COLORS = BASE_COLORS.slice(), COLOR = Object.fromEntries(BASE_COLORS.map(([k,n,h])=>[k,{k,n,h}]));
+function rebuildColors(){ COLORS=[...BASE_COLORS,...((S.settings&&S.settings.customColors)||[]).map(c=>[c.k,c.n,c.h])]; COLOR=Object.fromEntries(COLORS.map(([k,n,h])=>[k,{k,n,h}])); }
+const MULTI_BG = 'conic-gradient(#B0413E 0 25%,#E2C766 0 50%,#6F8F6A 0 75%,#5B7FA8 0)';
+const swBg = k => !COLOR[k] ? 'var(--line)' : (COLOR[k].h==='multi' ? MULTI_BG : COLOR[k].h);
+const SEASONS = ['春','夏','秋','冬'];
+const CURRENCIES = [['TWD','台幣'],['JPY','日圓'],['KRW','韓元'],['USD','美元'],['EUR','歐元'],['GBP','英鎊'],['HKD','港幣'],['CNY','人民幣'],['THB','泰銖'],['SGD','星幣'],['AUD','澳幣'],['VND','越南盾']];
+const CUR_SYMBOL = {TWD:'NT$',JPY:'¥',KRW:'₩',USD:'US$',EUR:'€',GBP:'£',HKD:'HK$',CNY:'CN¥',THB:'฿',SGD:'S$',AUD:'A$',VND:'₫'};
+const METHODS = [['trash','丟棄'],['donate','捐回收箱'],['gift','送人'],['sold','賣掉'],['lost','遺失']];
+const METHOD = Object.fromEntries(METHODS);
+const DEFAULT_GROUPS = ['上衣','下身','貼身衣物','居家','配件','鞋子'];
+const DEFAULT_CATS = [
+  ['shirt','襯衫','上衣'],['jacket','外套','上衣'],['ls_tee','長袖T','上衣'],['ss_tee','短袖T','上衣'],['hoodie','帽T','上衣'],['sweater','毛衣','上衣'],
+  ['bottom','下衣','下身'],
+  ['bra','內衣','貼身衣物',false],['panties','內褲','貼身衣物',false],['heattech','發熱衣','貼身衣物',false],['cool','涼感衣','貼身衣物',false],['socks','襪子','貼身衣物',false],
+  ['pj_top','睡衣','居家',false],['pj_bottom','睡褲','居家',false],
+  ['hat','帽子','配件'],['scarf','圍巾','配件'],['sleeve','袖套','配件'],
+  ['shoes','鞋子','鞋子']
+].map(([id,name,group,idle],i)=>({id,name,group,limit:null,idle:idle!==false,order:i}));
+const DEFAULT_LOCATIONS = ['衣櫃','抽屜','收納箱','鞋櫃'];
+const DEFAULT_CHANNELS = ['實體店','網購','二手','別人送的'];
+
+/* ---------- 小工具 ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => ymd(new Date());
+const parseYmd = s => { if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const daysSince = s => { const d=parseYmd(s); if(!d) return null; const t=parseYmd(today()); return Math.round((t-d)/864e5); };
+const fmtDate = s => { if(!s) return '日期不詳'; const [y,m,d]=s.split('-'); return `${y}/${+m}/${+d}`; };
+const fmtInt = n => Math.round(n).toLocaleString('zh-TW');
+const money = (n,cur='TWD') => n==null||isNaN(n) ? '—' : (CUR_SYMBOL[cur]||cur+' ')+(cur==='TWD'||cur==='JPY'||cur==='KRW'||cur==='VND'?fmtInt(n):(+n).toLocaleString('zh-TW',{maximumFractionDigits:2}));
+const parseNum = v => { if(v==null) return null; const s=String(v).replace(/[,\s，]/g,'').replace(/[０-９．]/g,c=>c==='．'?'.':String.fromCharCode(c.charCodeAt(0)-0xFEE0)); if(s==='') return null; const n=Number(s); return isFinite(n)?n:NaN; };
+const normKey = s => String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+const ICON = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
+  filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+  select:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5C4 7.7 4.7 7 5.5 7h2l1.5-2h6l1.5 2h2c.8 0 1.5.7 1.5 1.5v9c0 .8-.7 1.5-1.5 1.5h-13C4.7 19 4 18.3 4 17.5v-9Z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 14 6-6 6 6"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 10 6 6 6-6"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9.5 7V4.5h5V7"/></svg>',
+  hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
+};
+
+/* ---------- IndexedDB ---------- */
+const DB = {
+  db:null,
+  open(){ return new Promise((res,rej)=>{
+    const r=indexedDB.open('closet-ledger',1);
+    r.onupgradeneeded=()=>{ const d=r.result;
+      if(!d.objectStoreNames.contains('items')) d.createObjectStore('items',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('images')) d.createObjectStore('images',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('meta')) d.createObjectStore('meta',{keyPath:'key'}); };
+    r.onsuccess=()=>{ this.db=r.result; res(); };
+    r.onerror=()=>rej(r.error); r.onblocked=()=>rej(new Error('blocked'));
+  });},
+  tx(store,mode,fn){ return new Promise((res,rej)=>{
+    const t=this.db.transaction(store,mode); const s=t.objectStore(store); let out;
+    const r=fn(s); if(r) r.onsuccess=()=>{ out=r.result; };
+    t.oncomplete=()=>res(out); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error||new Error('abort'));
+  });},
+  get(s,k){ return this.tx(s,'readonly',st=>st.get(k)); },
+  getAll(s){ return this.tx(s,'readonly',st=>st.getAll()); },
+  put(s,v){ return this.tx(s,'readwrite',st=>st.put(v)); },
+  putMany(s,arr){ return new Promise((res,rej)=>{ const t=this.db.transaction(s,'readwrite'); const st=t.objectStore(s); arr.forEach(v=>st.put(v)); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error||new Error('abort')); }); },
+  del(s,k){ return this.tx(s,'readwrite',st=>st.delete(k)); },
+  clear(s){ return this.tx(s,'readwrite',st=>st.clear()); }
+};
+
+/* ---------- 狀態 ---------- */
+const S = {
+  items:[], settings:null, rates:null, view:'closet',
+  f:{status:'own',q:'',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],sort:'new'},
+  selecting:false, sel:new Set(), railAnimated:false
+};
+function defaultSettings(){ return {groups:[...DEFAULT_GROUPS],cats:DEFAULT_CATS.map(c=>({...c})),budget:null,idleDays:365,manualRates:{},lastBackup:null,firstUse:Date.now(),lastCheckAt:null,theme:'auto',customColors:[],channels:[...DEFAULT_CHANNELS]}; }
+async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); }
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+/* ---------- 衍生資料 ---------- */
+const cats = () => [...S.settings.cats].sort((a,b)=>a.order-b.order);
+const catById = id => S.settings.cats.find(c=>c.id===id);
+const catName = id => catById(id)?.name || '未分類';
+const owned = it => it.status==='active' || it.status==='selling';
+const ownedItems = () => S.items.filter(owned);
+const qtyOf = it => Math.max(1, it.qty||1);
+const sumQty = arr => arr.reduce((s,it)=>s+qtyOf(it),0);
+const itemName = it => it.name?.trim() || `${it.colors?.[0]&&COLOR[it.colors[0]]?COLOR[it.colors[0]].n+'色':''}${catName(it.cat)}`;
+const wearCount = it => (it.wears||[]).length;
+const lastWear = it => (it.wears||[]).reduce((m,d)=>d>m?d:m,'');
+function idleSince(it){ // 從哪一天開始算「沒穿」：最後穿著、購入日、開始建檔日 取最晚
+  const tracked = ymd(new Date(it.createdAt||Date.now()));
+  return [lastWear(it), it.date||'', tracked].reduce((m,d)=>d>m?d:m,'');
+}
+function isIdle(it){ if(!owned(it)) return false; const c=catById(it.cat); if(c && c.idle===false) return false; return daysSince(idleSince(it)) >= (S.settings.idleDays||365); }
+const cpw = it => it.price==null ? null : it.price / Math.max(1, wearCount(it));
+function brandDisplayMap(field){ // 不分大小寫合併，顯示最常用的寫法
+  const m=new Map();
+  S.items.forEach(it=>{ const v=(it[field]||'').trim(); if(!v) return; const k=normKey(v); if(!m.has(k)) m.set(k,new Map()); const sub=m.get(k); sub.set(v,(sub.get(v)||0)+1); });
+  const out=new Map(); m.forEach((sub,k)=>{ out.set(k,[...sub.entries()].sort((a,b)=>b[1]-a[1])[0][0]); }); return out;
+}
+function convertToTWD(amount,cur,rateOverride){ if(amount==null) return null; if(cur==='TWD') return amount; const r=rateOverride||currentRate(cur); return r? amount*r : null; }
+function currentRate(cur){ if(cur==='TWD') return 1; const m=S.settings.manualRates?.[cur]; if(m) return m; const r=S.rates?.rates?.[cur]; return r? 1/r : null; }
+
+/* ---------- 篩選 ---------- */
+function matchItem(it,f,skip={}){
+  if(f.status==='own' && !owned(it)) return false;
+  if(f.status==='selling' && it.status!=='selling') return false;
+  if(f.status==='retired' && it.status!=='retired') return false;
+  if(f.q){ const q=normKey(f.q); const hay=normKey([itemName(it),it.brand,it.store,it.note,catName(it.cat),it.size,it.location,(it.colors||[]).map(c=>COLOR[c]?.n).join(' ')].join(' ')); if(!q.split(' ').every(w=>hay.includes(w))) return false; }
+  if(f.cats.length && !f.cats.includes(it.cat)) return false;
+  if(!skip.colors && f.colors.length && !(it.colors||[]).some(c=>f.colors.includes(c))) return false;
+  if(f.brands.length && !f.brands.includes(normKey(it.brand))) return false;
+  if(f.stores.length && !f.stores.includes(normKey(it.store))) return false;
+  if(f.seasons.length && !(it.seasons||[]).some(s=>f.seasons.includes(s))) return false;
+  if(f.locations.length && !f.locations.includes(normKey(it.location))) return false;
+  return true;
+}
+const SORTS = [['new','最新購入'],['old','最早購入'],['priceDesc','價格高→低'],['priceAsc','價格低→高'],['wearDesc','穿最多次'],['idle','最久沒穿'],['cpwDesc','每次成本最高']];
+function sortItems(arr,key){
+  const by = {
+    new:(a,b)=>(b.date||'').localeCompare(a.date||'')||b.createdAt-a.createdAt,
+    old:(a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||a.createdAt-b.createdAt,
+    priceDesc:(a,b)=>(b.price??-1)-(a.price??-1),
+    priceAsc:(a,b)=>(a.price??1e15)-(b.price??1e15),
+    wearDesc:(a,b)=>wearCount(b)-wearCount(a),
+    idle:(a,b)=>idleSince(a).localeCompare(idleSince(b)),
+    cpwDesc:(a,b)=>(cpw(b)??-1)-(cpw(a)??-1)
+  }[key]||(()=>0);
+  return [...arr].sort(by);
+}
+function filtered(){ return sortItems(S.items.filter(it=>matchItem(it,S.f)),S.f.sort); }
+const filterCount = () => ['cats','colors','brands','stores','seasons','locations'].reduce((n,k)=>n+S.f[k].length,0);
+
+/* ---------- 圖片 ---------- */
+const urlCache = new Map();
+async function imgURL(id,kind='thumb'){
+  const key=id+':'+kind; if(urlCache.has(key)) return urlCache.get(key);
+  const rec=await DB.get('images',id); if(!rec) return null;
+  const part=rec[kind]||rec.full; const url=URL.createObjectURL(new Blob([part.buf],{type:part.type}));
+  urlCache.set(key,url); return url;
+}
+function dropImgCache(id){ ['thumb','full'].forEach(k=>{ const u=urlCache.get(id+':'+k); if(u){ URL.revokeObjectURL(u); urlCache.delete(id+':'+k);} }); }
+function loadImage(src){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('decode')); im.src=src; }); }
+function canvasToBuf(cv,q){ return new Promise((res,rej)=>cv.toBlob(b=>{ if(!b) return rej(new Error('encode')); b.arrayBuffer().then(buf=>res({buf,type:'image/jpeg'}),rej); },'image/jpeg',q)); }
+async function encode(im,max,q){
+  const w=im.naturalWidth,h=im.naturalHeight; const s=Math.min(1,max/Math.max(w,h));
+  const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(w*s)); cv.height=Math.max(1,Math.round(h*s));
+  const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,cv.width,cv.height); cx.drawImage(im,0,0,cv.width,cv.height);
+  const out=await canvasToBuf(cv,q); cv.width=cv.height=0; return out;
+}
+async function processImage(file){
+  const url=URL.createObjectURL(file);
+  try{
+    let im; try{ im=await loadImage(url); }catch(e){
+      const heic=/heic|heif/i.test(file.type)||/\.hei[cf]$/i.test(file.name||'');
+      throw new Error(heic?'這張照片是 HEIC 格式，這個瀏覽器讀不了。請改用 JPG／PNG，或在 iPhone 上直接從 App 選照片。':'這個檔案無法當作照片讀取，請換一張 JPG 或 PNG。');
+    }
+    const full=await encode(im,1400,.84); const thumb=await encode(im,520,.8);
+    return {full,thumb};
+  } finally { URL.revokeObjectURL(url); }
+}
+async function deleteImageIfUnused(imgId){
+  if(!imgId) return; if(S.items.some(it=>it.photo===imgId)) return;
+  await DB.del('images',imgId); dropImgCache(imgId);
+}
+let io=null;
+function hydrateImages(root=document){
+  if(!io) io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io.unobserve(e.target); fillImg(e.target); } }),{rootMargin:'300px'});
+  $$('img[data-img]:not([data-done])',root).forEach(im=>{ im.dataset.done='1'; if(urlCache.has(im.dataset.img+':'+(im.dataset.kind||'thumb'))) fillImg(im); else io.observe(im); });
+}
+async function fillImg(im){ try{ const u=await imgURL(im.dataset.img,im.dataset.kind||'thumb'); if(u){ im.onload=()=>im.classList.add('ok'); im.src=u; if(im.complete) im.classList.add('ok'); } }catch(e){} }
+function lum(hex){ if(!hex||hex==='multi') return .5; const n=parseInt(hex.slice(1),16); const r=(n>>16)/255,g=(n>>8&255)/255,b=(n&255)/255; return .2126*r+.7152*g+.0722*b; }
+function photoHTML(it,kind='thumb'){
+  if(it.photo) return `<img alt="" data-img="${esc(it.photo)}" data-kind="${kind}">`;
+  const k=it.colors?.[0]; const bg=k?swBg(k):'var(--surface2)'; const fg=k&&COLOR[k]?.h!=='multi'? (lum(COLOR[k].h)>.55?'#34302C':'#F6F5F1'):'var(--ink2)';
+  return `<div class="ph-fallback" style="background:${bg};color:${fg}">${k&&COLOR[k]?.h==='multi'?'<span style="background:rgba(246,245,241,.85);color:#34302C;padding:2px 10px;border-radius:8px">'+esc(catName(it.cat))+'</span>':esc(catName(it.cat))}</div>`;
+}
+
+/* ---------- 照片自動選色（全部在本機計算，不上傳） ---------- */
+const ANCHORS = {
+  black:['#141414','#222222','#2E2C2B','#383838'], white:['#FAFAF8','#EFEFEC','#E2E2DE'], grey:['#4C4C4C','#6E6E6E','#8E8E8E','#A9A9A9','#C2C2C2'],
+  beige:['#E4DACA','#D9C8AE','#EFE6D6','#CDBB9E'], khaki:['#BFA98A','#B09A75','#A38B66','#C9B48E'], brown:['#7A5A45','#5C4033','#8B6B4F','#4A3328','#9A7656'],
+  navy:['#2F3A56','#1F2A44','#232B3E','#2C3A63'], blue:['#5B7FA8','#3C5F9A','#4A6A90','#2E5C9C','#6E8DB4'], lightblue:['#A9C3DC','#9BB8D8','#BCD2E8','#8FAED0'],
+  green:['#6F8F6A','#3F7F4F','#2E6B3E','#8FB08A','#4E7654'], olive:['#6B6A45','#5A5A3A','#706B4A','#7C7A50','#55553A'],
+  red:['#B0413E','#C0392B','#A82A2A','#D04040','#B02830'], wine:['#6E2F3A','#5E1F2A','#7A2F3F','#56222C','#64222E'],
+  pink:['#E3B5B8','#F0B8C4','#E89AAC','#D88FA0','#F2C9CF'], purple:['#8A76A0','#6B4F8F','#9B85B8','#5B3F7A','#7C60A0'],
+  yellow:['#E2C766','#F0D040','#E8C84A','#D8B850'], orange:['#D98C4A','#E07A30','#F09050','#C8702E']
+};
+function hex2rgb(h){ const n=parseInt(h.slice(1),16); return [n>>16,n>>8&255,n&255]; }
+const _lin=c=>{ c/=255; return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4); };
+function rgb2lab(r,g,b){ const R=_lin(r),G=_lin(g),B=_lin(b);
+  const x=(R*.4124+G*.3576+B*.1805)/.95047, y=R*.2126+G*.7152+B*.0722, z=(R*.0193+G*.1192+B*.9505)/1.08883;
+  const f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116; const fx=f(x),fy=f(y),fz=f(z); return [116*fy-16,500*(fx-fy),200*(fy-fz)]; }
+function dE(a,b,kL=1){ const dL=(a[0]-b[0])/kL, c1=Math.hypot(a[1],a[2]), c2=Math.hypot(b[1],b[2]), dC=c1-c2, da=a[1]-b[1], db=a[2]-b[2];
+  const dH2=Math.max(0,da*da+db*db-dC*dC), sC=1+0.045*c1, sH=1+0.015*c1; return Math.sqrt(dL*dL+(dC/sC)**2+dH2/(sH*sH)); }
+function anchorList(){ const out=[]; Object.entries(ANCHORS).forEach(([k,arr])=>arr.forEach(h=>out.push([k,rgb2lab(...hex2rgb(h))])));
+  (S.settings.customColors||[]).forEach(c=>{ if(/^#[0-9a-f]{6}$/i.test(c.h)) out.push([c.k,rgb2lab(...hex2rgb(c.h)),true]); }); return out; }
+function nearestKey(lab,anchors){ let best=null,bd=1e9; for(const [k,a,custom] of anchors){ const d=dE(lab,a,1.6)-(custom?1.5:0); if(d<bd){ bd=d; best=k; } } return best; }
+function kmeans(px,wt,k,iters=10){ // px: Float32Array [L,a,b]*n
+  const n=wt.length; if(!n) return []; let seed=12345; const rnd=()=>((seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff);
+  const C=[]; const first=Math.floor(rnd()*n); C.push([px[first*3],px[first*3+1],px[first*3+2]]);
+  const d2=new Float32Array(n).fill(1e9);
+  while(C.length<k){ const c=C[C.length-1]; let sum=0; for(let i=0;i<n;i++){ const dl=px[i*3]-c[0],da=px[i*3+1]-c[1],db=px[i*3+2]-c[2]; const d=dl*dl+da*da+db*db; if(d<d2[i]) d2[i]=d; sum+=d2[i]*wt[i]; }
+    if(sum<=0) break; let r=rnd()*sum, j=0; for(;j<n;j++){ r-=d2[j]*wt[j]; if(r<=0) break; } j=Math.min(j,n-1); C.push([px[j*3],px[j*3+1],px[j*3+2]]); }
+  const as=new Int32Array(n);
+  for(let it=0;it<iters;it++){
+    for(let i=0;i<n;i++){ let b=0,bd=1e18; for(let c=0;c<C.length;c++){ const dl=px[i*3]-C[c][0],da=px[i*3+1]-C[c][1],db=px[i*3+2]-C[c][2]; const d=dl*dl+da*da+db*db; if(d<bd){bd=d;b=c;} } as[i]=b; }
+    const acc=C.map(()=>[0,0,0,0]); for(let i=0;i<n;i++){ const a=acc[as[i]]; a[0]+=px[i*3]*wt[i]; a[1]+=px[i*3+1]*wt[i]; a[2]+=px[i*3+2]*wt[i]; a[3]+=wt[i]; }
+    acc.forEach((a,c)=>{ if(a[3]>0) C[c]=[a[0]/a[3],a[1]/a[3],a[2]/a[3]]; });
+  }
+  const tot=wt.reduce((s,v)=>s+v,0); const sh=C.map(()=>0), cnt=C.map(()=>0); for(let i=0;i<n;i++){ sh[as[i]]+=wt[i]; cnt[as[i]]++; }
+  return C.map((c,i)=>({lab:c,share:tot?sh[i]/tot:0,ushare:cnt[i]/n})).filter(c=>c.share>0);
+}
+async function detectColors(src){
+  const im=await loadImage(src); const N=96; const s=Math.min(1,N/Math.max(im.naturalWidth,im.naturalHeight));
+  const w=Math.max(8,Math.round(im.naturalWidth*s)), h=Math.max(8,Math.round(im.naturalHeight*s));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h; const cx=cv.getContext('2d',{willReadFrequently:true}); cx.drawImage(im,0,0,w,h);
+  const d=cx.getImageData(0,0,w,h).data; cv.width=cv.height=0;
+  const all=[]; let hasAlpha=false;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=(y*w+x)*4; if(d[i+3]<128){ hasAlpha=true; continue; }
+    all.push({lab:rgb2lab(d[i],d[i+1],d[i+2]),x:x/(w-1),y:y/(h-1)}); }
+  if(all.length<20) return [];
+  // 1) 找背景：邊框常見、但中央少見的顏色
+  let bgs=[];
+  if(!hasAlpha){
+    const bm=0.06, isBorder=p=>p.x<bm||p.x>1-bm||p.y<bm||p.y>1-bm, isCenter=p=>p.x>.3&&p.x<.7&&p.y>.3&&p.y<.7;
+    const border=all.filter(isBorder), center=all.filter(isCenter);
+    const bpx=new Float32Array(border.length*3); border.forEach((p,i)=>{ bpx[i*3]=p.lab[0]; bpx[i*3+1]=p.lab[1]; bpx[i*3+2]=p.lab[2]; });
+    const bcl=kmeans(bpx,new Float32Array(border.length).fill(1),3);
+    const frac=(arr,lab)=>arr.filter(p=>dE(p.lab,lab)<14).length/Math.max(1,arr.length);
+    bgs=bcl.filter(c=>c.share>=0.15).map(c=>({lab:c.lab,b:frac(border,c.lab),c:frac(center,c.lab)})).filter(o=>o.c<o.b*0.6).map(o=>o.lab);
+  }
+  // 2) 衣服的像素（中央權重較高）
+  const keep=[], wt=[];
+  const push=(p)=>{ const dx=p.x-.5, dy=p.y-.5; keep.push(p.lab); wt.push(0.3+Math.exp(-(dx*dx+dy*dy)/(2*.3*.3))); };
+  all.forEach(p=>{ if(!bgs.some(b=>dE(p.lab,b)<16)) push(p); });
+  if(keep.length<all.length*0.08){ keep.length=0; wt.length=0; all.forEach(push); }
+  const px=new Float32Array(keep.length*3); keep.forEach((l,i)=>{ px[i*3]=l[0]; px[i*3+1]=l[1]; px[i*3+2]=l[2]; });
+  const cl=kmeans(px,Float32Array.from(wt),5);
+  // 3) 對應到色票並合併（同一件衣服的亮部與陰影會合併成同一色）
+  const anchors=anchorList(); const agg=new Map();
+  cl.forEach(c=>{ const k=nearestKey(c.lab,anchors); const o=agg.get(k)||{k,share:0,ushare:0,L:0}; o.L=(o.L*o.share+c.lab[0]*c.share)/(o.share+c.share); o.share+=c.share; o.ushare+=c.ushare; agg.set(k,o); });
+  return [...agg.values()].sort((a,b)=>b.share-a.share);
+}
+function pickColors(res){
+  if(!res.length) return [];
+  const sig=res.filter(r=>r.share>=0.1);
+  if(sig.length>=4) return ['multi',res[0].k];
+  const p=res[0]; const out=[p.k];
+  // 第二、三色要夠大塊；陰影容易被看成「灰」、亮部容易被看成「白」，門檻較高
+  for(const r of res.slice(1,4)){ if(out.length>=3) break;
+    let need = out.length===1 ? 0.2 : 0.22;
+    if(r.k==='grey' && p.k!=='grey') need=0.36;
+    if(r.k==='white' && p.k!=='white' && p.L>62) need=0.32;
+    if(r.k==='black' && p.k!=='black' && p.L<35) need=0.32;
+    if(r.share>=need && r.ushare>=need) out.push(r.k);
+  }
+  return out.filter(k=>COLOR[k]).slice(0,3);
+}
+
+/* ---------- 匯率 ---------- */
+async function refreshRates(force){
+  const R=S.rates; if(!force && R && Date.now()-R.fetched<12*3600e3) return false;
+  if(!navigator.onLine && !force) return false;
+  try{
+    const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),8000);
+    const res=await fetch('https://open.er-api.com/v6/latest/TWD',{signal:ctl.signal,cache:'no-store'}); clearTimeout(t);
+    const j=await res.json(); if(j.result!=='success'||!j.rates) throw new Error('bad');
+    S.rates={rates:j.rates,updated:(j.time_last_update_unix||0)*1000||Date.now(),fetched:Date.now()};
+    await DB.put('meta',{key:'rates',value:S.rates}); return true;
+  }catch(e){ if(force) throw e; return false; }
+}
+
+/* ---------- Toast ---------- */
+let toastT;
+function toast(msg,action){
+  const t=$('#toast'); clearTimeout(toastT);
+  t.innerHTML=`<span>${esc(msg)}</span>${action?`<button type="button">${esc(action.label)}</button>`:''}`;
+  if(action) t.querySelector('button').onclick=()=>{ t.classList.remove('in'); action.fn(); };
+  requestAnimationFrame(()=>t.classList.add('in'));
+  toastT=setTimeout(()=>t.classList.remove('in'), action?6000:2600);
+}
+
+/* ---------- Sheet ---------- */
+const sheets=[];
+function openSheet({title,body,foot,wide,onClose}){
+  const w=document.createElement('div'); w.className='sw-wrap';
+  w.innerHTML=`<div class="scrim"></div><div class="sheet${wide?' wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grabber"></div><div class="sh-h"><h3>${esc(title)}</h3><button class="iconbtn" data-close aria-label="關閉">${ICON.close}</button></div><div class="sh-b">${body}</div>${foot?`<div class="sh-f">${foot}</div>`:''}</div>`;
+  document.body.appendChild(w); document.body.classList.add('locked');
+  w.close=()=>{ if(w.closing) return; w.closing=true; w.classList.remove('in'); const i=sheets.indexOf(w); if(i>=0) sheets.splice(i,1); if(!sheets.length) document.body.classList.remove('locked'); setTimeout(()=>w.remove(),340); onClose&&onClose(); };
+  w.setTitle=t=>{ w.querySelector('.sh-h h3').textContent=t; };
+  w.querySelector('.scrim').onclick=()=>w.close(); w.querySelector('[data-close]').onclick=()=>w.close();
+  sheets.push(w); requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add('in')));
+  hydrateImages(w); return w;
+}
+function confirmSheet({title,msg,ok='確定',danger,cancel='取消'}){
+  return new Promise(res=>{ let done=false;
+    const w=openSheet({title,body:`<p style="margin:4px 0 6px;font-size:15px">${msg}</p>`,foot:`<button class="btn" data-no>${esc(cancel)}</button><button class="btn ${danger?'danger':'pri'}" data-ok>${esc(ok)}</button>`,onClose:()=>{ if(!done) res(false); }});
+    w.querySelector('[data-no]').onclick=()=>{ w.close(); };
+    w.querySelector('[data-ok]').onclick=()=>{ done=true; w.close(); res(true); };
+  });
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sheets.length){ sheets[sheets.length-1].close(); } });
+
+/* ---------- 存取 ---------- */
+async function putItem(it){ it.updatedAt=Date.now(); await DB.put('items',it); const i=S.items.findIndex(x=>x.id===it.id); if(i>=0) S.items[i]=it; else S.items.push(it); askPersist(); }
+async function removeItem(id){ const it=S.items.find(x=>x.id===id); if(!it) return; await DB.del('items',id); S.items=S.items.filter(x=>x.id!==id); }
+let persistAsked=false;
+function askPersist(){ if(persistAsked) return; persistAsked=true; try{ navigator.storage?.persist?.(); }catch(e){} }
+
+/* ---------- 導覽與畫面 ---------- */
+function setView(v){ S.view=v; S.selecting=false; S.sel.clear(); lsSet('closet.view',v); render(); window.scrollTo(0,0); }
+function render(){
+  $$('#nav [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+  const needBackup = backupDue(); $('#navSet').classList.toggle('dot',needBackup);
+  ({closet:renderCloset,overview:renderOverview,money:renderMoney,settings:renderSettings}[S.view]||renderCloset)();
+  renderSelbar(); hydrateImages($('#app'));
+}
+function backupDue(){ const st=S.settings; if(S.items.length<10) return false; if(!st.lastBackup) return Date.now()-st.firstUse>7*864e5; return Date.now()-st.lastBackup>30*864e5; }
+
+/* 衣櫥 */
+function renderCloset(){
+  const f=S.f;
+  $('#app').innerHTML=`
+  <div class="vh"><div><h1>我的衣櫥</h1><div class="sub" id="ownSub"></div></div>
+    <button class="iconbtn${S.selecting?' on':''}" data-a="selmode" aria-label="多選">${ICON.select}</button></div>
+  <div id="railBox"></div>
+  <div class="toolbar"><label class="search">${ICON.search}<input id="q" type="search" placeholder="搜尋名稱、品牌、店家、備註" value="${esc(f.q)}" enterkeyhint="search" autocomplete="off"></label>
+    <button class="iconbtn${filterCount()?' on':''}" data-a="filters" aria-label="篩選與排序">${ICON.filter}</button></div>
+  <div id="resBox"></div>`;
+  const q=$('#q'); let qt, composing=false;
+  const run=()=>{ clearTimeout(qt); qt=setTimeout(()=>{ if(composing) return; S.f.q=q.value; saveFilters(); fillCloset(); },200); };
+  q.addEventListener('compositionstart',()=>{ composing=true; });
+  q.addEventListener('compositionend',()=>{ composing=false; run(); });
+  q.addEventListener('input',run);
+  q.addEventListener('keydown',e=>{ if(e.key==='Enter') q.blur(); });
+  fillCloset();
+  S.railAnimated=true;
+}
+function fillCloset(){
+  const f=S.f; const list=filtered(); const ownedAll=ownedItems(); const totalQty=sumQty(list);
+  const sellingN=sumQty(S.items.filter(i=>i.status==='selling'));
+  $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedAll))}</span> 件${sellingN?`，其中 <span class="num">${sellingN}</span> 件待售`:''}`;
+  $('#railBox').innerHTML=railHTML(S.items.filter(it=>matchItem(it,f,{colors:true})));
+  const statusSeg=[['own','在衣櫥'],['selling','待售'],['retired','已淘汰'],['all','全部']].map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
+  $('#resBox').innerHTML=`
+  <div class="chips"><div class="seg-ctl" role="tablist">${statusSeg}</div>${activeFilterChips()}</div>
+  <div class="countline"><span>${list.length?`<span class="num">${fmtInt(totalQty)}</span> 件${list.length!==totalQty?`（${list.length} 筆）`:''}・${esc(SORTS.find(s=>s[0]===f.sort)?.[1]||'')}`:''}</span>${(filterCount()||f.q)?'<button class="linkbtn" data-a="clearf">清除篩選</button>':''}</div>
+  ${list.length?`<div class="grid${S.selecting?' selecting':''}" id="grid">${list.map(tileHTML).join('')}</div>`:emptyHTML()}`;
+  hydrateImages($('#app'));
+}
+function railHTML(base){
+  const counts=new Map(); base.forEach(it=>{ const k=it.colors?.[0]; if(k) counts.set(k,(counts.get(k)||0)+qtyOf(it)); });
+  const total=[...counts.values()].reduce((a,b)=>a+b,0);
+  if(!total) return '';
+  const arr=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
+  const sel=S.f.colors;
+  return `<div class="rail${sel.length?' has-sel':''}${!S.railAnimated?' anim':''}" aria-label="衣櫥色譜：依主色統計">
+    <div class="bar">${arr.map(([k,n],i)=>`<button class="seg${sel.includes(k)?' sel':''}" data-a="railc" data-k="${k}" style="flex:${n} 1 0;background:${swBg(k)};animation-delay:${i*40}ms" aria-label="${COLOR[k]?.n}色 ${n} 件" title="${COLOR[k]?.n} ${n} 件"></button>`).join('')}</div>
+    <div class="legend">${arr.slice(0,6).map(([k,n])=>`<button data-a="railc" data-k="${k}"><i style="background:${swBg(k)}"></i>${COLOR[k]?.n} <b class="num">${Math.round(n/total*100)}%</b></button>`).join('')}${arr.length>6?`<span>等 ${arr.length} 色</span>`:''}</div></div>`;
+}
+function activeFilterChips(){
+  const f=S.f; const out=[];
+  const bm=brandDisplayMap('brand'), sm=brandDisplayMap('store'), lm=brandDisplayMap('location');
+  f.cats.forEach(v=>out.push(['cats',v,catName(v)]));
+  f.colors.forEach(v=>out.push(['colors',v,COLOR[v]?.n||v,v]));
+  f.brands.forEach(v=>out.push(['brands',v,bm.get(v)||v]));
+  f.stores.forEach(v=>out.push(['stores',v,sm.get(v)||v]));
+  f.seasons.forEach(v=>out.push(['seasons',v,v+'季']));
+  f.locations.forEach(v=>out.push(['locations',v,lm.get(v)||v]));
+  return out.map(([k,v,n,c])=>`<button class="chip on" data-a="rmf" data-k="${k}" data-v="${esc(v)}">${c?`<i class="sw" style="background:${swBg(c)}"></i>`:''}${esc(n)}<span class="x">×</span></button>`).join('');
+}
+function tileHTML(it){
+  const b=[];
+  if(it.status==='selling') b.push('<span class="badge sell">待售</span>');
+  if(it.status==='retired') b.push(`<span class="badge ret">${METHOD[it.retire?.method]||'已淘汰'}</span>`);
+  if(isIdle(it)) b.push('<span class="badge idle">久未穿</span>');
+  if(qtyOf(it)>1) b.push(`<span class="badge qty num">×${qtyOf(it)}</span>`);
+  return `<button class="tile${it.status==='retired'?' retired':''}${S.sel.has(it.id)?' sel':''}" data-a="tile" data-id="${it.id}">
+    <div class="ph">${photoHTML(it)}</div><div class="badges">${b.join('')}</div><span class="tick"></span>
+    <div class="tt">${esc(itemName(it))}</div>
+    <div class="ts"><span>${esc(it.brand||catName(it.cat))}</span><span class="num">${it.price!=null?money(it.price):''}</span></div></button>`;
+}
+function emptyHTML(){
+  if(!S.items.length) return `<div class="empty">${ICON.hanger}<h3>從第一件開始建檔</h3><p>拍一張照、選分類和顏色就能存。<br>家裡已經有很多衣服的話，可以用「批次拍照建檔」一次選多張照片。</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">新增一件</button><button class="btn soft" data-a="batch">批次拍照建檔</button></div></div>`;
+  return `<div class="empty">${ICON.search}<h3>沒有符合的衣物</h3><p>試試換個關鍵字，或清除篩選條件。</p><button class="btn" data-a="clearf">清除篩選</button></div>`;
+}
+function saveFilters(){ lsSet('closet.f',S.f); }
+
+/* 多選 */
+function renderSelbar(){
+  const bar=$('#selbar');
+  if(!(S.selecting && S.view==='closet')){ bar.classList.remove('in'); document.body.classList.remove('selbar-on'); return; }
+  const n=S.sel.size; const items=[...S.sel].map(id=>S.items.find(i=>i.id===id)).filter(Boolean);
+  const anyOwned=items.some(owned);
+  bar.innerHTML=`<span class="cnt"><span class="num">${n}</span> 筆</span>
+    <button data-a="bulkwear" ${!n||!anyOwned?'disabled':''}>穿了</button>
+    <button data-a="bulkloc" ${!n?'disabled':''}>位置</button>
+    <button data-a="bulkretire" ${!n||!anyOwned?'disabled':''}>淘汰</button>
+    <button data-a="bulkdel" ${!n?'disabled':''}>刪除</button>
+    <button data-a="selmode" class="x" aria-label="結束多選">${ICON.close.replace('<svg','<svg width="18" height="18"')}</button>`;
+  bar.classList.add('in'); document.body.classList.add('selbar-on');
+}
+
+/* ---------- 盤點總覽 ---------- */
+function renderOverview(){
+  const own=ownedItems(); const q=sumQty(own);
+  const lastBuy=S.items.map(i=>i.date).filter(Boolean).sort().pop();
+  const gap=lastBuy!=null?daysSince(lastBuy):null;
+  const idle=sortItems(own.filter(isIdle),'idle');
+  const selling=S.items.filter(i=>i.status==='selling');
+  const overs=cats().filter(c=>c.limit && sumQty(own.filter(i=>i.cat===c.id))>c.limit);
+  const groups=S.settings.groups;
+  const maxCount=Math.max(1,...cats().map(c=>Math.max(sumQty(own.filter(i=>i.cat===c.id)),c.limit||0)));
+  const lastCheck=S.settings.lastCheckAt;
+  $('#app').innerHTML=`
+  <div class="vh"><div><h1>盤點</h1><div class="sub">先知道自己有什麼，才不會又買一樣的</div></div></div>
+  ${backupDue()?`<div class="notice"><div>${S.settings.lastBackup?`已經 <b>${Math.floor((Date.now()-S.settings.lastBackup)/864e5)}</b> 天沒有備份`:'還沒有備份過'}。資料只存在這支手機裡，建議存一份到 iCloud 或雲端硬碟。</div><button class="btn sm danger" data-a="nav" data-v="settings">去備份</button></div>`:''}
+  <div class="cols">
+    <div class="panel">
+      <p class="lede">你現在擁有 <b>${fmtInt(q)}</b> 件衣物${overs.length?`，有 <b style="color:var(--brick)">${overs.length}</b> 個分類超過上限`:''}。</p>
+      <div class="muted small">${own.length?`買進總額 ${money(own.reduce((s,i)=>s+(i.price||0),0))}${own.some(i=>i.price==null)?`（${own.filter(i=>i.price==null).length} 筆沒填價格）`:''}`:'還沒有建檔的衣物。'}</div>
+      <div class="btnrow" style="margin-top:14px"><button class="btn pri" data-a="buycheck">想買之前，先查一下</button></div>
+    </div>
+    <div class="panel">
+      <div class="streak"><div class="big">${gap==null?'—':fmtInt(gap)}</div><div><div style="font-weight:600">天沒買衣服</div><div class="muted small">${gap==null?'記錄購入日期後會開始計算':gap===0?'今天剛買過，接下來挑戰一個月不買':`上次購入是 ${fmtDate(lastBuy)}${longestGap()>gap?`，最長紀錄 ${fmtInt(longestGap())} 天`:'，這是目前最長紀錄'}`}</div></div></div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div class="panel">
+      <div class="ph2"><h2>各分類數量</h2><button class="linkbtn" data-a="nav" data-v="settings" data-sec="cats">設定上限</button></div>
+      ${groups.map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; const gq=sumQty(own.filter(i=>cs.some(c=>c.id===i.cat)));
+        return `<div class="catgroup"><h4>${esc(g)}${cs.length>1?`　<span class="num">${gq}</span>`:''}</h4>${cs.map(c=>{ const n=sumQty(own.filter(i=>i.cat===c.id)); const over=c.limit&&n>c.limit;
+          return `<button class="catrow${over?' over':''}" data-a="gocat" data-k="${c.id}"><span class="nm">${esc(c.name)}</span><span class="track"><span class="fill" style="width:${n/maxCount*100}%"></span>${c.limit?`<span class="limitmark" style="left:calc(${c.limit/maxCount*100}% - 1px)"></span>`:''}</span><span class="ct">${n}${c.limit?`<span class="faint"> / ${c.limit}</span>`:''}</span></button>`; }).join('')}</div>`; }).join('')}
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="ph2"><h2>盤點模式</h2><span class="muted small">${lastCheck?'上次 '+fmtDate(ymd(new Date(lastCheck))):'還沒盤點過'}</span></div>
+        <p class="muted small" style="margin:0 0 12px">一件一件確認：還在、要淘汰、還是找不到了。可以只盤一個分類。</p>
+        <button class="btn soft block" data-a="check" ${own.length?'':'disabled'}>開始盤點</button>
+      </div>
+      <div class="panel">
+        <div class="ph2"><h2>久未穿</h2><span class="muted small">超過 ${S.settings.idleDays} 天</span></div>
+        ${idle.length?`<div class="minis">${idle.slice(0,12).map(it=>`<button class="mini" data-a="open" data-id="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${daysSince(idleSince(it))} 天</div></button>`).join('')}</div>${idle.length>12?`<button class="linkbtn" style="margin-top:8px" data-a="seeidle">看全部 ${idle.length} 件</button>`:''}<p class="muted small" style="margin:10px 0 0">在衣物頁按「今天穿了」記錄穿著；從開始建檔那天起算，舊衣服不會一建檔就被列進來。</p>`
+          :`<p class="muted small" style="margin:0">${own.length?'目前沒有。在衣物頁按「今天穿了」記錄穿著，太久沒穿的會出現在這裡。':'建檔後開始計算。'}</p>`}
+      </div>
+      ${selling.length?`<div class="panel"><div class="ph2"><h2>待售中</h2><span class="muted small num">預計 ${money(selling.reduce((s,i)=>s+(i.sell?.ask||0),0))}</span></div>
+        <div class="list">${selling.map(it=>`<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${esc(it.sell?.platform||'')}${it.sell?.listedAt?`　上架 ${daysSince(it.sell.listedAt)} 天`:''}</div></span><span class="rv">${it.sell?.ask!=null?money(it.sell.ask):''}</span></button>`).join('')}</div></div>`:''}
+    </div>
+  </div>`;
+}
+function longestGap(){
+  const ds=[...new Set(S.items.map(i=>i.date).filter(Boolean))].sort(); if(!ds.length) return 0;
+  let best=0; for(let i=1;i<ds.length;i++) best=Math.max(best,Math.round((parseYmd(ds[i])-parseYmd(ds[i-1]))/864e5));
+  return Math.max(best,daysSince(ds[ds.length-1]));
+}
+
+/* ---------- 花費 ---------- */
+let moneyYear=String(new Date().getFullYear());
+function renderMoney(){
+  const years=[...new Set(S.items.flatMap(i=>[i.date?.slice(0,4),i.retire?.date?.slice(0,4)]).filter(Boolean))].sort().reverse();
+  const curY=String(new Date().getFullYear()); if(!years.includes(curY)) years.unshift(curY);
+  if(moneyYear!=='all' && !years.includes(moneyYear)) moneyYear=curY;
+  const Y=moneyYear;
+  const bought=S.items.filter(i=>Y==='all'||i.date?.startsWith(Y));
+  const priced=bought.filter(i=>i.price!=null);
+  const spend=priced.reduce((s,i)=>s+i.price,0);
+  const qty=sumQty(bought);
+  const sold=S.items.filter(i=>i.status==='retired'&&i.retire?.method==='sold'&&(Y==='all'||i.retire?.date?.startsWith(Y)));
+  const income=sold.reduce((s,i)=>s+(i.retire.income||0),0);
+  const retired=S.items.filter(i=>i.status==='retired'&&(Y==='all'||i.retire?.date?.startsWith(Y)));
+  const budget=S.settings.budget;
+  const isCur=Y===curY;
+  const months=Array.from({length:12},(_,m)=>priced.filter(i=>Y!=='all'&&+i.date.slice(5,7)===m+1).reduce((s,i)=>s+i.price,0));
+  const maxM=Math.max(1,...months);
+  const byCat=groupSum(priced,i=>catName(i.cat));
+  const bm=brandDisplayMap('brand'), sm=brandDisplayMap('store');
+  const byBrand=groupSum(priced.filter(i=>i.brand),i=>bm.get(normKey(i.brand))||i.brand);
+  const byStore=groupSum(priced.filter(i=>i.store),i=>sm.get(normKey(i.store))||i.store);
+  const worn=S.items.filter(i=>i.price!=null&&wearCount(i)>0);
+  const best=[...worn].sort((a,b)=>cpw(a)-cpw(b)).slice(0,5);
+  const worst=sortItems(ownedItems().filter(i=>i.price!=null),'cpwDesc').slice(0,5);
+  const methods=METHODS.map(([k,n])=>[n,sumQty(retired.filter(i=>i.retire?.method===k))]).filter(x=>x[1]);
+  const pace=isCur&&budget? (()=>{ const d=new Date(); const start=new Date(d.getFullYear(),0,1); const end=new Date(d.getFullYear()+1,0,1); return (d-start)/(end-start); })():null;
+  $('#app').innerHTML=`
+  <div class="vh"><div><h1>花費</h1><div class="sub">${Y==='all'?'全部年份':Y+' 年'}的買與賣</div></div>
+    <select class="in" style="width:auto;height:40px" id="yearSel" aria-label="年份">${['all',...years].map(y=>`<option value="${y}" ${y===Y?'selected':''}>${y==='all'?'全部':y+' 年'}</option>`).join('')}</select></div>
+  <div class="panel">
+    <div class="kpis">
+      <div class="kpi hl"><div class="k">買衣花費</div><div class="v num">${money(spend)}</div></div>
+      <div class="kpi"><div class="k">買了幾件</div><div class="v num">${fmtInt(qty)}<small> 件</small></div></div>
+      <div class="kpi"><div class="k">轉賣收入</div><div class="v num">${money(income)}</div></div>
+      <div class="kpi"><div class="k">實際淨支出</div><div class="v num">${money(spend-income)}</div></div>
+    </div>
+    ${bought.length&&priced.length<bought.length?`<p class="muted small" style="margin:10px 0 0">另有 ${bought.length-priced.length} 筆沒填價格，未計入金額。</p>`:''}
+    ${Y==='all'&&S.items.some(i=>!i.date)?`<p class="muted small" style="margin:6px 0 0">「全部」包含 ${S.items.filter(i=>!i.date).length} 筆日期不詳的衣物。</p>`:''}
+    ${isCur?`<div class="budget${budget&&spend>budget?' over':''}">${budget?`<div style="display:flex;justify-content:space-between;font-size:14px"><span>年度預算 <span class="num">${money(budget)}</span></span><span class="num">${spend>budget?`超過 ${money(spend-budget)}`:`還剩 ${money(budget-spend)}`}</span></div>
+      <div class="track"><div class="fill" style="width:${Math.min(100,spend/budget*100)}%"></div>${pace!=null?`<div class="pace" style="left:${pace*100}%" title="依時間進度應該用到這裡"></div>`:''}</div>
+      <div class="muted small">直線是今天的時間進度：花費在線左邊就是有守住。</div>`
+      :`<button class="linkbtn" data-a="nav" data-v="settings" data-sec="budget">設定年度買衣預算</button>`}</div>`:''}
+  </div>
+  ${Y!=='all'?`<div class="panel"><div class="ph2"><h2>每月花費</h2></div><div class="months">${months.map((v,m)=>`<div class="m${isCur&&m===new Date().getMonth()?' cur':''}"><span class="vv">${v?(v>=10000?(v/1000).toFixed(0)+'k':fmtInt(v)):''}</span><div class="b${v?'':' zero'}" style="height:${v?Math.max(4,v/maxM*100):2}%"></div><span class="l">${m+1}</span></div>`).join('')}</div></div>`:''}
+  <div class="cols">
+    <div class="panel"><div class="ph2"><h2>花在哪些分類</h2></div>${hbars(byCat,spend)||'<p class="muted small">還沒有資料。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>品牌</h2></div>${hbars(byBrand.slice(0,8),spend)||'<p class="muted small">填寫品牌後會出現。</p>'}</div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div class="panel"><div class="ph2"><h2>店家／平台</h2></div>${hbars(byStore.slice(0,8),spend)||'<p class="muted small">填寫店家後會出現。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>淘汰紀錄</h2><span class="muted small">${Y==='all'?'全部':Y+' 年'}</span></div>
+      ${methods.length?`<div class="hbars">${methods.map(([n,c])=>`<div class="r"><span class="nm">${n}</span><span class="t"><i style="width:${c/Math.max(...methods.map(m=>m[1]))*100}%;background:var(--mauve)"></i></span><span class="v">${c} 件</span></div>`).join('')}</div>
+      ${sold.length?`<div class="list" style="margin-top:8px">${sold.slice(0,6).map(it=>`<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">買 ${money(it.price)}・${esc(it.retire.where||'')}</div></span><span class="rv">+${money(it.retire.income||0)}</span></button>`).join('')}</div>`:''}`
+      :'<p class="muted small" style="margin:0">淘汰衣物時記錄去向，會統計在這裡。</p>'}</div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div class="panel"><div class="ph2"><h2>最划算</h2><span class="muted small">每穿一次的成本</span></div>
+      ${best.length?`<div class="list">${best.map(it=>cpwRow(it)).join('')}</div>`:'<p class="muted small" style="margin:0">記錄穿著次數後，會算出每件衣服「每穿一次花多少錢」。</p>'}</div>
+    <div class="panel"><div class="ph2"><h2>最不划算</h2><span class="muted small">貴、但很少穿</span></div>
+      ${worst.length?`<div class="list">${worst.map(it=>cpwRow(it)).join('')}</div>`:'<p class="muted small" style="margin:0">還沒有資料。</p>'}</div>
+  </div>`;
+  $('#yearSel').onchange=e=>{ moneyYear=e.target.value; render(); };
+}
+function groupSum(arr,keyFn){ const m=new Map(); arr.forEach(i=>{ const k=keyFn(i); const v=m.get(k)||{v:0,n:0}; v.v+=i.price||0; v.n+=qtyOf(i); m.set(k,v); }); return [...m.entries()].sort((a,b)=>b[1].v-a[1].v); }
+function hbars(arr){ if(!arr.length) return ''; const max=Math.max(1,...arr.map(x=>x[1].v)); return `<div class="hbars">${arr.map(([k,o])=>`<div class="r"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="t"><i style="width:${o.v/max*100}%"></i></span><span class="v">${money(o.v)}<span class="faint">・${o.n}</span></span></div>`).join('')}</div>`; }
+function cpwRow(it){ const w=wearCount(it); return `<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${money(it.price)}・穿 ${w} 次</div></span><span class="rv">${w?money(cpw(it))+'<span class="faint small">/次</span>':'<span class="small" style="color:var(--brick)">還沒穿過</span>'}</span></button>`; }
+
+/* ---------- 設定 ---------- */
+let pendingSec=null;
+function renderSettings(){
+  const st=S.settings; const R=S.rates;
+  $('#app').innerHTML=`
+  <div class="vh"><div><h1>設定</h1><div class="sub">衣櫥帳本 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
+  <div class="cols">
+  <div class="stack">
+    <div class="panel" id="sec-backup">
+      <div class="ph2"><h2>備份與匯出</h2><span class="muted small">${st.lastBackup?'上次備份 '+fmtDate(ymd(new Date(st.lastBackup))):'還沒有備份'}</span></div>
+      <p class="muted small" style="margin:0 0 12px">備份檔包含照片，可以存到 iCloud 雲碟或 Google 雲端硬碟，換手機或在電腦上看時再匯入。</p>
+      <div class="btnrow"><button class="btn pri" data-a="export">匯出備份</button><button class="btn" data-a="import">匯入備份</button></div>
+      <div class="btnrow" style="margin-top:8px"><button class="btn soft" data-a="csv">匯出 Excel 清單</button></div>
+      <div id="exportOut"></div>
+    </div>
+    <div class="panel" id="sec-budget">
+      <div class="ph2"><h2>預算與提醒</h2></div>
+      <div class="setrow"><div><div class="lbl">年度買衣預算</div><div class="desc">花費頁會顯示用了多少、有沒有超過時間進度</div></div><input class="in num" id="budget" inputmode="numeric" placeholder="不設定" style="width:130px;text-align:right" value="${st.budget??''}"></div>
+      <div class="setrow"><div><div class="lbl">「久未穿」的天數</div><div class="desc">超過這麼久沒穿就列入淘汰候選</div></div><select class="in" id="idleDays" style="width:120px">${[90,180,270,365,540,730].map(d=>`<option value="${d}" ${st.idleDays===d?'selected':''}>${d} 天</option>`).join('')}</select></div>
+      <div class="setrow"><div><div class="lbl">放照片時自動選顏色</div><div class="desc">在手機上分析照片，不會上傳。偶爾會把陰影看成灰色，可以再點選修改</div></div><input type="checkbox" id="autoColor" style="width:22px;height:22px;accent-color:var(--mauve);flex:none" ${st.autoColor!==false?'checked':''}></div>
+      <div class="setrow"><div><div class="lbl">外觀</div></div><div class="seg-ctl">${[['auto','跟隨系統'],['light','淺色'],['dark','深色']].map(([k,n])=>`<button data-a="theme" data-k="${k}" class="${(st.theme||'auto')===k?'on':''}">${n}</button>`).join('')}</div></div>
+    </div>
+    <div class="panel" id="sec-names">
+      <div class="ph2"><h2>品牌、店家、位置整理</h2></div>
+      <p class="muted small" style="margin:0 0 10px">打錯字或同一個品牌有不同寫法時，在這裡改名；改成已有的名稱就會合併。</p>
+      <div class="seg-ctl" style="margin-bottom:8px">${[['brand','品牌'],['store','店家'],['location','位置']].map(([k,n])=>`<button data-a="namesTab" data-k="${k}" class="${namesTab===k?'on':''}">${n}</button>`).join('')}</div>
+      <div class="list" id="namesList">${namesListHTML()}</div>
+    </div>
+    <div class="panel" id="sec-rates">
+      <div class="ph2"><h2>匯率</h2><button class="btn sm" data-a="rates">立即更新</button></div>
+      <p class="muted small" style="margin:0 0 8px">${R?`自動匯率更新於 ${fmtDate(ymd(new Date(R.updated||R.fetched)))}，有網路時每 12 小時自動更新。`:'還沒有取得自動匯率，連上網路後會自動更新。'}新增衣物時會用當下匯率，之後匯率變動不會改到舊紀錄。想用刷卡實際匯率，可以在建檔時直接改「台幣金額」，或在右邊填固定匯率。</p>
+      <table class="rt">${CURRENCIES.filter(c=>c[0]!=='TWD').map(([c,n])=>{ const a=R?.rates?.[c]?1/R.rates[c]:null; return `<tr><td>${c}<div class="faint tiny">${n}</div></td><td class="v">${a?'自動 '+(a<0.01?a.toPrecision(3):a.toFixed(4)):'自動 —'}</td><td style="text-align:right"><input data-mr="${c}" inputmode="decimal" placeholder="手動" value="${st.manualRates?.[c]||''}" aria-label="${n}手動匯率"></td></tr>`; }).join('')}</table>
+      <p class="faint tiny" style="margin:8px 0 0">匯率來源：<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:inherit">ExchangeRate-API</a>，僅供參考。</p>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="panel" id="sec-cats">
+      <div class="ph2"><h2>分類與上限</h2></div>
+      <p class="muted small" style="margin:0 0 10px">「上限」是你給自己的件數目標，超過時盤點頁會標紅，新增時也會提醒你淘汰一件。</p>
+      ${catEditorHTML()}
+      <div class="btnrow" style="margin-top:10px"><button class="btn sm" data-a="addgroup">新增大類</button></div>
+    </div>
+    <div class="panel" id="sec-opts">
+      <div class="ph2"><h2>自訂顏色</h2><button class="btn sm" data-a="addcolor">＋ 新增</button></div>
+      ${(st.customColors||[]).length?`<div class="list">${st.customColors.map(c=>{ const n=S.items.filter(i=>(i.colors||[]).includes(c.k)).length; return `<button class="li" data-a="editcolor" data-k="${c.k}"><span class="swatch" style="width:auto"><i style="background:${esc(c.h)};width:28px;height:28px"></i></span><span class="tx"><div>${esc(c.n)}</div></span><span class="rv muted small">${n} 筆　編輯</span></button>`; }).join('')}</div>`
+        :'<p class="muted small" style="margin:0">內建 18 種顏色不夠用時，可以在這裡或建檔畫面的「＋ 自訂」新增，例如奶茶色、霧粉色。</p>'}
+    </div>
+    <div class="panel">
+      <div class="ph2"><h2>購買管道</h2><button class="btn sm" data-a="addchannel">＋ 新增</button></div>
+      <div class="list">${(st.channels||DEFAULT_CHANNELS).map((c,i)=>{ const n=S.items.filter(it=>it.channel===c).length; return `<div class="li"><span class="tx"><div>${esc(c)}</div></span><span class="rv muted small">${n} 筆</span><span class="cated" style="display:block;padding:0"><span class="ops"><button data-a="chren" data-k="${i}" aria-label="改名" style="font-size:12px;width:auto;padding:0 6px">改名</button><button data-a="chdel" data-k="${i}" aria-label="刪除">${ICON.trash}</button></span></span></div>`; }).join('')}</div>
+    </div>
+    <div class="panel">
+      <div class="ph2"><h2>iPhone 使用小提醒</h2></div>
+      <ol class="tips small">
+        <li>用 Safari 開網址 → 分享 → <b>加入主畫面</b>，之後都從主畫面圖示開。</li>
+        <li>Safari 分頁和主畫面 App 的資料<b>分開存</b>，請固定用主畫面那個。</li>
+        <li>沒有網路也能開、能新增；只有更新匯率需要網路。</li>
+        <li>手機空間不足或很久沒開時，iOS 可能清掉網站資料，請每個月匯出一次備份。</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <div class="ph2"><h2>清除資料</h2></div>
+      <p class="muted small" style="margin:0 0 10px">刪除這台裝置上的所有衣物、照片與設定。建議先匯出備份。</p>
+      <button class="btn danger" data-a="wipe">清除所有資料</button>
+    </div>
+  </div></div>`;
+  $('#budget').onchange=async e=>{ const v=parseNum(e.target.value); if(v!=null&&(isNaN(v)||v<0)){ e.target.classList.add('err'); toast('預算請填數字'); return; } e.target.classList.remove('err'); st.budget=v?Math.round(v):null; e.target.value=st.budget??''; await saveSettings(); toast('已儲存預算'); };
+  $('#autoColor').onchange=async e=>{ st.autoColor=e.target.checked; await saveSettings(); toast(e.target.checked?'已開啟自動選色':'已關閉自動選色'); };
+  $('#idleDays').onchange=async e=>{ st.idleDays=+e.target.value; await saveSettings(); toast('已更新'); };
+  $$('[data-mr]').forEach(inp=>inp.onchange=async()=>{ const v=parseNum(inp.value); if(v!=null&&(isNaN(v)||v<=0)){ inp.classList.add('err'); toast('匯率請填大於 0 的數字'); return; } inp.classList.remove('err'); st.manualRates=st.manualRates||{}; if(v) st.manualRates[inp.dataset.mr]=v; else delete st.manualRates[inp.dataset.mr]; await saveSettings(); toast(v?`${inp.dataset.mr} 改用固定匯率 ${v}`:`${inp.dataset.mr} 改回自動匯率`); });
+  bindCatEditor();
+  if(pendingSec){ const el=$('#sec-'+pendingSec); pendingSec=null; if(el) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60); }
+}
+let namesTab='brand';
+function namesListHTML(){
+  const m=new Map(); S.items.forEach(it=>{ const v=(it[namesTab]||'').trim(); if(!v) return; m.set(v,(m.get(v)||0)+qtyOf(it)); });
+  const arr=[...m.entries()].sort((a,b)=>a[0].localeCompare(b[0],'zh-Hant'));
+  if(!arr.length) return '<p class="muted small" style="margin:6px 0 0">還沒有資料。</p>';
+  return arr.map(([v,n])=>`<button class="li" data-a="rename" data-v="${esc(v)}"><span class="tx"><div>${esc(v)}</div></span><span class="rv muted">${n} 件　改名</span></button>`).join('');
+}
+function catEditorHTML(){
+  return S.settings.groups.map((g,gi)=>{ const cs=cats().filter(c=>c.group===g);
+    return `<div class="catgroup" data-g="${esc(g)}"><h4 style="display:flex;align-items:center;gap:6px">${esc(g)}<span style="margin-left:auto;display:flex;gap:2px" class="cated"><span class="ops"><button data-a="grpup" data-k="${gi}" ${gi===0?'disabled':''} aria-label="大類上移">${ICON.up}</button><button data-a="grpdown" data-k="${gi}" ${gi===S.settings.groups.length-1?'disabled':''} aria-label="大類下移">${ICON.down}</button><button data-a="grpren" data-k="${gi}" aria-label="大類改名" style="font-size:12px;width:auto;padding:0 6px">改名</button>${cs.length?'':`<button data-a="grpdel" data-k="${gi}" aria-label="刪除大類">${ICON.trash}</button>`}</span></span></h4>
+      ${cs.map((c,i)=>`<div class="cated" data-c="${c.id}"><input class="nm" value="${esc(c.name)}" aria-label="分類名稱" data-f="name"><input class="lim num" value="${c.limit??''}" placeholder="上限" inputmode="numeric" aria-label="${esc(c.name)} 上限" data-f="limit">
+        <span class="ops"><button data-a="catup" data-k="${c.id}" ${i===0?'disabled':''} aria-label="上移">${ICON.up}</button><button data-a="catdown" data-k="${c.id}" ${i===cs.length-1?'disabled':''} aria-label="下移">${ICON.down}</button><button data-a="catdel" data-k="${c.id}" aria-label="刪除">${ICON.trash}</button></span>
+        <label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未穿」提醒</label></div>`).join('')}
+      <button class="linkbtn" data-a="addcat" data-k="${esc(g)}" style="margin:4px 0 2px">＋ 在「${esc(g)}」新增分類</button></div>`; }).join('');
+}
+function bindCatEditor(){
+  $$('#sec-cats .cated[data-c]').forEach(row=>{ const c=catById(row.dataset.c);
+    row.querySelector('[data-f=name]').onchange=async e=>{ const v=e.target.value.trim(); if(!v){ e.target.value=c.name; toast('分類名稱不能空白'); return; } if(S.settings.cats.some(x=>x!==c&&x.name===v)){ e.target.value=c.name; toast('已經有同名的分類'); return; } c.name=v; await saveSettings(); toast('已改名'); };
+    row.querySelector('[data-f=limit]').onchange=async e=>{ const v=parseNum(e.target.value); if(v!=null&&(isNaN(v)||v<1||!Number.isInteger(v))){ e.target.classList.add('err'); toast('上限請填 1 以上的整數，或留空'); return; } e.target.classList.remove('err'); c.limit=v||null; await saveSettings(); toast(v?`${c.name} 上限 ${v} 件`:`${c.name} 不設上限`); };
+    row.querySelector('[data-f=idle]').onchange=async e=>{ c.idle=e.target.checked; await saveSettings(); };
+  });
+}
+
+/* ---------- 彈性新增選項 ---------- */
+async function addCategory(group){
+  const st=S.settings; const name=await askText(`在「${group}」新增分類`,'分類名稱','');
+  if(!name) return null; if(st.cats.some(c=>c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
+  const c={id:'c_'+uid(),name,group,limit:null,idle:true,order:Math.max(0,...st.cats.map(c=>c.order))+1};
+  st.cats.push(c); await saveSettings(); toast('已新增分類「'+name+'」'); return c.id;
+}
+async function addGroup(withCat){
+  const st=S.settings; const g=await askText('新增大類','大類名稱（例如：洋裝、運動服、包包）','');
+  if(!g) return null; if(st.groups.includes(g)){ toast('已經有「'+g+'」這個大類了'); return null; }
+  if(!withCat){ st.groups.push(g); await saveSettings(); toast('已新增大類「'+g+'」，記得在裡面新增分類'); return null; }
+  const name=await askText(`「${g}」裡的第一個分類`,'分類名稱',g);
+  if(!name) return null; if(st.cats.some(c=>c.name===name)){ toast('已經有「'+name+'」這個分類了'); return null; }
+  st.groups.push(g); const c={id:'c_'+uid(),name,group:g,limit:null,idle:true,order:Math.max(0,...st.cats.map(c=>c.order))+1};
+  st.cats.push(c); await saveSettings(); toast('已新增「'+g+'」與分類「'+name+'」'); return c.id;
+}
+function colorSheet(c){
+  return new Promise(res=>{ let done=false;
+    const w=openSheet({title:c?'編輯顏色':'新增自訂顏色',body:`<div style="display:flex;gap:16px;align-items:flex-end;margin-bottom:6px">
+      <label style="text-align:center;font-size:12px;color:var(--ink2)"><input type="color" class="cpick" id="ccH" value="${c?.h||'#B8A398'}"><div style="margin-top:4px">點圓圈選色</div></label>
+      <label class="f" style="flex:1;margin:0"><span>顏色名稱</span><input class="in" id="ccN" value="${esc(c?.n||'')}" placeholder="例如：奶茶、霧粉、焦糖" autocomplete="off"></label></div>
+      <div class="ferr hide" id="ccE"></div>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>'+(c?'儲存':'新增')+'</button>',onClose:()=>{ if(!done) res(null); }});
+    const n=$('#ccN',w); setTimeout(()=>n.focus(),350);
+    const ok=()=>{ const name=n.value.trim(); const e=$('#ccE',w);
+      if(!name){ e.textContent='請輸入顏色名稱'; e.classList.remove('hide'); n.classList.add('err'); return; }
+      if(COLORS.some(([k,nm])=>nm===name && k!==c?.k)){ e.textContent='已經有「'+name+'」這個顏色了'; e.classList.remove('hide'); n.classList.add('err'); return; }
+      done=true; w.close(); res({n:name,h:$('#ccH',w).value.toUpperCase()}); };
+    w.querySelector('[data-ok]').onclick=ok; n.onkeydown=e=>{ if(e.key==='Enter') ok(); }; n.oninput=()=>{ $('#ccE',w).classList.add('hide'); n.classList.remove('err'); }; w.querySelector('[data-c]').onclick=()=>w.close();
+  });
+}
+async function addCustomColor(){
+  const r=await colorSheet(null); if(!r) return null;
+  const k='u_'+uid(); S.settings.customColors=[...(S.settings.customColors||[]),{k,...r}]; rebuildColors(); await saveSettings(); toast('已新增顏色「'+r.n+'」'); return k;
+}
+async function addChannel(){
+  const st=S.settings; const v=await askText('新增購買管道','管道名稱（例如：直播、團購、代購）','');
+  if(!v) return null; st.channels=st.channels||[...DEFAULT_CHANNELS];
+  if(st.channels.includes(v)){ toast('已經有「'+v+'」了'); return v; }
+  st.channels.push(v); await saveSettings(); toast('已新增管道「'+v+'」'); return v;
+}
+function catPickHTML(sel){
+  return S.settings.groups.map(g=>{ const cs=cats().filter(c=>c.group===g);
+    return `<div class="pickgrp"><div class="g">${esc(g)}</div><div class="pick">${cs.map(c=>`<button type="button" class="chip${sel===c.id?' on':''}" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}<button type="button" class="chip add" data-addcat="${esc(g)}" aria-label="在${esc(g)}新增分類" title="在「${esc(g)}」新增分類">＋${cs.length?'':' 新增分類'}</button></div></div>`; }).join('')
+    + `<button type="button" class="linkbtn" data-addgrp style="margin:2px 0 4px">＋ 新增大類</button>`;
+}
+function colorPickHTML(){ return COLORS.map(([k,n])=>`<button type="button" class="swatch" data-col="${k}"><i style="background:${swBg(k)}"></i>${esc(n)}</button>`).join('')+`<button type="button" class="swatch add" data-addcol><i>＋</i>自訂</button>`; }
+function channelOptions(cur){ const list=[...(S.settings.channels||DEFAULT_CHANNELS)]; if(cur && !list.includes(cur)) list.push(cur);
+  return `<option value="">—</option>${list.map(c=>`<option value="${esc(c)}" ${cur===c?'selected':''}>${esc(c)}</option>`).join('')}<option value="__add">＋ 新增管道…</option>`; }
+
+/* ---------- 新增／編輯表單 ---------- */
+const lastEntry = () => lsGet('closet.lastEntry')||{};
+function openItemForm(item,opts={}){
+  const isNew=!item; const batch=opts.batch; // batch: {files:[], index}
+  const carry=opts.carry||{};
+  const it = item ? JSON.parse(JSON.stringify(item)) : {
+    id:uid(), cat:carry.cat||'', name:'', colors:[], brand:carry.brand||'', size:'', seasons:carry.seasons||[],
+    date: carry.date!==undefined?carry.date:today(), store:carry.store||'', channel:carry.channel||'', currency:carry.currency||lastEntry().currency||'TWD',
+    priceOrig:null, rate:carry.rate||null, price:null, qty:1, location:carry.location||'', note:'', photo:null,
+    status:'active', wears:[], createdAt:Date.now()
+  };
+  let photoFile=null, photoPreview=null, removePhoto=false;
+  let rateTouched=!!(item&&item.currency!=='TWD');
+  if(isNew && it.currency!=='TWD' && !it.rate){ const r=currentRate(it.currency); it.rate=r?+r.toPrecision(5):null; }
+  const brands=[...brandDisplayMap('brand').values()], stores=[...brandDisplayMap('store').values()], locs=[...new Set([...DEFAULT_LOCATIONS,...brandDisplayMap('location').values()])];
+  const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isNew?'新增衣物':'編輯衣物';
+  const body=`
+  ${batch?`<div class="batchbar"><span class="num">${batch.index+1} / ${batch.files.length}</span><span class="track"><i style="width:${(batch.index)/batch.files.length*100}%"></i></span><span>已存 ${batch.saved||0}</span></div>`:''}
+  <div class="formgrid"><div class="photo-col">
+    <button type="button" class="photo-in" id="fPhoto" aria-label="選擇照片"></button>
+    <p class="faint tiny" style="margin:6px 2px 14px">${isIOS?'可以拍照或從相簿選。':'可以拖曳照片進來，或按 Ctrl／⌘+V 貼上截圖。'}照片會縮小後存在本機。</p>
+  </div><div>
+    <div class="flabel">分類<span class="req">*</span></div>
+    <div id="fCats" style="margin-bottom:4px">${catPickHTML(it.cat)}</div>
+    <div class="ferr hide" id="eCat">請選一個分類</div>
+    <div class="flabel" style="margin-top:12px">顏色 <span class="faint" style="font-weight:400">（最多 3 個，第一個是主色）</span></div>
+    <div class="autocol hide" id="fAuto" aria-live="polite"></div>
+    <div class="swatches" id="fColors" style="margin-bottom:14px">${colorPickHTML()}</div>
+    <div class="similar hide" id="fSimilar"></div>
+    <label class="f"><span>名稱</span><input class="in" id="fName" value="${esc(it.name)}" placeholder="可不填，會自動用「顏色＋分類」" autocomplete="off"></label>
+    <div class="frow"><label class="f"><span>品牌</span><input class="in" id="fBrand" list="dlBrand" value="${esc(it.brand)}" autocomplete="off"></label>
+      <label class="f"><span>尺寸</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"></label></div>
+    <div class="flabel">季節</div>
+    <div class="pick" id="fSeasons" style="margin-bottom:14px">${SEASONS.map(s=>`<button type="button" class="chip${(it.seasons||[]).includes(s)?' on':''}" data-se="${s}">${s}</button>`).join('')}</div>
+    <div class="fsec">
+    <div class="frow"><label class="f"><span>購入日期</span><input class="in" type="date" id="fDate" value="${esc(it.date||'')}" max="${today()}"></label>
+      <label class="f"><span>數量</span><span class="stepper"><button type="button" data-step="-1" aria-label="減少">−</button><input id="fQty" inputmode="numeric" value="${qtyOf(it)}" aria-label="數量"><button type="button" data-step="1" aria-label="增加">＋</button></span></label></div>
+    <div class="ferr hide" id="eDate" style="margin:-8px 0 12px"></div>
+    <div class="frow"><label class="f"><span>在哪買</span><input class="in" id="fStore" list="dlStore" value="${esc(it.store)}" placeholder="店名或網站" autocomplete="off"></label>
+      <label class="f"><span>管道</span><select class="in" id="fChannel">${channelOptions(it.channel)}</select></label></div>
+    <div class="frow3" id="fPriceRow"><label class="f"><span>幣別</span><select class="in" id="fCur">${CURRENCIES.map(([c,n])=>`<option value="${c}" ${it.currency===c?'selected':''}>${c} ${n}</option>`).join('')}</select></label>
+      <label class="f"><span id="lAmt">金額</span><input class="in num" id="fAmt" inputmode="decimal" value="${it.priceOrig??(it.currency==='TWD'?it.price??'':'')}" placeholder="${qtyOf(it)>1?'這筆的總價':''}"></label>
+      <label class="f fx"><span>台幣金額</span><input class="in num" id="fTwd" inputmode="decimal" value="${it.price??''}"></label></div>
+    <div class="fx"><label class="f" style="margin-top:-4px"><span>匯率（1 外幣＝？台幣）</span><input class="in num" id="fRate" inputmode="decimal" value="${it.rate??''}"></label></div>
+    <div class="calc" id="fCalc"></div>
+    <div class="ferr hide" id="ePrice" style="margin:-6px 0 12px"></div>
+    <label class="f"><span>存放位置</span><input class="in" id="fLoc" list="dlLoc" value="${esc(it.location)}" placeholder="衣櫃、收納箱 A…" autocomplete="off"></label>
+    <label class="f"><span>備註</span><textarea class="in" id="fNote" rows="2">${esc(it.note)}</textarea></label>
+    </div>
+  </div></div>
+  <datalist id="dlBrand">${brands.map(b=>`<option value="${esc(b)}">`).join('')}</datalist>
+  <datalist id="dlStore">${stores.map(b=>`<option value="${esc(b)}">`).join('')}</datalist>
+  <datalist id="dlLoc">${locs.map(b=>`<option value="${esc(b)}">`).join('')}</datalist>`;
+  const foot = batch
+    ? `<button class="btn" data-skip>略過這張</button><button class="btn pri grow2" data-save>${batch.index===batch.files.length-1?'儲存並完成':'儲存，下一張'}</button>`
+    : isNew ? `<button class="btn soft" data-again>儲存，再加一件</button><button class="btn pri" data-save>儲存</button>`
+            : `<button class="btn danger" data-del aria-label="刪除">${ICON.trash}</button><button class="btn" data-cancel>取消</button><button class="btn pri grow2" data-save>儲存</button>`;
+  const w=openSheet({title,body,foot,wide:true,onClose:()=>{ if(photoPreview) URL.revokeObjectURL(photoPreview); document.removeEventListener('paste',onPaste); }});
+  const B=w.querySelector('.sh-b');
+
+  // 照片
+  const box=$('#fPhoto',w);
+  async function drawPhoto(){
+    if(photoPreview){ box.classList.add('has'); box.innerHTML=`<img src="${photoPreview}" alt=""><span class="rm" data-rmph aria-label="移除照片">${ICON.close.replace('<svg','<svg width="16" height="16"')}</span><span class="chg">換一張</span>`; }
+    else if(it.photo && !removePhoto){ box.classList.add('has'); const u=await imgURL(it.photo,'full'); box.innerHTML=`<img src="${u||''}" alt=""><span class="rm" data-rmph aria-label="移除照片">${ICON.close.replace('<svg','<svg width="16" height="16"')}</span><span class="chg">換一張</span>`; }
+    else { box.classList.remove('has'); box.innerHTML=`<span class="hint">${ICON.camera}拍照或選照片<br><span class="faint small">可以不放照片</span></span>`; }
+  }
+  function setFile(file){ if(!file) return; if(file.type && !file.type.startsWith('image/') && !/\.hei[cf]$/i.test(file.name)){ toast('請選擇照片檔'); return; } photoFile=file; if(photoPreview) URL.revokeObjectURL(photoPreview); photoPreview=URL.createObjectURL(file); removePhoto=false; drawPhoto(); autoColor(photoPreview); }
+  // 照片自動選色：還沒手動選顏色時直接選好；已經選了就只給建議
+  let colorsTouched=!!(item && item.colors && item.colors.length), detectToken=0;
+  const chipsOf=keys=>keys.map(k=>`<span class="ac"><i style="background:${swBg(k)}"></i>${esc(COLOR[k]?.n||'')}</span>`).join('');
+  async function autoColor(src){
+    const box=$('#fAuto',w); if(S.settings.autoColor===false){ box.classList.add('hide'); return; }
+    const tk=++detectToken; box.classList.remove('hide'); box.innerHTML='<span class="muted">正在看照片的顏色…</span>';
+    let keys=[]; try{ keys=pickColors(await detectColors(src)); }catch(e){ keys=[]; }
+    if(tk!==detectToken || !w.isConnected) return;
+    if(!keys.length){ box.innerHTML='<span class="muted">看不出照片的顏色，請手動選。</span>'; return; }
+    if(!colorsTouched){ it.colors=keys.slice(); drawColors(); updateSimilar();
+      box.innerHTML=`<span>已依照片選好</span>${chipsOf(keys)}<span class="muted">不對可以直接點選修改</span>`; }
+    else { box.innerHTML=`<span>照片看起來是</span>${chipsOf(keys)}<button type="button" class="linkbtn" data-applyauto>套用</button>`;
+      box.querySelector('[data-applyauto]').onclick=()=>{ it.colors=keys.slice(); drawColors(); updateSimilar(); box.innerHTML=`<span>已套用</span>${chipsOf(keys)}`; }; }
+  }
+  box.onclick=e=>{ if(e.target.closest('[data-rmph]')){ photoFile=null; if(photoPreview){URL.revokeObjectURL(photoPreview);photoPreview=null;} removePhoto=true; drawPhoto(); return; } const inp=$('#fileOne'); inp.value=''; inp.onchange=()=>setFile(inp.files[0]); inp.click(); };
+  box.ondragover=e=>{ e.preventDefault(); box.classList.add('drag'); }; box.ondragleave=()=>box.classList.remove('drag');
+  box.ondrop=e=>{ e.preventDefault(); box.classList.remove('drag'); setFile(e.dataTransfer.files[0]); };
+  function onPaste(e){ if(sheets[sheets.length-1]!==w) return; const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/')); if(f){ e.preventDefault(); setFile(f); toast('已貼上照片'); } }
+  document.addEventListener('paste',onPaste);
+  if(batch) setFile(batch.files[batch.index]); else drawPhoto();
+
+  // 分類、顏色、季節
+  const pickCat=id=>{ it.cat=id; $$('#fCats [data-cat]',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===id)); $('#eCat',w).classList.add('hide'); updateSimilar(); };
+  $('#fCats',w).onclick=async e=>{
+    const add=e.target.closest('[data-addcat]'), grp=e.target.closest('[data-addgrp]'), b=e.target.closest('[data-cat]');
+    if(add||grp){ const id= add? await addCategory(add.dataset.addcat) : await addGroup(true); if(id){ $('#fCats',w).innerHTML=catPickHTML(it.cat); pickCat(id); } return; }
+    if(b) pickCat(b.dataset.cat); };
+  const drawColors=()=>$$('#fColors .swatch',w).forEach(s=>{ const i=it.colors.indexOf(s.dataset.col); s.classList.toggle('on',i>=0); s.title=i===0?'主色':''; });
+  $('#fColors',w).onclick=async e=>{
+    if(e.target.closest('[data-addcol]')){ const k=await addCustomColor(); if(!k) return; $('#fColors',w).innerHTML=colorPickHTML(); if(it.colors.length<3) it.colors.push(k); else toast('已新增，但已選滿 3 個顏色'); drawColors(); updateSimilar(); return; }
+    const b=e.target.closest('[data-col]'); if(!b) return; colorsTouched=true; detectToken++; $('#fAuto',w).classList.add('hide'); const k=b.dataset.col; const i=it.colors.indexOf(k); if(i>=0) it.colors.splice(i,1); else { if(it.colors.length>=3){ toast('最多選 3 個顏色'); return; } it.colors.push(k); } drawColors(); updateSimilar(); };
+  drawColors();
+  const fCh=$('#fChannel',w); let chPrev=fCh.value;
+  fCh.onchange=async()=>{ if(fCh.value!=='__add'){ chPrev=fCh.value; return; } const v=await addChannel(); fCh.innerHTML=channelOptions(v||chPrev); fCh.value=v||chPrev; chPrev=fCh.value; };
+  $('#fSeasons',w).onclick=e=>{ const b=e.target.closest('[data-se]'); if(!b) return; const s=b.dataset.se; it.seasons=it.seasons||[]; const i=it.seasons.indexOf(s); if(i>=0) it.seasons.splice(i,1); else it.seasons.push(s); b.classList.toggle('on',i<0); };
+  function updateSimilar(){
+    const el=$('#fSimilar',w); if(!it.cat){ el.classList.add('hide'); return; }
+    const same=ownedItems().filter(x=>x.id!==it.id && x.cat===it.cat);
+    const sameCol=it.colors[0]? same.filter(x=>(x.colors||[]).includes(it.colors[0])) : [];
+    const c=catById(it.cat); const n=sumQty(same);
+    if(!n){ el.classList.add('hide'); return; }
+    const show=(sameCol.length?sameCol:same).slice(0,8);
+    el.classList.remove('hide');
+    el.innerHTML=`你已經有 <b class="num">${n}</b> 件${esc(c.name)}${sameCol.length?`，其中 <b class="num">${sumQty(sameCol)}</b> 件是${COLOR[it.colors[0]].n}色`:''}${c.limit?`（上限 ${c.limit}）`:''}。
+      <div class="minis">${show.map(x=>`<div class="mini"><div class="ph">${photoHTML(x)}</div></div>`).join('')}</div>`;
+    hydrateImages(el);
+  }
+  updateSimilar();
+
+  // 價格
+  const fCur=$('#fCur',w), fAmt=$('#fAmt',w), fTwd=$('#fTwd',w), fRate=$('#fRate',w), fQty=$('#fQty',w);
+  function priceUI(){
+    const cur=fCur.value; const foreign=cur!=='TWD';
+    $$('.fx',w).forEach(x=>x.classList.toggle('hide',!foreign)); $('#fPriceRow',w).classList.toggle('twd',!foreign);
+    $('#lAmt',w).textContent= foreign? `金額（${cur}）` : '金額（台幣）';
+    const q=Math.max(1,parseInt(fQty.value)||1); const amt=parseNum(fAmt.value); const twd=foreign?parseNum(fTwd.value):amt;
+    const parts=[]; if(q>1 && twd>0) parts.push(`${q} 件共 ${money(twd)}，平均每件 ${money(twd/q)}`);
+    if(foreign && !fRate.value) parts.push(currentRate(cur)?'':'目前沒有這個幣別的匯率，請自己填匯率或台幣金額。');
+    $('#fCalc',w).textContent=parts.filter(Boolean).join('　');
+  }
+  function recalcTwd(){ const a=parseNum(fAmt.value), r=parseNum(fRate.value); if(fCur.value!=='TWD' && a!=null && !isNaN(a) && r) fTwd.value=Math.round(a*r); else if(a==null) fTwd.value=''; priceUI(); }
+  fCur.onchange=()=>{ const cur=fCur.value; if(cur!=='TWD'){ const r=currentRate(cur); fRate.value=r?+r.toPrecision(5):''; recalcTwd(); } else { fRate.value=''; fTwd.value=''; } priceUI(); };
+  fAmt.oninput=recalcTwd; fRate.oninput=recalcTwd;
+  fTwd.oninput=()=>{ const a=parseNum(fAmt.value), t=parseNum(fTwd.value); if(a>0 && t>0) fRate.value=+(t/a).toPrecision(5); priceUI(); };
+  w.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{ fQty.value=Math.max(1,(parseInt(fQty.value)||1)+ +b.dataset.step); priceUI(); });
+  fQty.oninput=priceUI;
+  priceUI();
+
+  function collect(){
+    let ok=true; const errs=[];
+    if(!it.cat){ $('#eCat',w).classList.remove('hide'); ok=false; errs.push('#fCats'); }
+    const d=$('#fDate',w).value; const eD=$('#eDate',w); eD.classList.add('hide');
+    if(d && d>today()){ eD.textContent='購入日期不能晚於今天'; eD.classList.remove('hide'); ok=false; errs.push('#fDate'); }
+    const cur=fCur.value; const amt=parseNum(fAmt.value); const twd=parseNum(fTwd.value); const rate=parseNum(fRate.value);
+    const eP=$('#ePrice',w); eP.classList.add('hide'); [fAmt,fTwd,fRate].forEach(x=>x.classList.remove('err'));
+    const bad=(el,msg)=>{ el.classList.add('err'); eP.textContent=msg; eP.classList.remove('hide'); ok=false; errs.push('#'+el.id); };
+    if(amt!=null && (isNaN(amt)||amt<0)) bad(fAmt,'金額請填 0 以上的數字');
+    else if(cur!=='TWD'){
+      if(rate!=null && (isNaN(rate)||rate<=0)) bad(fRate,'匯率請填大於 0 的數字');
+      else if(twd!=null && (isNaN(twd)||twd<0)) bad(fTwd,'台幣金額請填數字');
+      else if(amt!=null && twd==null) bad(fTwd,'沒有匯率可以換算，請填台幣金額或匯率');
+    }
+    const q=parseInt(fQty.value); if(!q||q<1||q>999){ fQty.value=Math.max(1,Math.min(999,q||1)); }
+    if(!ok){ const el=$(errs[0],w); el?.scrollIntoView({behavior:'smooth',block:'center'}); return null; }
+    Object.assign(it,{
+      name:$('#fName',w).value.trim(), brand:$('#fBrand',w).value.trim(), size:$('#fSize',w).value.trim(),
+      date:d||'', store:$('#fStore',w).value.trim(), channel:$('#fChannel',w).value, currency:cur, qty:Math.max(1,Math.min(999,parseInt(fQty.value)||1)),
+      location:$('#fLoc',w).value.trim(), note:$('#fNote',w).value.trim(),
+      priceOrig: amt==null?null:amt, rate: cur==='TWD'?null:(rate||null),
+      price: amt==null? null : (cur==='TWD'? Math.round(amt*100)/100 : (twd!=null?Math.round(twd):null))
+    });
+    return it;
+  }
+  async function save(){
+    const data=collect(); if(!data) return false;
+    const btns=$$('.sh-f button',w); btns.forEach(b=>b.disabled=true);
+    try{
+      const oldPhoto=item?.photo;
+      if(photoFile){ const p=await processImage(photoFile); const pid=uid(); await DB.put('images',{id:pid,full:p.full,thumb:p.thumb}); data.photo=pid; }
+      else if(removePhoto) data.photo=null;
+      await putItem(data);
+      if(oldPhoto && oldPhoto!==data.photo) await deleteImageIfUnused(oldPhoto);
+      lsSet('closet.lastEntry',{currency:data.currency});
+      return data;
+    }catch(e){ toast(e.message||'儲存失敗，請再試一次'); btns.forEach(b=>b.disabled=false); return false; }
+  }
+  const carryOf=d=>({cat:d.cat,brand:d.brand,seasons:[...(d.seasons||[])],date:d.date,store:d.store,channel:d.channel,currency:d.currency,rate:d.rate,location:d.location});
+  w.querySelector('[data-save]').onclick=async()=>{
+    const d=await save(); if(!d) return;
+    if(batch){ w.close(); nextBatch(batch,carryOf(d),true); return; }
+    w.close(); render(); toast(isNew?'已新增「'+itemName(d)+'」':'已儲存');
+    if(isNew) setTimeout(()=>maybeOverLimit(d.cat),400);
+  };
+  w.querySelector('[data-again]')?.addEventListener('click',async()=>{ const d=await save(); if(!d) return; w.close(); render(); toast('已新增「'+itemName(d)+'」，繼續下一件'); setTimeout(()=>openItemForm(null,{carry:carryOf(d)}),360); });
+  w.querySelector('[data-skip]')?.addEventListener('click',()=>{ w.close(); nextBatch(batch,carryOf(collectLoose()),false); });
+  w.querySelector('[data-cancel]')?.addEventListener('click',()=>w.close());
+  w.querySelector('[data-del]')?.addEventListener('click',async()=>{ if(await confirmSheet({title:'刪除這筆紀錄？',msg:'刪除會讓花費統計也少掉這一筆。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})){ w.close(); sheets.slice().forEach(s=>s.close()); await deleteWithUndo([item.id]); } });
+  function collectLoose(){ return {cat:it.cat,brand:$('#fBrand',w).value.trim(),seasons:it.seasons,date:$('#fDate',w).value,store:$('#fStore',w).value.trim(),channel:$('#fChannel',w).value,currency:fCur.value,rate:parseNum(fRate.value)||null,location:$('#fLoc',w).value.trim()}; }
+  return w;
+}
+function nextBatch(batch,carry,saved){
+  batch.saved=(batch.saved||0)+(saved?1:0); batch.cats=batch.cats||new Set(); if(saved&&carry.cat) batch.cats.add(carry.cat);
+  if(batch.index+1<batch.files.length){ setTimeout(()=>openItemForm(null,{batch:{...batch,index:batch.index+1},carry}),330); }
+  else { render(); toast(`批次建檔完成，共存了 ${batch.saved} 件`);
+    const over=[...batch.cats].filter(id=>{ const c=catById(id); return c?.limit && sumQty(ownedItems().filter(i=>i.cat===id))>c.limit; });
+    if(over.length) setTimeout(()=>maybeOverLimit(over[0]),500); }
+}
+function startBatch(){ const inp=$('#fileMany'); inp.value=''; inp.onchange=()=>{ const files=[...inp.files]; if(!files.length) return; if(files.length>60){ toast('一次最多 60 張，先處理前 60 張'); } openItemForm(null,{batch:{files:files.slice(0,60),index:0,saved:0}}); }; inp.click(); }
+function maybeOverLimit(catId){
+  const c=catById(catId); if(!c?.limit) return; const own=ownedItems().filter(i=>i.cat===catId); const n=sumQty(own); if(n<=c.limit) return;
+  const cand=sortItems(own,'idle').slice(0,8);
+  const w=openSheet({title:`${c.name}超過上限了`,body:`<p style="margin:0 0 10px">你給自己的上限是 <b class="num">${c.limit}</b> 件，現在有 <b class="num" style="color:var(--brick)">${n}</b> 件。進一件、出一件，要不要挑一件淘汰？</p>
+    <p class="muted small" style="margin:0 0 8px">依「最久沒穿」排序：</p><div class="minis">${cand.map(it=>`<button class="mini" data-pick="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${esc(itemName(it))}</div></button>`).join('')}</div>`,
+    foot:`<button class="btn" data-later>先不要</button>`});
+  w.querySelector('[data-later]').onclick=()=>w.close();
+  w.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ w.close(); setTimeout(()=>openRetire([b.dataset.pick]),340); });
+}
+
+/* ---------- 詳細 ---------- */
+function openDetail(id){
+  const it=S.items.find(i=>i.id===id); if(!it) return;
+  const c=catById(it.cat); const w_=wearCount(it); const lw=lastWear(it); const wornToday=(it.wears||[]).includes(today());
+  const colors=(it.colors||[]).map(k=>`<span class="chip" style="height:28px"><i class="sw" style="background:${swBg(k)}"></i>${COLOR[k]?.n}</span>`).join('');
+  const priceLine = it.price==null? '—' : (it.currency&&it.currency!=='TWD'&&it.priceOrig!=null? `${money(it.priceOrig,it.currency)}（約 ${money(it.price)}，匯率 ${it.rate??'—'}）` : money(it.price)) + (qtyOf(it)>1&&it.price!=null?`<div class="faint small">${qtyOf(it)} 件，平均每件 ${money(it.price/qtyOf(it))}</div>`:'');
+  const facts=[
+    ['分類',`${esc(c?.group&&c.group!==c.name?c.group+'・':'')}${esc(catName(it.cat))}`],
+    it.brand&&['品牌',esc(it.brand)], it.size&&['尺寸',esc(it.size)],
+    it.seasons?.length&&['季節',esc(it.seasons.join('、'))],
+    ['購入',`${fmtDate(it.date)}${it.date?`<span class="faint small">（${fmtAge(it.date)}）</span>`:''}`],
+    it.store&&['在哪買',esc(it.store)+(it.channel?`<span class="faint small">・${esc(it.channel)}</span>`:'')],
+    !it.store&&it.channel&&['管道',esc(it.channel)],
+    ['價格',priceLine], qtyOf(it)>1&&['數量',qtyOf(it)+' 件'],
+    it.location&&['存放',esc(it.location)], it.lastChecked&&['上次盤點',fmtDate(it.lastChecked)],
+    it.note&&['備註',esc(it.note).replace(/\n/g,'<br>')]
+  ].filter(Boolean);
+  let actions='';
+  if(it.status==='active') actions=`<button class="btn" data-sell>想賣掉</button><button class="btn" data-retire>淘汰</button><button class="btn" data-edit>編輯</button>`;
+  else if(it.status==='selling') actions=`<button class="btn" data-unsell>取消待售</button><button class="btn soft" data-sold>已賣出</button><button class="btn" data-edit>編輯</button>`;
+  else actions=`<button class="btn" data-restore>放回衣櫥</button><button class="btn" data-edit>編輯</button>`;
+  const body=`<div class="dt-grid"><div class="dt-photo">${it.photo?`<img alt="" data-img="${esc(it.photo)}" data-kind="full">`:photoHTML(it)}</div><div>
+    <div class="dt-tag">${colors}${it.status==='selling'?'<span class="badge sell" style="align-self:center">待售</span>':''}${isIdle(it)?'<span class="badge idle" style="align-self:center">久未穿</span>':''}</div>
+    ${it.status==='retired'?`<div class="retinfo"><b>${METHOD[it.retire?.method]||'已淘汰'}</b>　${fmtDate(it.retire?.date)}${it.retire?.method==='sold'?`<br>收入 <span class="num">${money(it.retire.income||0)}</span>${it.price!=null?`，回收了買價的 ${it.price?Math.round((it.retire.income||0)/it.price*100):0}%`:''}`:''}${it.retire?.where?`<br><span class="muted">${esc(it.retire.where)}</span>`:''}${it.retire?.note?`<br><span class="muted">${esc(it.retire.note)}</span>`:''}</div>`:''}
+    ${it.status==='selling'?`<div class="retinfo">預計售價 <b class="num">${it.sell?.ask!=null?money(it.sell.ask):'未填'}</b>${it.sell?.platform?`・${esc(it.sell.platform)}`:''}${it.sell?.listedAt?`<br><span class="muted">${fmtDate(it.sell.listedAt)} 開始賣，已經 ${daysSince(it.sell.listedAt)} 天</span>`:''}</div>`:''}
+    ${owned(it)?`<div class="wearbox"><div><b>${w_}</b><span>穿過次數</span></div><div><b>${lw?fmtShort(lw):'—'}</b><span>最後一次</span></div><div><b>${it.price==null?'—':money(cpw(it)).replace('NT$','')}</b><span>每次成本</span></div></div>
+      <button class="btn ${wornToday?'':'pri'} block" data-wear>${wornToday?'今天已記錄・取消':'今天穿了'}</button>`:''}
+    <dl class="facts" style="margin-top:16px">${facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+  </div></div>`;
+  const w=openSheet({title:itemName(it),body,foot:actions,wide:true});
+  const re=()=>{ w.close(); setTimeout(()=>openDetail(id),340); };
+  w.querySelector('[data-wear]')?.addEventListener('click',async()=>{ const t=today(); it.wears=it.wears||[]; if(it.wears.includes(t)) it.wears=it.wears.filter(d=>d!==t); else it.wears.push(t); await putItem(it); render(); w.close(); toast(it.wears.includes(t)?`已記錄，這件穿了 ${wearCount(it)} 次`:'已取消今天的紀錄'); });
+  w.querySelector('[data-edit]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openItemForm(it),340); });
+  w.querySelector('[data-retire]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openRetire([id]),340); });
+  w.querySelector('[data-sell]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openSell(id),340); });
+  w.querySelector('[data-sold]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openRetire([id],{method:'sold'}),340); });
+  w.querySelector('[data-unsell]')?.addEventListener('click',async()=>{ it.status='active'; await putItem(it); render(); re(); toast('已取消待售'); });
+  w.querySelector('[data-restore]')?.addEventListener('click',async()=>{ it.status='active'; delete it.retire; await putItem(it); render(); re(); toast('已放回衣櫥'); });
+}
+function fmtShort(s){ const d=daysSince(s); if(d===0) return '今天'; if(d===1) return '昨天'; if(d<31) return d+' 天前'; const [y,m,dd]=s.split('-'); return y===String(new Date().getFullYear())? `${+m}月${+dd}日` : `${y}年`; }
+function fmtAge(s){ const d=daysSince(s); if(d<1) return '今天'; if(d<31) return d+' 天前'; if(d<365) return Math.round(d/30.4)+' 個月前'; return (d/365).toFixed(1).replace('.0','')+' 年前'; }
+
+/* ---------- 淘汰／待售 ---------- */
+function openSell(id){
+  const it=S.items.find(i=>i.id===id);
+  const w=openSheet({title:'放到待售',body:`<p class="muted small" style="margin:0 0 12px">待售的衣物還算在衣櫥裡，賣出後再按「已賣出」記錄收入。</p>
+    <div class="frow"><label class="f"><span>預計售價（台幣）</span><input class="in num" id="sAsk" inputmode="numeric" value="${it.sell?.ask??''}"></label><label class="f"><span>開始賣的日期</span><input class="in" type="date" id="sDate" value="${it.sell?.listedAt||today()}" max="${today()}"></label></div>
+    <label class="f"><span>平台</span><input class="in" id="sPlat" list="dlPlat" value="${esc(it.sell?.platform||'')}" placeholder="蝦皮、旋轉拍賣、二手店…"></label><datalist id="dlPlat">${['蝦皮','旋轉拍賣 Carousell','Facebook 社團','二手衣店','朋友'].map(p=>`<option value="${p}">`).join('')}</datalist><div class="ferr hide" id="sErr"></div>`,
+    foot:`<button class="btn" data-c>取消</button><button class="btn pri" data-ok>放到待售</button>`});
+  w.querySelector('[data-c]').onclick=()=>w.close();
+  w.querySelector('[data-ok]').onclick=async()=>{ const a=parseNum($('#sAsk',w).value); if(a!=null&&(isNaN(a)||a<0)){ $('#sErr',w).textContent='售價請填數字'; $('#sErr',w).classList.remove('hide'); return; }
+    it.status='selling'; it.sell={ask:a==null?null:Math.round(a),platform:$('#sPlat',w).value.trim(),listedAt:$('#sDate',w).value||today()}; await putItem(it); w.close(); render(); toast('已放到待售'); };
+}
+function openRetire(ids,opt={}){
+  const items=ids.map(id=>S.items.find(i=>i.id===id)).filter(i=>i&&owned(i)); if(!items.length) return;
+  const single=items.length===1?items[0]:null; let method=opt.method||'donate';
+  const methods = single? METHODS : METHODS.filter(m=>m[0]!=='sold');
+  const body=`${single?'':`<p style="margin:0 0 12px">一次淘汰 <b>${sumQty(items)}</b> 件。<span class="muted small">賣掉的請逐件記錄，才能填各自的收入。</span></p>`}
+    <div class="flabel">去向</div><div class="pick" id="rM" style="margin-bottom:14px">${methods.map(([k,n])=>`<button type="button" class="chip${k===method?' on':''}" data-m="${k}">${n}</button>`).join('')}</div>
+    <div class="frow"><label class="f"><span>日期</span><input class="in" type="date" id="rDate" value="${today()}" max="${today()}"></label>
+    ${single&&qtyOf(single)>1?`<label class="f"><span>淘汰幾件（共 ${qtyOf(single)}）</span><span class="stepper"><button type="button" data-step="-1">−</button><input id="rQty" inputmode="numeric" value="${qtyOf(single)}"><button type="button" data-step="1">＋</button></span></label>`:'<span></span>'}</div>
+    <div id="rSold" class="${method==='sold'?'':'hide'}"><div class="frow"><label class="f"><span>賣得多少（台幣）</span><input class="in num" id="rInc" inputmode="numeric" value="${single?.sell?.ask??''}"></label><label class="f"><span>賣到哪</span><input class="in" id="rWhere" value="${esc(single?.sell?.platform||'')}" placeholder="蝦皮、二手店…"></label></div>
+      <div class="calc" id="rCalc"></div></div>
+    <label class="f"><span>備註</span><input class="in" id="rNote" placeholder="例如：起毛球、尺寸不合"></label><div class="ferr hide" id="rErr"></div>`;
+  const w=openSheet({title:single?'淘汰「'+itemName(single)+'」':'淘汰衣物',body,foot:`<button class="btn" data-c>取消</button><button class="btn pri" data-ok>確定淘汰</button>`});
+  const calc=()=>{ if(!single||method!=='sold') return; const inc=parseNum($('#rInc',w).value); const q=single&&$('#rQty',w)?Math.max(1,parseInt($('#rQty',w).value)||1):qtyOf(single); const cost=single.price!=null?single.price*q/qtyOf(single):null; $('#rCalc',w).textContent= inc>0&&cost? `買價 ${money(cost)}，賣回 ${Math.round(inc/cost*100)}%，實際花了 ${money(cost-inc)}`:''; };
+  $('#rM',w).onclick=e=>{ const b=e.target.closest('[data-m]'); if(!b) return; method=b.dataset.m; $$('#rM .chip',w).forEach(x=>x.classList.toggle('on',x===b)); $('#rSold',w).classList.toggle('hide',method!=='sold'); calc(); };
+  $('#rInc',w).oninput=calc; w.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{ const r=$('#rQty',w); r.value=Math.max(1,Math.min(qtyOf(single),(parseInt(r.value)||1)+ +b.dataset.step)); calc(); });
+  calc();
+  w.querySelector('[data-c]').onclick=()=>w.close();
+  w.querySelector('[data-ok]').onclick=async()=>{
+    const err=$('#rErr',w); err.classList.add('hide');
+    const date=$('#rDate',w).value||today(); if(date>today()){ err.textContent='日期不能晚於今天'; err.classList.remove('hide'); return; }
+    let income=null; if(method==='sold'){ income=parseNum($('#rInc',w).value); if(income==null||isNaN(income)||income<0){ err.textContent='請填賣得的金額（送出去沒收錢可以填 0）'; err.classList.remove('hide'); $('#rInc',w).classList.add('err'); return; } income=Math.round(income); }
+    const retire={date,method,income,where:method==='sold'?$('#rWhere',w).value.trim():'',note:$('#rNote',w).value.trim()};
+    const before=items.map(i=>JSON.parse(JSON.stringify(i)));
+    const created=[];
+    if(single && $('#rQty',w)){
+      const q=Math.max(1,Math.min(qtyOf(single),parseInt($('#rQty',w).value)||1));
+      if(q<qtyOf(single)){ // 部分淘汰：拆出一筆已淘汰的紀錄，價格按比例分
+        const total=qtyOf(single); const part={...JSON.parse(JSON.stringify(single)),id:uid(),qty:q,status:'retired',retire,createdAt:single.createdAt};
+        if(single.price!=null){ part.price=Math.round(single.price*q/total); single.price=single.price-part.price; }
+        if(single.priceOrig!=null){ part.priceOrig=Math.round(single.priceOrig*q/total*100)/100; single.priceOrig=Math.round((single.priceOrig-part.priceOrig)*100)/100; }
+        delete part.sell; single.qty=total-q; await putItem(part); await putItem(single); created.push(part.id);
+        w.close(); render(); toast(`已淘汰 ${q} 件，還留 ${single.qty} 件`,{label:'復原',fn:async()=>{ await removeItem(part.id); await putItem(before[0]); render(); toast('已復原'); }}); return;
+      }
+    }
+    for(const it of items){ it.status='retired'; it.retire={...retire}; delete it.sell; await putItem(it); }
+    w.close(); S.sel.clear(); S.selecting=false; render();
+    toast(`已記錄：${METHOD[method]} ${sumQty(items)} 件`,{label:'復原',fn:async()=>{ for(const b of before) await putItem(b); render(); toast('已復原'); }});
+  };
+}
+async function deleteWithUndo(ids){
+  const recs=ids.map(id=>S.items.find(i=>i.id===id)).filter(Boolean); if(!recs.length) return;
+  const copies=recs.map(r=>JSON.parse(JSON.stringify(r)));
+  for(const r of recs) await removeItem(r.id);
+  S.sel.clear(); S.selecting=false; render();
+  let undone=false;
+  toast(`已刪除 ${recs.length} 筆`,{label:'復原',fn:async()=>{ undone=true; for(const c of copies) await putItem(c); render(); toast('已復原'); }});
+  setTimeout(async()=>{ if(undone) return; for(const c of copies) if(!S.items.some(i=>i.id===c.id)) await deleteImageIfUnused(c.photo); },6500);
+}
+
+/* ---------- 買前先查 ---------- */
+function openBuyCheck(){
+  let cat='', col='';
+  const w=openSheet({title:'想買之前，先查一下',wide:true,body:`<p class="muted small" style="margin:0 0 12px">在店裡看到喜歡的？先選分類和顏色，看看家裡已經有幾件。</p>
+    <div id="bcCats">${S.settings.groups.map(g=>{ const cs=cats().filter(c=>c.group===g); if(!cs.length) return ''; return `<div class="pickgrp"><div class="pick">${cs.map(c=>`<button type="button" class="chip" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}</div></div>`; }).join('')}</div>
+    <div class="swatches" id="bcCols" style="margin:10px 0 16px">${COLORS.map(([k,n])=>`<button type="button" class="swatch" data-col="${k}"><i style="background:${swBg(k)}"></i>${n}</button>`).join('')}</div>
+    <div id="bcOut"></div>`});
+  const draw=()=>{
+    const out=$('#bcOut',w);
+    if(!cat&&!col){ out.innerHTML=''; return; }
+    let arr=ownedItems(); if(cat) arr=arr.filter(i=>i.cat===cat); if(col) arr=arr.filter(i=>(i.colors||[]).includes(col));
+    const n=sumQty(arr); const c=cat?catById(cat):null; const label=`${col?COLOR[col].n+'色':''}${c?c.name:'衣物'}`;
+    const catN=cat?sumQty(ownedItems().filter(i=>i.cat===cat)):null;
+    const lastBuy=arr.map(i=>i.date).filter(Boolean).sort().pop();
+    const avgWear=arr.length?arr.reduce((s,i)=>s+wearCount(i),0)/arr.length:0;
+    const never=arr.filter(i=>!wearCount(i)).length;
+    let verdict='';
+    if(n===0) verdict='家裡還沒有這種的。';
+    else if(c?.limit && catN>=c.limit) verdict=`${c.name}已經 ${catN} 件，到上限 ${c.limit} 了。真的要買，記得淘汰一件。`;
+    else if(n>=5) verdict='已經不少了，這件跟家裡的有什麼不一樣？';
+    else verdict='想想看會跟哪幾件搭。';
+    out.innerHTML=`<div class="panel" style="background:var(--surface2);margin:0"><p class="lede" style="font-size:17px">你已經有 <b>${n}</b> 件${esc(label)}。</p>
+      <p class="muted small" style="margin:4px 0 10px">${[lastBuy?`最近一次買是 ${fmtDate(lastBuy)}`:'',arr.length?`平均每件穿了 ${avgWear.toFixed(1)} 次`:'',never?`${never} 筆還沒穿過`:''].filter(Boolean).join('，')}</p>
+      <p style="margin:0 0 12px;font-weight:600;${c?.limit&&catN>=c.limit?'color:var(--brick)':''}">${verdict}</p>
+      ${arr.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px">${sortItems(arr,'new').slice(0,30).map(it=>`<button class="tile" data-open="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="ts" style="margin-top:4px"><span>${esc(it.brand||itemName(it))}</span></div></button>`).join('')}</div>`:''}</div>`;
+    hydrateImages(out);
+    out.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
+  };
+  $('#bcCats',w).onclick=e=>{ const b=e.target.closest('[data-cat]'); if(!b) return; cat=cat===b.dataset.cat?'':b.dataset.cat; $$('#bcCats .chip',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===cat)); draw(); };
+  $('#bcCols',w).onclick=e=>{ const b=e.target.closest('[data-col]'); if(!b) return; col=col===b.dataset.col?'':b.dataset.col; $$('#bcCols .swatch',w).forEach(x=>x.classList.toggle('on',x.dataset.col===col)); draw(); };
+}
+
+/* ---------- 盤點模式 ---------- */
+function openCheck(){
+  const own=ownedItems();
+  const w=openSheet({title:'盤點模式',body:`<p style="margin:0 0 12px">要盤點哪些？</p><div class="pick" id="ckScope"><button class="chip on" data-k="">全部（${sumQty(own)}）</button>${cats().map(c=>{ const n=own.filter(i=>i.cat===c.id); return n.length?`<button class="chip" data-k="${c.id}">${esc(c.name)}（${sumQty(n)}）</button>`:''; }).join('')}</div>
+    <label class="setrow" style="margin-top:10px;cursor:pointer"><span><span class="lbl">跳過 30 天內盤點過的</span></span><input type="checkbox" id="ckSkip" checked></label>`,
+    foot:`<button class="btn pri block" data-go>開始</button>`});
+  let scope='';
+  $('#ckScope',w).onclick=e=>{ const b=e.target.closest('[data-k]'); if(!b) return; scope=b.dataset.k; $$('#ckScope .chip',w).forEach(x=>x.classList.toggle('on',x===b)); };
+  w.querySelector('[data-go]').onclick=()=>{
+    let q=own.filter(i=>!scope||i.cat===scope); if($('#ckSkip',w).checked) q=q.filter(i=>!i.lastChecked||daysSince(i.lastChecked)>30);
+    q=sortItems(q,'old').sort((a,b)=>(catById(a.cat)?.order??0)-(catById(b.cat)?.order??0));
+    w.close(); if(!q.length){ toast('這個範圍最近都盤點過了'); return; }
+    setTimeout(()=>runCheck(q.map(i=>i.id)),340);
+  };
+}
+function runCheck(ids){
+  let i=0; const res={keep:0,retire:0,lost:0,skip:0};
+  const w=openSheet({title:'盤點中',body:'<div id="ckBody"></div>',foot:'<div class="btnrow" style="width:100%"><button class="btn" data-k="lost">找不到</button><button class="btn" data-k="retire">要淘汰</button><button class="btn pri" data-k="keep">還在</button></div>',onClose:()=>{ S.settings.lastCheckAt=Date.now(); saveSettings(); render(); }});
+  const foot=w.querySelector('.sh-f');
+  const draw=()=>{
+    while(i<ids.length && !S.items.find(x=>x.id===ids[i]&&owned(x))) i++;
+    const body=$('#ckBody',w);
+    if(i>=ids.length){ w.setTitle('盤點完成'); foot.innerHTML='<button class="btn pri block" data-done>完成</button>'; foot.querySelector('[data-done]').onclick=()=>w.close();
+      body.innerHTML=`<div class="checkcard"><p class="lede">盤點了 <b>${res.keep+res.retire+res.lost}</b> 筆</p><p class="muted">還在 ${res.keep}・淘汰 ${res.retire}・找不到 ${res.lost}${res.skip?`・略過 ${res.skip}`:''}</p></div>`; return; }
+    const it=S.items.find(x=>x.id===ids[i]);
+    body.innerHTML=`<div class="prog"><i style="width:${i/ids.length*100}%"></i></div><div class="checkcard"><div class="ph">${it.photo?`<img alt="" data-img="${esc(it.photo)}">`:photoHTML(it)}</div>
+      <div style="font-weight:700;font-size:17px">${esc(itemName(it))}${qtyOf(it)>1?` <span class="num">×${qtyOf(it)}</span>`:''}</div>
+      <div class="muted small">${esc(catName(it.cat))}${it.brand?'・'+esc(it.brand):''}${it.location?'・放在'+esc(it.location):''}</div>
+      <div class="muted small">${it.date?fmtAge(it.date)+'買的':'購入日期不詳'}・穿過 ${wearCount(it)} 次</div>
+      <div style="margin-top:10px"><span class="muted small">${i+1} / ${ids.length}</span>　<button class="linkbtn" data-skip>略過</button></div></div>`;
+    hydrateImages(body); body.querySelector('[data-skip]').onclick=()=>{ res.skip++; i++; draw(); };
+  };
+  foot.addEventListener('click',async e=>{ const b=e.target.closest('[data-k]'); if(!b) return; const it=S.items.find(x=>x.id===ids[i]); if(!it) return;
+    if(b.dataset.k==='keep'){ it.lastChecked=today(); await putItem(it); res.keep++; i++; draw(); }
+    else if(b.dataset.k==='lost'){ it.status='retired'; it.retire={date:today(),method:'lost',income:null,where:'',note:'盤點時找不到'}; delete it.sell; await putItem(it); res.lost++; i++; draw(); }
+    else { it.lastChecked=today(); await putItem(it); const qBefore=qtyOf(it); openRetire([it.id]);
+      const top=sheets[sheets.length-1]; const orig=top.close; top.close=()=>{ orig(); setTimeout(()=>{ const now=S.items.find(x=>x.id===it.id); if(!now||!owned(now)||qtyOf(now)<qBefore) res.retire++; i++; draw(); },10); }; }
+  });
+  draw();
+}
+
+/* ---------- 篩選面板 ---------- */
+function openFilters(){
+  const f=JSON.parse(JSON.stringify(S.f));
+  const opts=(field)=>{ const m=brandDisplayMap(field); const cnt=new Map(); S.items.filter(it=>matchItem(it,{...S.f,cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''})).forEach(it=>{ const k=normKey(it[field]); if(k) cnt.set(k,(cnt.get(k)||0)+qtyOf(it)); }); return [...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,m.get(k)||k,n]); };
+  const sec=(title,key,items,render)=>items.length?`<div class="flabel" style="margin-top:14px">${title}</div><div class="pick" data-key="${key}">${items.map(render).join('')}</div>`:'';
+  const ownedNow=S.items.filter(it=>matchItem(it,{...S.f,cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}));
+  const body=`<div class="flabel">排序</div><select class="in" id="fsSort">${SORTS.map(([k,n])=>`<option value="${k}" ${f.sort===k?'selected':''}>${n}</option>`).join('')}</select>
+    ${sec('分類','cats',cats().filter(c=>ownedNow.some(i=>i.cat===c.id)),c=>`<button type="button" class="chip${f.cats.includes(c.id)?' on':''}" data-v="${c.id}">${esc(c.name)}</button>`)}
+    ${sec('顏色','colors',COLORS.filter(([k])=>ownedNow.some(i=>(i.colors||[]).includes(k))),([k,n])=>`<button type="button" class="chip${f.colors.includes(k)?' on':''}" data-v="${k}"><i class="sw" style="background:${swBg(k)}"></i>${n}</button>`)}
+    ${sec('品牌','brands',opts('brand'),([k,n,c])=>`<button type="button" class="chip${f.brands.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}
+    ${sec('季節','seasons',SEASONS.filter(s=>ownedNow.some(i=>(i.seasons||[]).includes(s))),s=>`<button type="button" class="chip${f.seasons.includes(s)?' on':''}" data-v="${s}">${s}</button>`)}
+    ${sec('店家／平台','stores',opts('store'),([k,n,c])=>`<button type="button" class="chip${f.stores.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}
+    ${sec('存放位置','locations',opts('location'),([k,n,c])=>`<button type="button" class="chip${f.locations.includes(k)?' on':''}" data-v="${esc(k)}">${esc(n)} <span class="faint">${c}</span></button>`)}`;
+  const w=openSheet({title:'篩選與排序',body,foot:`<button class="btn" data-reset>全部清除</button><button class="btn pri grow2" data-apply>套用</button>`});
+  w.querySelector('.sh-b').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; const key=b.closest('[data-key]').dataset.key; const v=b.dataset.v; const arr=f[key]; const i=arr.indexOf(v); if(i>=0) arr.splice(i,1); else arr.push(v); b.classList.toggle('on',i<0); });
+  w.querySelector('[data-reset]').onclick=()=>{ ['cats','colors','brands','stores','seasons','locations'].forEach(k=>f[k]=[]); f.sort='new'; $('#fsSort',w).value='new'; $$('.chip.on',w).forEach(c=>c.classList.remove('on')); };
+  w.querySelector('[data-apply]').onclick=()=>{ f.sort=$('#fsSort',w).value; S.f={...f,q:S.f.q,status:S.f.status}; saveFilters(); w.close(); render(); };
+}
+
+/* ---------- 匯出／匯入 ---------- */
+function abToB64(buf){ const u=new Uint8Array(buf); let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+function b64ToAb(b){ const s=atob(b); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u.buffer; }
+function stamp(){ const d=new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`; }
+async function deliverFile(file,label,onDone){
+  const out=$('#exportOut'); if(!out) return;
+  const sizeMB=file.size/1048576;
+  out.innerHTML=`<div class="similar" style="margin:12px 0 0">${esc(file.name)}（${sizeMB<1?Math.max(1,Math.round(file.size/1024))+' KB':sizeMB.toFixed(1)+' MB'}）已準備好。<div class="btnrow" style="margin-top:8px"><button class="btn pri" data-get>${isIOS?'儲存到「檔案」或分享':'下載'}${esc(label)}</button></div></div>`;
+  out.querySelector('[data-get]').onclick=async()=>{
+    if(isIOS && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:file.name}); onDone&&onDone(); toast('已送出'); return; }
+      catch(e){ if(e.name==='AbortError') return; }
+    }
+    const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),30000); onDone&&onDone(); toast('已開始下載');
+  };
+}
+async function doExport(){
+  const out=$('#exportOut'); out.innerHTML='<p class="muted small" style="margin:12px 0 0">正在打包…</p>';
+  try{
+    const imgs=await DB.getAll('images'); const used=new Set(S.items.map(i=>i.photo).filter(Boolean));
+    const payload={app:'closet-ledger',version:1,exportedAt:Date.now(),items:S.items,settings:{...S.settings,lastBackup:undefined},
+      images:imgs.filter(i=>used.has(i.id)).map(i=>({id:i.id,full:{type:i.full.type,b64:abToB64(i.full.buf)},thumb:{type:i.thumb.type,b64:abToB64(i.thumb.buf)}}))};
+    const file=new File([JSON.stringify(payload)],`衣櫥帳本備份-${stamp()}.json`,{type:'application/json'});
+    deliverFile(file,'備份',async()=>{ S.settings.lastBackup=Date.now(); await saveSettings(); $('#navSet').classList.toggle('dot',backupDue()); });
+  }catch(e){ out.innerHTML=`<p class="ferr">匯出失敗：${esc(e.message)}</p>`; }
+}
+function csvCell(v){ v=v==null?'':String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function doCSV(){
+  const head=['狀態','大類','分類','名稱','顏色','品牌','尺寸','季節','數量','購入日期','在哪買','管道','幣別','原幣金額','匯率','台幣金額','存放位置','穿過次數','最後穿著','每次成本','淘汰日期','去向','轉賣收入','賣到哪','備註'];
+  const st={active:'在衣櫥',selling:'待售',retired:'已淘汰'};
+  const rows=sortItems(S.items,'new').map(it=>[st[it.status],catById(it.cat)?.group||'',catName(it.cat),itemName(it),(it.colors||[]).map(c=>COLOR[c]?.n).join('、'),it.brand,it.size,(it.seasons||[]).join(''),qtyOf(it),it.date,it.store,it.channel,it.currency,it.priceOrig,it.rate,it.price,it.location,wearCount(it),lastWear(it),it.price!=null&&wearCount(it)?Math.round(cpw(it)):'',it.retire?.date,METHOD[it.retire?.method]||'',it.retire?.income,it.retire?.where,[it.note,it.retire?.note].filter(Boolean).join('／')]);
+  const csv='﻿'+[head,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
+  deliverFile(new File([csv],`衣櫥清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
+}
+function doImport(){
+  const inp=$('#fileBackup'); inp.value='';
+  inp.onchange=async()=>{
+    const file=inp.files[0]; if(!file) return;
+    let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是衣櫥帳本的備份檔'); return; }
+    if(data?.app!=='closet-ledger'||!Array.isArray(data.items)){ toast('這個檔案不是衣櫥帳本的備份檔'); return; }
+    const w=openSheet({title:'匯入備份',body:`<p style="margin:0 0 6px">備份檔裡有 <b>${data.items.length}</b> 筆衣物、${(data.images||[]).length} 張照片（${fmtDate(ymd(new Date(data.exportedAt)))} 匯出）。</p>
+      <p class="muted small" style="margin:0 0 12px">這台裝置現在有 ${S.items.length} 筆。</p>
+      <div class="list"><button class="li" data-mode="merge"><span class="tx"><div>合併</div><div class="muted small">兩邊的都留下；同一筆衣物以較新修改的為準</div></span></button>
+      <button class="li" data-mode="replace"><span class="tx"><div style="color:var(--brick)">全部取代</div><div class="muted small">刪掉這台裝置的資料，完全換成備份檔的內容</div></span></button></div>`});
+    w.querySelectorAll('[data-mode]').forEach(b=>b.onclick=async()=>{
+      const mode=b.dataset.mode;
+      if(mode==='replace' && S.items.length && !(await confirmSheet({title:'確定全部取代？',msg:`這台裝置上的 ${S.items.length} 筆資料會被刪除，無法復原。`,ok:'全部取代',danger:true}))) return;
+      try{
+        const imgs=(data.images||[]).map(i=>({id:i.id,full:{type:i.full.type,buf:b64ToAb(i.full.b64)},thumb:{type:i.thumb.type,buf:b64ToAb(i.thumb.b64)}}));
+        let added=0,updated=0;
+        if(mode==='replace'){
+          await DB.clear('items'); await DB.clear('images'); urlCache.forEach(u=>URL.revokeObjectURL(u)); urlCache.clear();
+          await DB.putMany('images',imgs); await DB.putMany('items',data.items); S.items=data.items.slice(); added=data.items.length;
+          if(data.settings){ S.settings={...defaultSettings(),...data.settings,lastBackup:S.settings.lastBackup,firstUse:S.settings.firstUse}; rebuildColors(); await saveSettings(); }
+        } else {
+          const have=new Map(S.items.map(i=>[i.id,i])); const toPut=[];
+          data.items.forEach(it=>{ const h=have.get(it.id); if(!h){ toPut.push(it); added++; } else if((it.updatedAt||0)>(h.updatedAt||0)){ toPut.push(it); updated++; } });
+          const haveImg=new Set((await DB.getAll('images')).map(i=>i.id)); await DB.putMany('images',imgs.filter(i=>!haveImg.has(i.id)));
+          await DB.putMany('items',toPut); toPut.forEach(it=>{ const k=S.items.findIndex(x=>x.id===it.id); if(k>=0) S.items[k]=it; else S.items.push(it); });
+          if(data.settings?.cats){ // 合併分類：補上這台沒有的分類
+            data.settings.groups?.forEach(g=>{ if(!S.settings.groups.includes(g)) S.settings.groups.push(g); });
+            data.settings.cats.forEach(c=>{ if(!catById(c.id)) S.settings.cats.push({...c,order:S.settings.cats.length}); });
+            await saveSettings(); }
+          if(data.settings){ // 合併自訂顏色與管道
+            const cc=S.settings.customColors||[]; (data.settings.customColors||[]).forEach(c=>{ if(!cc.some(x=>x.k===c.k)) cc.push(c); }); S.settings.customColors=cc;
+            const ch=S.settings.channels||[...DEFAULT_CHANNELS]; (data.settings.channels||[]).forEach(c=>{ if(!ch.includes(c)) ch.push(c); }); S.settings.channels=ch;
+            rebuildColors(); await saveSettings(); }
+        }
+        w.close(); render(); toast(mode==='replace'?`已匯入 ${added} 筆`:`新增 ${added} 筆、更新 ${updated} 筆`);
+      }catch(e){ toast('匯入失敗：'+e.message); }
+    });
+  };
+  inp.click();
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]'); if(!b) return; const a=b.dataset.a;
+  const st=S.settings;
+  switch(a){
+    case 'nav': if(b.dataset.sec) pendingSec=b.dataset.sec; setView(b.dataset.v); break;
+    case 'add': openItemForm(null); break;
+    case 'batch': startBatch(); break;
+    case 'status': S.f.status=b.dataset.k; saveFilters(); render(); break;
+    case 'railc': { const k=b.dataset.k; const i=S.f.colors.indexOf(k); if(i>=0) S.f.colors.splice(i,1); else S.f.colors=[k]; saveFilters(); render(); break; }
+    case 'rmf': { const arr=S.f[b.dataset.k]; const i=arr.indexOf(b.dataset.v); if(i>=0) arr.splice(i,1); saveFilters(); render(); break; }
+    case 'clearf': ['cats','colors','brands','stores','seasons','locations'].forEach(k=>S.f[k]=[]); S.f.q=''; saveFilters(); render(); break;
+    case 'filters': openFilters(); break;
+    case 'selmode': S.selecting=!S.selecting; S.sel.clear(); render(); break;
+    case 'tile': if(S.selecting){ const id=b.dataset.id; S.sel.has(id)?S.sel.delete(id):S.sel.add(id); b.classList.toggle('sel'); renderSelbar(); } else openDetail(b.dataset.id); break;
+    case 'open': openDetail(b.dataset.id); break;
+    case 'gocat': S.f={...S.f,status:'own',cats:[b.dataset.k],colors:[],brands:[],stores:[],seasons:[],locations:[],q:''}; saveFilters(); setView('closet'); break;
+    case 'seeidle': S.f={...S.f,status:'own',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],q:'',sort:'idle'}; saveFilters(); setView('closet'); break;
+    case 'buycheck': openBuyCheck(); break;
+    case 'check': openCheck(); break;
+    case 'bulkwear': { const t=today(); let n=0; for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it&&owned(it)&&!(it.wears||[]).includes(t)){ it.wears=[...(it.wears||[]),t]; await putItem(it); n++; } } S.selecting=false; S.sel.clear(); render(); toast(n?`已記錄 ${n} 件今天穿了`:'選的都已經記錄過今天了'); break; }
+    case 'bulkloc': { const locs=[...new Set([...DEFAULT_LOCATIONS,...brandDisplayMap('location').values()])];
+      const w=openSheet({title:`改存放位置（${S.sel.size} 筆）`,body:`<label class="f"><span>移到</span><input class="in" id="blLoc" list="dlBl" placeholder="例如：收納箱 A"></label><datalist id="dlBl">${locs.map(l=>`<option value="${esc(l)}">`).join('')}</datalist>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>移過去</button>'});
+      w.querySelector('[data-c]').onclick=()=>w.close();
+      w.querySelector('[data-ok]').onclick=async()=>{ const v=$('#blLoc',w).value.trim(); for(const id of S.sel){ const it=S.items.find(i=>i.id===id); if(it){ it.location=v; await putItem(it); } } const n=S.sel.size; w.close(); S.selecting=false; S.sel.clear(); render(); toast(v?`已把 ${n} 筆移到「${v}」`:`已清除 ${n} 筆的存放位置`); };
+      setTimeout(()=>$('#blLoc',w)?.focus(),350); break; }
+    case 'bulkretire': openRetire([...S.sel]); break;
+    case 'bulkdel': if(await confirmSheet({title:`刪除 ${S.sel.size} 筆紀錄？`,msg:'刪除會讓花費統計也少掉這些。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})) await deleteWithUndo([...S.sel]); break;
+    case 'export': doExport(); break;
+    case 'csv': doCSV(); break;
+    case 'import': doImport(); break;
+    case 'rates': b.disabled=true; b.textContent='更新中…'; try{ await refreshRates(true); toast('匯率已更新'); }catch(err){ toast('連不到匯率網站，請稍後再試，或手動填匯率'); } render(); break;
+    case 'theme': st.theme=b.dataset.k; applyTheme(); await saveSettings(); render(); break;
+    case 'namesTab': namesTab=b.dataset.k; render(); break;
+    case 'rename': { const old=b.dataset.v; const label={brand:'品牌',store:'店家',location:'存放位置'}[namesTab];
+      const w=openSheet({title:`${label}改名`,body:`<label class="f"><span>「${esc(old)}」改成</span><input class="in" id="rnV" value="${esc(old)}"></label><p class="muted small" style="margin:0">會一起改掉所有用到「${esc(old)}」的衣物。改成已有的名稱就會合併在一起。</p>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>改名</button>'});
+      w.querySelector('[data-c]').onclick=()=>w.close();
+      w.querySelector('[data-ok]').onclick=async()=>{ const v=$('#rnV',w).value.trim(); if(!v){ toast('名稱不能空白'); return; } let n=0; for(const it of S.items){ if((it[namesTab]||'').trim()===old){ it[namesTab]=v; await putItem(it); n++; } } w.close(); render(); toast(`已更新 ${n} 筆`); }; break; }
+    case 'addcat': { if(await addCategory(b.dataset.k)) render(); break; }
+    case 'addcolor': { if(await addCustomColor()) render(); break; }
+    case 'editcolor': { const c=(st.customColors||[]).find(x=>x.k===b.dataset.k); if(!c) return; const used=S.items.filter(i=>(i.colors||[]).includes(c.k));
+      const w=openSheet({title:`顏色「${c.n}」`,body:`<p class="muted small" style="margin:0 0 12px">有 ${used.length} 筆衣物用到這個顏色。</p><div class="btnrow"><button class="btn" data-edit>改名稱或色彩</button><button class="btn danger" data-del>刪除這個顏色</button></div>`});
+      w.querySelector('[data-edit]').onclick=async()=>{ w.close(); const r=await colorSheet(c); if(!r) return; Object.assign(c,r); rebuildColors(); await saveSettings(); render(); toast('已更新顏色'); };
+      w.querySelector('[data-del]').onclick=async()=>{ w.close(); if(!(await confirmSheet({title:`刪除顏色「${c.n}」？`,msg:used.length?`${used.length} 筆衣物會拿掉這個顏色，其他資料不受影響。`:'沒有衣物用到這個顏色。',ok:'刪除',danger:true}))) return;
+        for(const it of used){ it.colors=it.colors.filter(x=>x!==c.k); await putItem(it); } st.customColors=st.customColors.filter(x=>x!==c); S.f.colors=S.f.colors.filter(x=>x!==c.k); saveFilters(); rebuildColors(); await saveSettings(); render(); toast('已刪除顏色'); };
+      break; }
+    case 'addchannel': { if(await addChannel()) render(); break; }
+    case 'chren': { const i=+b.dataset.k; st.channels=st.channels||[...DEFAULT_CHANNELS]; const old=st.channels[i]; const v=await askText('管道改名','管道名稱',old); if(!v||v===old) return; if(st.channels.includes(v)){ toast('已經有「'+v+'」了'); return; }
+      st.channels[i]=v; let n=0; for(const it of S.items){ if(it.channel===old){ it.channel=v; await putItem(it); n++; } } await saveSettings(); render(); toast(n?`已改名，並更新 ${n} 筆衣物`:'已改名'); break; }
+    case 'chdel': { const i=+b.dataset.k; st.channels=st.channels||[...DEFAULT_CHANNELS]; const c=st.channels[i]; const n=S.items.filter(it=>it.channel===c).length;
+      if(await confirmSheet({title:`刪除管道「${c}」？`,msg:n?`選單裡不再出現，但已經記錄的 ${n} 筆衣物會保留「${c}」。`:'選單裡不再出現這個選項。',ok:'刪除',danger:true})){ st.channels.splice(i,1); await saveSettings(); render(); toast('已刪除'); } break; }
+    case 'addgroup': { await addGroup(false); render(); break; }
+    case 'grpren': { const gi=+b.dataset.k; const old=st.groups[gi]; const name=await askText('大類改名','大類名稱',old); if(!name||name===old) return; if(st.groups.includes(name)){ toast('已經有這個大類'); return; } st.groups[gi]=name; st.cats.forEach(c=>{ if(c.group===old) c.group=name; }); await saveSettings(); render(); break; }
+    case 'grpdel': { const gi=+b.dataset.k; st.groups.splice(gi,1); await saveSettings(); render(); break; }
+    case 'grpup': case 'grpdown': { const gi=+b.dataset.k, j=a==='grpup'?gi-1:gi+1; [st.groups[gi],st.groups[j]]=[st.groups[j],st.groups[gi]]; await saveSettings(); render(); break; }
+    case 'catup': case 'catdown': { const c=catById(b.dataset.k); const sib=cats().filter(x=>x.group===c.group); const i=sib.indexOf(c); const o=sib[a==='catup'?i-1:i+1]; if(o){ [c.order,o.order]=[o.order,c.order]; await saveSettings(); render(); } break; }
+    case 'catdel': { const c=catById(b.dataset.k); const used=S.items.filter(i=>i.cat===c.id);
+      if(!used.length){ if(await confirmSheet({title:`刪除分類「${c.name}」？`,msg:'這個分類沒有衣物，可以直接刪除。',ok:'刪除',danger:true})){ st.cats=st.cats.filter(x=>x!==c); await saveSettings(); render(); } return; }
+      const others=cats().filter(x=>x!==c); if(!others.length) return;
+      const w=openSheet({title:`刪除分類「${c.name}」`,body:`<p style="margin:0 0 12px">這個分類還有 ${used.length} 筆紀錄（含已淘汰），要先移到哪個分類？</p><select class="in" id="mvTo">${others.map(o=>`<option value="${o.id}">${esc(o.group)}・${esc(o.name)}</option>`).join('')}</select>`,foot:'<button class="btn" data-c>取消</button><button class="btn danger" data-ok>移過去並刪除</button>'});
+      w.querySelector('[data-c]').onclick=()=>w.close();
+      w.querySelector('[data-ok]').onclick=async()=>{ const to=$('#mvTo',w).value; for(const it of used){ it.cat=to; await putItem(it); } st.cats=st.cats.filter(x=>x!==c); S.f.cats=S.f.cats.filter(x=>x!==c.id); saveFilters(); await saveSettings(); w.close(); render(); toast(`已移到「${catName(to)}」並刪除分類`); }; break; }
+    case 'wipe': if(await confirmSheet({title:'清除所有資料？',msg:`會刪掉 ${S.items.length} 筆衣物、所有照片與設定，無法復原。`,ok:'下一步',danger:true})){
+      if(await confirmSheet({title:'最後確認',msg:'真的要清除嗎？',ok:'全部清除',danger:true})){ await DB.clear('items'); await DB.clear('images'); await DB.clear('meta'); urlCache.clear(); S.items=[]; S.settings=defaultSettings(); rebuildColors(); await saveSettings(); setView('closet'); toast('已清除所有資料'); } } break;
+  }
+});
+function askText(title,label,val){
+  return new Promise(res=>{ let done=false;
+    const w=openSheet({title,body:`<label class="f"><span>${esc(label)}</span><input class="in" id="atV" value="${esc(val)}"></label>`,foot:'<button class="btn" data-c>取消</button><button class="btn pri" data-ok>確定</button>',onClose:()=>{ if(!done) res(null); }});
+    const inp=$('#atV',w); setTimeout(()=>inp.focus(),350);
+    const ok=()=>{ const v=inp.value.trim(); if(!v){ inp.classList.add('err'); return; } done=true; w.close(); res(v); };
+    w.querySelector('[data-ok]').onclick=ok; inp.onkeydown=e=>{ if(e.key==='Enter') ok(); }; w.querySelector('[data-c]').onclick=()=>w.close();
+  });
+}
+function applyTheme(){ const t=S.settings?.theme||'auto'; if(t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t);
+  const meta=$$('meta[name=theme-color]'); if(t==='auto'){ meta[0].setAttribute('media','(prefers-color-scheme: light)'); meta[1].setAttribute('media','(prefers-color-scheme: dark)'); meta[0].content='#E7E5E0'; meta[1].content='#1F1E1C'; } else { meta.forEach(m=>{ m.removeAttribute('media'); m.content=t==='dark'?'#1F1E1C':'#E7E5E0'; }); } }
+
+/* ---------- 啟動 ---------- */
+(async function init(){
+  try{ await DB.open(); }
+  catch(e){ $('#app').innerHTML=`<div class="empty"><h3>無法開啟本機資料庫</h3><p>${/blocked/.test(e.message)?'App 在另一個分頁開著，請關掉其他分頁後重新整理。':'可能是「私密瀏覽」模式或瀏覽器停用了網站資料。請改用一般模式開啟。'}</p></div>`; return; }
+  S.items=await DB.getAll('items');
+  const st=await DB.get('meta','settings'); S.settings=st?{...defaultSettings(),...st.value}:defaultSettings(); if(!st) await saveSettings(); rebuildColors();
+  const r=await DB.get('meta','rates'); S.rates=r?r.value:null;
+  const f=lsGet('closet.f'); if(f) S.f={...S.f,...f};
+  const v=lsGet('closet.view'); if(v) S.view=v;
+  applyTheme(); render();
+  refreshRates(false).then(ch=>{ if(ch && S.view==='settings') render(); });
+  if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>

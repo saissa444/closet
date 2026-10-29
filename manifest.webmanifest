@@ -1,0 +1,16 @@
+{
+  "name": "衣櫥帳本",
+  "short_name": "衣櫥帳本",
+  "description": "衣物建檔、盤點、花費與淘汰紀錄",
+  "lang": "zh-Hant-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E7E5E0",
+  "theme_color": "#E7E5E0",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
