@@ -409,7 +409,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.3.1';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -1686,7 +1686,8 @@ function fillDetail(w,id,dir){
   </div></div>`;
   w.setTitle(itemName(it));
   const bodyEl=w.querySelector('.sh-b'), footEl=w.querySelector('.sh-f');
-  bodyEl.innerHTML=body; footEl.innerHTML=actions; bodyEl.scrollTop=0; hydrateImages(w); updateNav(w);
+  const keepY=w.shown?bodyEl.scrollTop:0; // 切換上下筆時保持目前捲動位置，不用每次從照片重新往下滑
+  bodyEl.innerHTML=body; footEl.innerHTML=actions; bodyEl.scrollTop=keepY; w.shown=true; hydrateImages(w); updateNav(w);
   if(dir) slideIn(bodyEl,dir); else { bodyEl.style.transform=''; bodyEl.style.opacity=''; }
   const re=()=>fillDetail(w,id,0);
   w.querySelector('.dt-photo img')?.addEventListener('click',()=>viewImage(it.photo,itemName(it)));
