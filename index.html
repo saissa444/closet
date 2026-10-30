@@ -409,7 +409,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.3.1';
+const APP_VERSION = '2.4.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -611,9 +611,9 @@ function matchItem(it,f,skip={}){
   if(f.locations.length && !f.locations.includes(normKey(it.location))) return false;
   return true;
 }
-const SORT_LABELS = {new:'最新購入',old:'最早購入',priceDesc:'價格高→低',priceAsc:'價格低→高',wearDesc:'用最多次',idle:'最久沒用',cpwDesc:'每次成本最高',warranty:'保固最快到期',expiry:'最快過期'};
+const SORT_LABELS = {new:'最新購入',created:'最新建檔',old:'最早購入',priceDesc:'價格高→低',priceAsc:'價格低→高',wearDesc:'用最多次',idle:'最久沒用',cpwDesc:'每次成本最高',warranty:'保固最快到期',expiry:'最快過期'};
 function sortsFor(b=S.book){
-  const base=['new','old','priceDesc','priceAsc'];
+  const base=['new','created','old','priceDesc','priceAsc'];
   if(b==='closet') return [...base,'wearDesc','idle','cpwDesc'].map(k=>[k,k==='wearDesc'?'穿最多次':k==='idle'?'最久沒穿':SORT_LABELS[k]]);
   if(b==='goods') return [...base,'wearDesc','idle','cpwDesc','expiry'].map(k=>[k,SORT_LABELS[k]]);
   return [...base,'warranty'].map(k=>[k,SORT_LABELS[k]]);
@@ -621,6 +621,7 @@ function sortsFor(b=S.book){
 function sortItems(arr,key){
   const by = {
     new:(a,b)=>(b.date||'').localeCompare(a.date||'')||b.createdAt-a.createdAt,
+    created:(a,b)=>(b.createdAt||0)-(a.createdAt||0)||(b.updatedAt||0)-(a.updatedAt||0),
     old:(a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||a.createdAt-b.createdAt,
     priceDesc:(a,b)=>(b.price??-1)-(a.price??-1),
     priceAsc:(a,b)=>(a.price??1e15)-(b.price??1e15),
@@ -1651,6 +1652,7 @@ function fillDetail(w,id,dir){
     !it.store&&it.channel&&['管道',esc(it.channel)],
     ['價格',priceLine], qtyOf(it)>1&&['數量',qtyOf(it)+' '+B.unit],
     it.location&&['存放',esc(it.location)], it.lastChecked&&['上次盤點',fmtDate(it.lastChecked)],
+    it.createdAt&&['建檔',`<span class="muted">${fmtDate(ymd(new Date(it.createdAt)))}</span>`],
     it.note&&['備註',esc(it.note).replace(/\n/g,'<br>')]
   ].filter(Boolean);
   let actions='';
