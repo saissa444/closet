@@ -135,6 +135,7 @@ button:disabled{cursor:default;opacity:.45}
 .badge{font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(246,245,241,.92);color:#34302C;font-weight:600}
 .badge.sell{background:var(--mauve);color:#fff}.badge.idle{background:#e9e1cf;color:#5d5340}.badge.ret{background:#34302C;color:#F6F5F1}
 .badge.qty{margin-left:auto}
+.badge.ok{background:var(--sage);color:#fff}
 .badge.warn{background:#F1E3C6;color:#6B5222}.badge.bad{background:var(--brick);color:#fff}
 .tile .tt{margin-top:8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .ts{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px}
@@ -368,6 +369,8 @@ body.locked .toast.in{transform:translate(-50%,0)}
 .wearbox div{background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
 .wearbox b{display:block;font-family:var(--num);font-size:20px;font-weight:600}
 .wearbox span{font-size:12px;color:var(--ink2)}
+.reason{font-size:17px;line-height:1.5;font-weight:600;margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--mauve-soft);color:var(--mauve-ink)}
+.reason span{display:block;font-size:12px;font-weight:500;opacity:.8;margin-top:2px}
 .infobox{background:var(--surface2);border-radius:14px;padding:12px 14px;margin:12px 0;font-size:14px;box-shadow:inset 3px 0 0 var(--sage)}
 .infobox.warn{box-shadow:inset 3px 0 0 #C9A55C}.infobox.bad{box-shadow:inset 3px 0 0 var(--brick)}
 .docs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
@@ -410,7 +413,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.6.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -433,6 +436,9 @@ const BOOKS = {
   beauty:{name:'保養品',title:'我的保養品',noun:'保養品',unit:'個',own:'使用中',colors:true,seasons:false,size:'容量',verb:'用',idle:'久未用',buyNoun:'保養品',locHint:'化妝台、浴室、梳妝櫃…'}
 };
 const BOOK_KEYS = ['closet','appliance','goods','beauty'];
+BOOKS.wish = {name:'想買',title:'想買清單',noun:'想買的東西',unit:'個',own:'想買中',colors:false,seasons:false,size:null,verb:null,idle:null,buyNoun:'',locHint:''};
+const TAB_KEYS = [...BOOK_KEYS,'wish']; // 頁籤：四本帳＋想買（想買不算擁有、不算花費）
+const COOL_CHIPS=[[0,'不設'],[3,'3 天'],[7,'7 天'],[14,'14 天'],[30,'30 天']];
 const EXP_BOOKS = ['goods','beauty']; // 可以追蹤效期、記使用次數的帳本
 const METHODS_BY = {
   closet:[['trash','丟棄'],['donate','捐回收箱'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
@@ -446,7 +452,8 @@ const DEFAULT_GROUPS_BY = {
   closet:['上衣','下身','貼身衣物','居家','配件','鞋子'],
   appliance:['3C','影音','廚房家電','生活家電','大型家電','個人護理'],
   goods:['包包','飾品配件','收藏品','文具','生活用品'],
-  beauty:['保養品','化妝品','身體與頭髮']
+  beauty:['保養品','化妝品','身體與頭髮'],
+  wish:[]
 };
 const mkCats=(book,rows)=>rows.map(([id,name,group,fl={}],i)=>({id,name,group,book,limit:null,idle:fl.idle!==false,wear:!!fl.wear,expiry:!!fl.expiry,order:i}));
 const NOIDLE={idle:false}, EXP={expiry:true,idle:false}, WEAR={wear:true};
@@ -476,7 +483,7 @@ const DEFAULT_CATS = [
     ['g_pen','筆','文具',NOIDLE],['g_note','筆記本','文具',NOIDLE],['g_stationery','其他文具','文具',NOIDLE],
     ['g_kitchen','廚房用品','生活用品',NOIDLE],['g_clean','清潔用品','生活用品',NOIDLE],['g_bedding','寢具','生活用品',NOIDLE],['g_storage','收納用品','生活用品',NOIDLE]])
 ];
-const LOCS_BY = {closet:['衣櫃','抽屜','收納箱','鞋櫃'],appliance:['客廳','廚房','臥室','書房','浴室'],goods:['抽屜','收納箱','書桌','櫃子'],beauty:['化妝台','浴室','梳妝櫃','抽屜','冰箱']};
+const LOCS_BY = {closet:['衣櫃','抽屜','收納箱','鞋櫃'],appliance:['客廳','廚房','臥室','書房','浴室'],goods:['抽屜','收納箱','書桌','櫃子'],beauty:['化妝台','浴室','梳妝櫃','抽屜','冰箱'],wish:[]};
 const DEFAULT_LOCATIONS = LOCS_BY.closet;
 const DEFAULT_CHANNELS = ['實體店','網購','二手','別人送的'];
 
@@ -513,6 +520,7 @@ const ICON = {
   left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
   right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
   bottle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5h4v3h-4zM9 5.5h6l1.5 3v11a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-11L9 5.5Z"/><path d="M7.5 12h9"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z"/></svg>',
   hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
 };
 
@@ -545,7 +553,7 @@ const DB = {
 const newF = () => ({status:'own',q:'',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],sort:'new'});
 const S = {
   items:[], settings:null, rates:null, view:'closet', book:'closet',
-  fBy:{closet:newF(),appliance:newF(),goods:newF(),beauty:newF()}, f:null,
+  fBy:{closet:newF(),appliance:newF(),goods:newF(),beauty:newF(),wish:{...newF(),sort:'created'}}, f:null,
   selecting:false, sel:new Set(), railAnimated:false
 };
 S.f=S.fBy.closet;
@@ -569,14 +577,14 @@ function migrateSettings(src){ // 舊版設定升級：只有衣櫥 → 三本 �
     }
   }
   st.beautyMigrated=true;
-  BOOK_KEYS.forEach(b=>{ if(!Array.isArray(st.groupsBy[b])) st.groupsBy[b]=[...d.groupsBy[b]];
+  TAB_KEYS.forEach(b=>{ if(!Array.isArray(st.groupsBy[b])) st.groupsBy[b]=[...d.groupsBy[b]];
     if(!st.cats.some(c=>c.book===b)) st.cats.push(...d.cats.filter(c=>c.book===b).map(c=>({...c}))); });
   st.budgetBy={...(st.budgetBy||{})}; if(st.budget!=null && st.budgetBy.closet==null) st.budgetBy.closet=st.budget; delete st.budget;
   st.lastCheckBy={...(st.lastCheckBy||{})}; if(st.lastCheckAt && !st.lastCheckBy.closet) st.lastCheckBy.closet=st.lastCheckAt; delete st.lastCheckAt;
   return st;
 }
 function syncItemBooks(){ // 紀錄跟著分類所在的帳本走（例如保養品搬家後）；回傳有變動的紀錄
-  const changed=[]; S.items.forEach(it=>{ const c=catById(it.cat); if(c&&c.book&&bookOf(it)!==c.book){ it.book=c.book; changed.push(it); } }); return changed;
+  const changed=[]; S.items.forEach(it=>{ if(bookOf(it)==='wish') return; const c=catById(it.cat); if(c&&c.book&&bookOf(it)!==c.book){ it.book=c.book; changed.push(it); } }); return changed;
 }
 function cleanFilters(){ BOOK_KEYS.forEach(k=>{ const f=S.fBy[k]; if(f) f.cats=(f.cats||[]).filter(id=>catById(id)?.book===k); }); }
 async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); if(typeof notifyOthers==='function') notifyOthers(); }
@@ -598,8 +606,13 @@ const sumQty = arr => arr.reduce((s,it)=>s+qtyOf(it),0);
 function tracksWear(it){ const b=bookOf(it); if(b==='closet') return true; if(EXP_BOOKS.includes(b)) return !!catById(it.cat)?.wear; return false; }
 function tracksExpiry(it){ return EXP_BOOKS.includes(bookOf(it)) && !!catById(it.cat)?.expiry; }
 function itemName(it){ if(it.name?.trim()) return it.name.trim(); const b=bookOf(it);
+  if(b==='wish') return (it.brand?it.brand+' ':'')+(it.cat&&catById(it.cat)?catName(it.cat):(it.brand?'':'想買的東西'));
   const col=it.colors?.[0]&&COLOR[it.colors[0]]?COLOR[it.colors[0]].n+'色':''; const br=it.brand?it.brand+' ':'';
   if(b==='appliance') return br+catName(it.cat); if(EXP_BOOKS.includes(b)) return br? br+catName(it.cat) : col+catName(it.cat); return col+catName(it.cat); }
+const addDays=(s,n)=>{ const d=parseYmd(s)||parseYmd(today()); d.setDate(d.getDate()+n); return ymd(d); };
+function coolState(it){ if(bookOf(it)!=='wish'||it.status!=='wish') return null; if(!it.coolUntil) return {k:'ready',n:0,none:true};
+  const n=daysUntil(it.coolUntil); return n>0?{k:'cool',n}:{k:'ready',n:0,since:-n}; }
+const activeItems = (b=S.book) => b==='wish' ? BI('wish').filter(i=>i.status==='wish') : ownedItems(b);
 const wearCount = it => (it.wears||[]).length;
 const lastWear = it => (it.wears||[]).reduce((m,d)=>d>m?d:m,'');
 function idleSince(it){ // 從哪一天開始算「沒穿／沒用」：最後一次、購入日、開始建檔日 取最晚
@@ -624,10 +637,12 @@ function currentRate(cur){ if(cur==='TWD') return 1; const m=S.settings.manualRa
 
 /* ---------- 篩選 ---------- */
 function matchItem(it,f,skip={}){
+  if(bookOf(it)==='wish'){ const want={own:'wish',selling:'bought',retired:'dropped'}[f.status]; if(want && it.status!==want) return false; }
+  else {
   if(f.status==='own' && !owned(it)) return false;
   if(f.status==='selling' && it.status!=='selling') return false;
-  if(f.status==='retired' && it.status!=='retired') return false;
-  if(f.q){ const q=normKey(f.q); const hay=normKey([itemName(it),it.brand,it.store,it.note,catName(it.cat),it.size,it.model,it.serial,it.location,(it.colors||[]).map(c=>COLOR[c]?.n).join(' ')].join(' ')); if(!q.split(' ').every(w=>hay.includes(w))) return false; }
+  if(f.status==='retired' && it.status!=='retired') return false; }
+  if(f.q){ const q=normKey(f.q); const hay=normKey([itemName(it),it.brand,it.store,it.note,catName(it.cat),it.size,it.model,it.serial,it.location,it.reason,it.link,(it.colors||[]).map(c=>COLOR[c]?.n).join(' ')].join(' ')); if(!q.split(' ').every(w=>hay.includes(w))) return false; }
   if(f.cats.length && !f.cats.includes(it.cat)) return false;
   if(!skip.colors && f.colors.length && !(it.colors||[]).some(c=>f.colors.includes(c))) return false;
   if(f.brands.length && !f.brands.includes(normKey(it.brand))) return false;
@@ -638,6 +653,7 @@ function matchItem(it,f,skip={}){
 }
 const SORT_LABELS = {new:'最新購入',created:'最新建檔',old:'最早購入',priceDesc:'價格高→低',priceAsc:'價格低→高',wearDesc:'用最多次',idle:'最久沒用',cpwDesc:'每次成本最高',warranty:'保固最快到期',expiry:'最快過期'};
 function sortsFor(b=S.book){
+  if(b==='wish') return [['created','最新加入'],['cool','冷靜期最快結束'],['priceDesc','價格高→低'],['priceAsc','價格低→高']];
   const base=['new','created','old','priceDesc','priceAsc'];
   if(b==='closet') return [...base,'wearDesc','idle','cpwDesc'].map(k=>[k,k==='wearDesc'?'穿最多次':k==='idle'?'最久沒穿':SORT_LABELS[k]]);
   if(b==='beauty') return [...base,'expiry','wearDesc','idle','cpwDesc'].map(k=>[k,SORT_LABELS[k]]);
@@ -655,11 +671,12 @@ function sortItems(arr,key){
     idle:(a,b)=>idleSince(a).localeCompare(idleSince(b)),
     cpwDesc:(a,b)=>(cpw(b)??-1)-(cpw(a)??-1),
     warranty:(a,b)=>(a.warrantyUntil||'9999').localeCompare(b.warrantyUntil||'9999'),
-    expiry:(a,b)=>(effExpiry(a)||'9999').localeCompare(effExpiry(b)||'9999')
+    expiry:(a,b)=>(effExpiry(a)||'9999').localeCompare(effExpiry(b)||'9999'),
+    cool:(a,b)=>(a.coolUntil||'0000').localeCompare(b.coolUntil||'0000')||(b.createdAt||0)-(a.createdAt||0)
   }[key]||(()=>0);
   return [...arr].sort(by);
 }
-function filtered(){ const keys=sortsFor().map(s=>s[0]); return sortItems(BI().filter(it=>matchItem(it,S.f)),keys.includes(S.f.sort)?S.f.sort:'new'); }
+function filtered(){ const keys=sortsFor().map(s=>s[0]); return sortItems(BI().filter(it=>matchItem(it,S.f)),keys.includes(S.f.sort)?S.f.sort:keys[0]); }
 const filterCount = () => ['cats','colors','brands','stores','seasons','locations'].reduce((n,k)=>n+S.f[k].length,0);
 function setF(f){ S.f=f; S.fBy[S.book]=f; saveFilters(); }
 
@@ -719,7 +736,8 @@ function lum(hex){ if(!hex||hex==='multi') return .5; const n=parseInt(hex.slice
 function photoHTML(it,kind='thumb'){
   if(it.photo) return `<img alt="" data-img="${esc(it.photo)}" data-kind="${kind}">`;
   const k=it.colors?.[0]; const bg=k?swBg(k):'var(--surface2)'; const fg=k&&COLOR[k]?.h!=='multi'? (lum(COLOR[k].h)>.55?'#34302C':'#F6F5F1'):'var(--ink2)';
-  return `<div class="ph-fallback" style="background:${bg};color:${fg}">${k&&COLOR[k]?.h==='multi'?'<span style="background:rgba(246,245,241,.85);color:#34302C;padding:2px 10px;border-radius:8px">'+esc(catName(it.cat))+'</span>':esc(catName(it.cat))}</div>`;
+  const label=bookOf(it)==='wish'&&!catById(it.cat)?'想買':catName(it.cat);
+  return `<div class="ph-fallback" style="background:${bg};color:${fg}">${k&&COLOR[k]?.h==='multi'?'<span style="background:rgba(246,245,241,.85);color:#34302C;padding:2px 10px;border-radius:8px">'+esc(label)+'</span>':esc(label)}</div>`;
 }
 
 function rotateCrop(c,deg){ if(!c) return null; return deg===90? {x:1-c.y-c.h,y:c.x,w:c.h,h:c.w} : {x:c.y,y:1-c.x-c.w,w:c.h,h:c.w}; }
@@ -907,7 +925,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 let persistAsked=false;
 function askPersist(){ if(persistAsked) return; persistAsked=true; try{ navigator.storage?.persist?.(); }catch(e){} }
 
-const BOOK_ICON = {closet:ICON.hanger, appliance:ICON.plug, goods:ICON.box, beauty:ICON.bottle};
+const BOOK_ICON = {closet:ICON.hanger, appliance:ICON.plug, goods:ICON.box, beauty:ICON.bottle, wish:ICON.heart};
 /* ---------- 導覽與畫面 ---------- */
 function setView(v){ S.view=v; S.selecting=false; S.sel.clear(); lsSet('closet.view',v); render(); window.scrollTo(0,0); }
 function setBook(b){ if(!BOOKS[b]||b===S.book) return; S.book=b; S.f=S.fBy[b]; S.selecting=false; S.sel.clear(); S.railAnimated=false; lsSet('closet.book',b); render(); }
@@ -921,8 +939,8 @@ function render(){
 }
 function backupDue(){ const st=S.settings; if(S.items.length<10) return false; if(!st.lastBackup) return Date.now()-st.firstUse>7*864e5; return Date.now()-st.lastBackup>30*864e5; }
 function bookTabsHTML(act='book',cur=S.book,withAll=false){
-  const keys=withAll?[...BOOK_KEYS,'all']:BOOK_KEYS;
-  return `<div class="booktabs" role="tablist" aria-label="切換帳本">${keys.map(k=>{ const n=k==='all'?null:sumQty(ownedItems(k));
+  const keys=withAll?[...BOOK_KEYS,'all']:TAB_KEYS;
+  return `<div class="booktabs" role="tablist" aria-label="切換帳本">${keys.map(k=>{ const n=k==='all'?null:sumQty(activeItems(k));
     return `<button role="tab" aria-selected="${cur===k}" data-a="${act}" data-k="${k}" class="${cur===k?'on':''}">${k==='all'?'全部':BOOKS[k].name}${n!=null?`<sup class="num">${fmtInt(n)}</sup>`:''}</button>`; }).join('')}</div>`;
 }
 
@@ -931,7 +949,7 @@ function renderCloset(){
   const f=S.f, B=BK();
   $('#app').innerHTML=`${bookTabsHTML()}
   <div class="vh"><div><h1>${B.title}</h1><div class="sub" id="ownSub"></div></div>
-    <button class="iconbtn${S.selecting?' on':''}" data-a="selmode" aria-label="多選">${ICON.select}</button></div>
+    ${S.book==='wish'?'':`<button class="iconbtn${S.selecting?' on':''}" data-a="selmode" aria-label="多選">${ICON.select}</button>`}</div>
   <div id="railBox"></div>
   <div class="toolbar"><label class="search">${ICON.search}<input id="q" type="search" placeholder="${S.book==='appliance'?'搜尋名稱、品牌、型號、序號':'搜尋名稱、品牌、店家、備註'}" value="${esc(f.q)}" enterkeyhint="search" autocomplete="off"></label>
     <button class="iconbtn${filterCount()?' on':''}" data-a="filters" aria-label="篩選與排序">${ICON.filter}</button></div>
@@ -948,9 +966,11 @@ function renderCloset(){
 function fillCloset(){
   const f=S.f, B=BK(); const list=filtered(); const totalQty=sumQty(list);
   const sellingN=sumQty(BI().filter(i=>i.status==='selling'));
-  $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedItems()))}</span> ${B.unit}${sellingN?`，其中 <span class="num">${sellingN}</span> ${B.unit}待售`:''}`;
+  if(S.book==='wish'){ const act=activeItems(), ready=act.filter(i=>coolState(i)?.k==='ready').length;
+    $('#ownSub').innerHTML=`想買 <span class="num">${fmtInt(sumQty(act))}</span> 個，預計 <span class="num">${money(act.reduce((s,i)=>s+(i.price||0),0))}</span>${act.length?`・冷靜中 ${act.length-ready}、可以考慮 ${ready}`:''}`; }
+  else $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedItems()))}</span> ${B.unit}${sellingN?`，其中 <span class="num">${sellingN}</span> ${B.unit}待售`:''}`;
   $('#railBox').innerHTML=B.colors&&S.book!=='beauty'?railHTML(BI().filter(it=>matchItem(it,f,{colors:true}))):''; // 保養品不顯示色譜
-  const statusSeg=[['own',B.own],['selling','待售'],['retired','已淘汰'],['all','全部']].map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
+  const statusSeg=(S.book==='wish'?[['own','想買中'],['selling','買了'],['retired','不買了'],['all','全部']]:[['own',B.own],['selling','待售'],['retired','已淘汰'],['all','全部']]).map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
   const sortName=(sortsFor().find(s=>s[0]===f.sort)||sortsFor()[0])[1];
   $('#resBox').innerHTML=`
   <div class="chips"><div class="seg-ctl" role="tablist">${statusSeg}</div>${activeFilterChips()}</div>
@@ -981,6 +1001,15 @@ function activeFilterChips(){
 }
 function tileHTML(it){
   const b=[], bk=bookOf(it);
+  if(bk==='wish'){ const cs=coolState(it);
+    if(cs) b.push(cs.k==='cool'?`<span class="badge warn">冷靜中・剩 ${cs.n} 天</span>`:'<span class="badge ok">可以考慮了</span>');
+    if(it.status==='bought') b.push('<span class="badge ret">買了</span>'); if(it.status==='dropped') b.push('<span class="badge ret">不買了</span>');
+    if(qtyOf(it)>1) b.push(`<span class="badge qty num">×${qtyOf(it)}</span>`);
+    const T=BOOKS[it.target]; const sub=[T?.name, catById(it.cat)&&catById(it.cat).book===it.target?catName(it.cat):''].filter(Boolean).join('・');
+    return `<button class="tile${it.status!=='wish'?' retired':''}" data-a="tile" data-id="${it.id}">
+    <div class="ph">${photoHTML(it)}</div><div class="badges">${b.join('')}</div><span class="tick"></span>
+    <div class="tt">${esc(itemName(it))}</div>
+    <div class="ts"><span>${esc(sub)}</span><span class="num">${it.price!=null?money(it.price):''}</span></div></button>`; }
   if(it.status==='selling') b.push('<span class="badge sell">待售</span>');
   if(it.status==='retired') b.push(`<span class="badge ret">${methodName(bk,it.retire?.method)}</span>`);
   if(isIdle(it)) b.push(`<span class="badge idle">${BOOKS[bk].idle}</span>`);
@@ -997,10 +1026,11 @@ const EMPTY_TEXT = {
   closet:['從第一件開始建檔','拍一張照、選分類和顏色就能存。<br>家裡已經有很多衣服的話，可以用「批次拍照建檔」一次選多張照片。','新增一件'],
   appliance:['從第一台電器開始建檔','記下型號、序號和保固到期日，壞了要送修時就查得到。<br>發票和保固卡也可以拍照存起來。','新增一台'],
   goods:['從第一個物品開始建檔','包包、飾品、收藏品、文具、生活用品都能放進來。<br>包包和飾品可以記使用次數，算出每用一次花多少錢。','新增一個'],
+  wish:['先記下來，冷靜幾天再決定','看到想買的，先拍照或截圖存進來，設個冷靜期。<br>App 會告訴你家裡已經有幾件類似的；冷靜期過了還想要再買，不買了就記成省下的錢。','加一個想買的'],
   beauty:['從第一瓶保養品開始建檔','記下開封日、有效期限，或瓶身上「開封後可用」的月數，<br>快過期時清單和盤點頁會提醒你，用完了也能一鍵淘汰。','新增一個']
 };
 function emptyHTML(){
-  if(!BI().length){ const [h,p,btn]=EMPTY_TEXT[S.book]; return `<div class="empty">${BOOK_ICON[S.book]}<h3>${h}</h3><p>${p}</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">${btn}</button><button class="btn soft" data-a="batch">批次拍照建檔</button></div></div>`; }
+  if(!BI().length){ const [h,p,btn]=EMPTY_TEXT[S.book]; return `<div class="empty">${BOOK_ICON[S.book]}<h3>${h}</h3><p>${p}</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">${btn}</button>${S.book==='wish'?'':'<button class="btn soft" data-a="batch">批次拍照建檔</button>'}</div></div>`; }
   return `<div class="empty">${ICON.search}<h3>沒有符合的${BK().noun}</h3><p>試試換個關鍵字，或清除篩選條件。</p><button class="btn" data-a="clearf">清除篩選</button></div>`;
 }
 function saveFilters(){ lsSet('closet.fBy',S.fBy); }
@@ -1023,7 +1053,36 @@ function renderSelbar(){
 
 /* ---------- 盤點總覽 ---------- */
 function liRow(it,sub,rv,bad){ return `<button class="li" data-a="open" data-id="${it.id}"><span class="th"><div class="ph">${photoHTML(it)}</div></span><span class="tx"><div>${esc(itemName(it))}</div><div class="muted small">${sub}</div></span><span class="rv"${bad?' style="color:var(--brick);font-weight:700"':''}>${rv}</span></button>`; }
+function renderWishOverview(){
+  const all=BI('wish'), act=all.filter(i=>i.status==='wish'), dropped=all.filter(i=>i.status==='dropped'), bought=all.filter(i=>i.status==='bought');
+  const sum=a=>a.reduce((s,i)=>s+(i.price||0),0);
+  const ready=act.filter(i=>coolState(i).k==='ready'), cooling=act.filter(i=>coolState(i).k==='cool').sort((a,b)=>coolState(a).n-coolState(b).n);
+  const dup=act.filter(i=>i.cat&&catById(i.cat)?.book===i.target&&ownedItems(i.target).some(x=>x.cat===i.cat));
+  const y=String(new Date().getFullYear()), dropY=dropped.filter(i=>(i.droppedAt||'').startsWith(y));
+  const where=i=>[BOOKS[i.target]?.name, catById(i.cat)?.book===i.target?catName(i.cat):''].filter(Boolean).join('・');
+  $('#app').innerHTML=`${bookTabsHTML()}
+  <div class="vh"><div><h1>盤點</h1><div class="sub">想買的東西，冷靜一下再決定</div></div></div>
+  <div class="cols">
+    <div class="panel"><p class="lede">想買 <b>${fmtInt(sumQty(act))}</b> 個，預計 <b>${money(sum(act))}</b>。</p>
+      <div class="muted small">${act.length?`冷靜中 ${cooling.length}・可以考慮了 ${ready.length}${dup.length?`・<span style="color:var(--brick)">${dup.length} 個家裡已經有同分類的</span>`:''}`:'還沒有想買的東西。'}</div>
+      <div class="btnrow" style="margin-top:14px"><button class="btn pri" data-a="add">加一個想買的</button></div></div>
+    <div class="panel"><div class="streak"><div class="big">${money(sum(dropY)).replace('NT$','')}</div><div><div style="font-weight:600">今年因為不買，省下的錢（台幣）</div><div class="muted small">${dropped.length?`累計省下 ${money(sum(dropped))}，共 ${dropped.length} 個不買了`:'在想買清單按「不買了」，金額會記在這裡。'}${bought.length?`；買了 ${bought.length} 個`:''}</div></div></div></div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div class="stack">
+      <div class="panel"><div class="ph2"><h2>可以考慮了</h2><span class="muted small">冷靜期已過</span></div>
+        ${ready.length?`<div class="list">${ready.map(i=>liRow(i,esc(where(i))+(i.reason?'・'+esc(i.reason):''),i.price!=null?money(i.price):'')).join('')}</div><p class="muted small" style="margin:8px 0 0">過了冷靜期還想要，再買；已經不想要了，就按「不買了」。</p>`:'<p class="muted small" style="margin:0">目前沒有。</p>'}</div>
+      ${dup.length?`<div class="panel"><div class="ph2"><h2>家裡已經有類似的</h2></div><div class="list">${dup.map(i=>{ const n=sumQty(ownedItems(i.target).filter(x=>x.cat===i.cat)); return liRow(i,`已經有 ${n} ${BOOKS[i.target].unit}${esc(catName(i.cat))}`,i.price!=null?money(i.price):'',true); }).join('')}</div></div>`:''}
+    </div>
+    <div class="stack">
+      <div class="panel"><div class="ph2"><h2>冷靜中</h2></div>
+        ${cooling.length?`<div class="list">${cooling.map(i=>liRow(i,esc(where(i))+`・${fmtDate(i.coolUntil)} 冷靜完`,`剩 ${coolState(i).n} 天`)).join('')}</div>`:'<p class="muted small" style="margin:0">目前沒有。</p>'}</div>
+      ${dropped.length?`<div class="panel"><div class="ph2"><h2>不買了</h2><span class="muted small num">共省下 ${money(sum(dropped))}</span></div><div class="list">${[...dropped].sort((a,b)=>(b.droppedAt||'').localeCompare(a.droppedAt||'')).slice(0,8).map(i=>liRow(i,fmtDate(i.droppedAt),i.price!=null?money(i.price):'')).join('')}</div></div>`:''}
+    </div>
+  </div>`;
+}
 function renderOverview(){
+  if(S.book==='wish') return renderWishOverview();
   const B=BK(), bk=S.book; const own=ownedItems(); const q=sumQty(own);
   const lastBuy=BI().map(i=>i.date).filter(Boolean).sort().pop();
   const gap=lastBuy!=null?daysSince(lastBuy):null;
@@ -1095,8 +1154,8 @@ function longestGap(){
 /* ---------- 花費 ---------- */
 let moneyYear=String(new Date().getFullYear()), moneyBook=null;
 function renderMoney(){
-  const MB=moneyBook||S.book; const isAll=MB==='all';
-  const scope=isAll?S.items:BI(MB); const unit=isAll?'件':BOOKS[MB].unit;
+  const MB=moneyBook||(S.book==='wish'?'all':S.book); const isAll=MB==='all';
+  const scope=isAll?S.items.filter(i=>bookOf(i)!=='wish'):BI(MB); const unit=isAll?'件':BOOKS[MB].unit;
   const allLogs=scope.flatMap(i=>(i.logs||[]).map(l=>({...l,it:i})));
   const years=[...new Set([...scope.flatMap(i=>[i.date?.slice(0,4),i.retire?.date?.slice(0,4)]),...allLogs.map(l=>l.date?.slice(0,4))].filter(Boolean))].sort().reverse();
   const curY=String(new Date().getFullYear()); if(!years.includes(curY)) years.unshift(curY);
@@ -1138,6 +1197,8 @@ function renderMoney(){
       <div class="kpi"><div class="k">轉賣收入</div><div class="v num">${money(income)}</div></div>
       <div class="kpi"><div class="k">實際淨支出</div><div class="v num">${money(spend-income)}</div></div>
     </div>
+    ${(()=>{ const dz=S.items.filter(i=>bookOf(i)==='wish'&&i.status==='dropped'&&inY(i.droppedAt)&&(isAll||i.target===MB)); const v=dz.reduce((s,i)=>s+(i.price||0),0);
+      return dz.length?`<p class="small" style="margin:10px 0 0;color:var(--sage)">想買清單裡決定不買的，${Y==='all'?'累計':'這一年'}省下 <b class="num">${money(v)}</b>（${dz.length} 個）。</p>`:''; })()}
     ${spendLog?`<p class="muted small" style="margin:10px 0 0">其中購買 ${money(spendBuy)}、維修／耗材 ${money(spendLog)}（${logs.length} 筆）。</p>`:''}
     ${bought.length&&priced.length<bought.length?`<p class="muted small" style="margin:10px 0 0">另有 ${bought.length-priced.length} 筆沒填價格，未計入金額。</p>`:''}
     ${Y==='all'&&scope.some(i=>!i.date)?`<p class="muted small" style="margin:6px 0 0">「全部」包含 ${scope.filter(i=>!i.date).length} 筆日期不詳的紀錄。</p>`:''}
@@ -1175,7 +1236,7 @@ function cpwRow(it){ const w=wearCount(it), v=BOOKS[bookOf(it)].verb||'用'; ret
 /* ---------- 設定 ---------- */
 let pendingSec=null, settingsBook=null;
 function renderSettings(){
-  const st=S.settings; const R=S.rates; const SB=settingsBook||S.book;
+  const st=S.settings; const R=S.rates; const SB=(settingsBook&&settingsBook!=='wish')?settingsBook:(S.book==='wish'?'closet':S.book);
   const bud=st.budgetBy||{};
   $('#app').innerHTML=`
   <div class="vh"><div><h1>設定</h1><div class="sub">財產清冊 v${APP_VERSION}・資料只存在這台裝置</div></div></div>
@@ -1341,13 +1402,17 @@ function openItemForm(item,opts={}){
   const isNew=!item; const batch=opts.batch; // batch: {files:[], index}
   const carry=opts.carry||{};
   const book = item ? bookOf(item) : (carry.book||opts.book||S.book); const B=BOOKS[book];
+  const isWish=book==='wish';
+  let target = isWish ? (item?.target || carry.target || lsGet('closet.wishTarget') || 'closet') : book; if(!BOOK_KEYS.includes(target)) target='closet';
   const it = item ? JSON.parse(JSON.stringify(item)) : {
     id:uid(), book, cat:carry.cat||'', name:'', colors:[], brand:carry.brand||'', size:'', seasons:carry.seasons||[],
     date: carry.date!==undefined?carry.date:today(), store:carry.store||'', channel:carry.channel||'', currency:carry.currency||lastEntry().currency||'TWD',
     priceOrig:null, rate:carry.rate||null, price:null, qty:1, location:carry.location||'', note:'', photo:null,
     model:'', serial:'', warrantyMonths:carry.warrantyMonths??null, warrantyUntil:'', docs:[], logs:[], openedAt:'', expiry:'', paoMonths:null,
-    status:'active', wears:[], createdAt:Date.now()
+    status:isWish?'wish':'active', wears:[], createdAt:Date.now()
   };
+  if(isNew && opts.prefill) Object.assign(it, opts.prefill);
+  if(isWish){ it.date=''; it.target=target; if(isNew && it.coolDays==null) it.coolDays=7; }
   it.book=book; it.docs=it.docs||[]; it.colors=it.colors||[];
   let photoFile=null, photoPreview=null, removePhoto=false;
   if(isNew && it.currency!=='TWD' && !it.rate){ const r=currentRate(it.currency); it.rate=r?+r.toPrecision(5):null; }
@@ -1356,24 +1421,25 @@ function openItemForm(item,opts={}){
   const brands=[...brandDisplayMap('brand',scope).values()], stores=[...brandDisplayMap('store',S.items).values()], locs=[...new Set([...LOCS_BY[book],...brandDisplayMap('location',scope).values()])];
   const expBook=EXP_BOOKS.includes(book);
   const expCat=()=>expBook && !!catById(it.cat)?.expiry;
-  const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isNew?'新增'+B.noun:'編輯'+B.noun;
+  const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isWish?(isNew?'加一個想買的':'編輯想買的'):opts.onSaved?'買了！加到'+B.name:isNew?'新增'+B.noun:'編輯'+B.noun;
   const body=`
   ${batch?`<div class="batchbar"><span class="num">${batch.index+1} / ${batch.files.length}</span><span class="track"><i style="width:${(batch.index)/batch.files.length*100}%"></i></span><span>已存 ${batch.saved||0}</span></div>`:''}
   <div class="formgrid"><div class="photo-col">
     <button type="button" class="photo-in" id="fPhoto" aria-label="選擇照片"></button>
     <p class="faint tiny" style="margin:6px 2px ${isNew&&!batch?'8px':'14px'}">${isIOS?'可以拍照或從相簿選。':'可以拖曳照片進來，或按 Ctrl／⌘+V 貼上截圖。'}照片會縮小後存在本機。</p>
-    ${isNew&&!batch?`<button type="button" class="batchlink" data-batchstart>${ICON.camera}<span><b>一次選多張照片</b><br><span class="faint">批次建檔，${B.colors?'每張自動選好顏色':'每張只要選分類'}</span></span></button>`:''}
+    ${isNew&&!batch&&!isWish&&!opts.onSaved?`<button type="button" class="batchlink" data-batchstart>${ICON.camera}<span><b>一次選多張照片</b><br><span class="faint">批次建檔，${B.colors?'每張自動選好顏色':'每張只要選分類'}</span></span></button>`:''}
   </div><div>
-    <div class="flabel">分類<span class="req">*</span></div>
-    <div id="fCats" style="margin-bottom:4px">${catPickHTML(it.cat,book)}</div>
+    ${isWish?`<div class="flabel">買了要放進哪一本</div><div class="pick" id="fTarget" style="margin-bottom:12px">${BOOK_KEYS.map(k=>`<button type="button" class="chip${k===target?' on':''}" data-tg="${k}">${BOOKS[k].name}</button>`).join('')}</div>
+    <div class="flabel">分類 <span class="faint" style="font-weight:400">（可以不選；選了會告訴你家裡已經有幾個）</span></div>`:'<div class="flabel">分類<span class="req">*</span></div>'}
+    <div id="fCats" style="margin-bottom:4px">${catPickHTML(catById(it.cat)?.book===target?it.cat:'',target)}</div>
     <div class="ferr hide" id="eCat">請選一個分類</div>
     ${B.colors?`<div class="flabel" style="margin-top:12px">顏色 <span class="faint" style="font-weight:400">（最多 3 個，第一個是主色）</span></div>
     <div class="autocol hide" id="fAuto" aria-live="polite"></div>
     <div class="swatches" id="fColors" style="margin-bottom:14px">${colorPickHTML()}</div>`:'<div style="height:10px"></div>'}
     <div class="similar hide" id="fSimilar"></div>
     <label class="f"><span>名稱</span><input class="in" id="fName" value="${esc(it.name)}" placeholder="${NAME_HINT[book]}" autocomplete="off"></label>
-    <div class="frow"><label class="f"><span>品牌</span><input class="in" id="fBrand" list="dlBrand" value="${esc(it.brand)}" autocomplete="off"></label>
-      ${B.size?`<label class="f"><span>${B.size}</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"${expBook?' placeholder="例如 50ml"':''}></label>`
+    <div class="${isWish?'':'frow'}"><label class="f"><span>品牌</span><input class="in" id="fBrand" list="dlBrand" value="${esc(it.brand)}" autocomplete="off"></label>
+      ${isWish?'':B.size?`<label class="f"><span>${B.size}</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"${expBook?' placeholder="例如 50ml"':''}></label>`
         :`<label class="f"><span>型號</span><input class="in" id="fModel" value="${esc(it.model||'')}" autocomplete="off" autocapitalize="characters"></label>`}</div>
     ${book==='appliance'?`<label class="f"><span>序號</span><input class="in" id="fSerial" value="${esc(it.serial||'')}" autocomplete="off" autocapitalize="characters" placeholder="通常在機身背面或底部的貼紙"></label>`:''}
     ${B.seasons?`<div class="flabel">季節</div>
@@ -1386,12 +1452,19 @@ function openItemForm(item,opts={}){
       <div class="pick" id="fPao" style="margin-bottom:10px">${PAO_CHIPS.map(([m,n])=>`<button type="button" class="chip${(it.paoMonths||0)===m?' on':''}" data-pao="${m}">${n}</button>`).join('')}</div>
       <div class="calc" id="fExpCalc"></div><div class="ferr hide" id="eExp" style="margin:-6px 0 12px"></div>
     </div>`:''}
+    ${isWish?`<div class="fsec">
+      <label class="f"><span>為什麼想要</span><textarea class="in" id="fReason" rows="2" placeholder="例如：通勤穿、舊的那件起毛球了">${esc(it.reason||'')}</textarea></label>
+      <div class="flabel">冷靜期</div>
+      <div class="pick" id="fCool" style="margin-bottom:8px">${COOL_CHIPS.map(([d,n])=>`<button type="button" class="chip${(it.coolDays??7)===d?' on':''}" data-cool="${d}">${n}</button>`).join('')}</div>
+      <div class="calc" id="fCoolCalc"></div>
+    </div>`:''}
     <div class="fsec">
-    <div class="frow"><label class="f"><span>購入日期</span><input class="in" type="date" id="fDate" value="${esc(it.date||'')}" max="${today()}"></label>
+    <div class="frow"><label class="f${isWish?' hide':''}"><span>購入日期</span><input class="in" type="date" id="fDate" value="${esc(it.date||'')}" max="${today()}"></label>
       <label class="f"><span>數量</span><span class="stepper"><button type="button" data-step="-1" aria-label="減少">−</button><input id="fQty" inputmode="numeric" value="${qtyOf(it)}" aria-label="數量"><button type="button" data-step="1" aria-label="增加">＋</button></span></label></div>
     <div class="ferr hide" id="eDate" style="margin:-8px 0 12px"></div>
-    <div class="frow"><label class="f"><span>在哪買</span><input class="in" id="fStore" list="dlStore" value="${esc(it.store)}" placeholder="店名或網站" autocomplete="off"></label>
-      <label class="f"><span>管道</span><select class="in" id="fChannel">${channelOptions(it.channel)}</select></label></div>
+    <div class="frow"><label class="f"><span>${isWish?'在哪看到':'在哪買'}</span><input class="in" id="fStore" list="dlStore" value="${esc(it.store)}" placeholder="${isWish?'店名、網站或 IG':'店名或網站'}" autocomplete="off"></label>
+      <label class="f${isWish?' hide':''}"><span>管道</span><select class="in" id="fChannel">${channelOptions(it.channel)}</select></label></div>
+    ${isWish?`<label class="f"><span>網址</span><input class="in" id="fLink" type="url" inputmode="url" value="${esc(it.link||'')}" placeholder="商品頁連結（可不填）" autocomplete="off" autocapitalize="off"></label>`:''}
     <div class="frow3" id="fPriceRow"><label class="f"><span>幣別</span><select class="in" id="fCur">${CURRENCIES.map(([c,n])=>`<option value="${c}" ${it.currency===c?'selected':''}>${c} ${n}</option>`).join('')}</select></label>
       <label class="f"><span id="lAmt">金額</span><input class="in num" id="fAmt" inputmode="decimal" value="${it.priceOrig??(it.currency==='TWD'?it.price??'':'')}" placeholder="${qtyOf(it)>1?'這筆的總價':''}"></label>
       <label class="f fx"><span>台幣金額</span><input class="in num" id="fTwd" inputmode="decimal" value="${it.price??''}"></label></div>
@@ -1408,7 +1481,7 @@ function openItemForm(item,opts={}){
       <div class="docs" id="fDocs"></div>
     </div>`:''}
     <div class="fsec">
-    <label class="f"><span>存放位置</span><input class="in" id="fLoc" list="dlLoc" value="${esc(it.location)}" placeholder="${B.locHint}" autocomplete="off"></label>
+    <label class="f${isWish?' hide':''}"><span>存放位置</span><input class="in" id="fLoc" list="dlLoc" value="${esc(it.location)}" placeholder="${B.locHint}" autocomplete="off"></label>
     <label class="f"><span>備註</span><textarea class="in" id="fNote" rows="2">${esc(it.note)}</textarea></label>
     </div>
   </div></div>
@@ -1417,6 +1490,7 @@ function openItemForm(item,opts={}){
   <datalist id="dlLoc">${locs.map(b=>`<option value="${esc(b)}">`).join('')}</datalist>`;
   const foot = batch
     ? `<button class="btn" data-skip>略過這張</button><button class="btn pri grow2" data-save>${batch.index===batch.files.length-1?'儲存並完成':'儲存，下一張'}</button>`
+    : opts.onSaved ? `<button class="btn" data-cancel>取消</button><button class="btn pri grow2" data-save>存進${B.name}</button>`
     : isNew ? `<button class="btn soft" data-again>儲存，再加一${B.unit}</button><button class="btn pri" data-save>儲存</button>`
             : `<button class="btn danger" data-del aria-label="刪除">${ICON.trash}</button><button class="btn" data-cancel>取消</button><button class="btn pri grow2" data-save>儲存</button>`;
   let rot=0, crop=null, rotURL=null, drawTk=0;
@@ -1459,14 +1533,25 @@ function openItemForm(item,opts={}){
   function onPaste(e){ if(sheets[sheets.length-1]!==w) return; const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/')); if(f){ e.preventDefault(); setFile(f); toast('已貼上照片'); } }
   document.addEventListener('paste',onPaste);
   if(batch) setFile(batch.files[batch.index]); else drawPhoto();
+  if(isNew && opts.prefill?.photo && B.colors) imgURL(it.photo,'full').then(u=>{ if(u) autoColor(u); }); // 從想買清單帶過來的照片，也自動選色
 
   // 分類、顏色、季節
   const pickCat=id=>{ it.cat=id; $$('#fCats [data-cat]',w).forEach(x=>x.classList.toggle('on',x.dataset.cat===id)); $('#eCat',w).classList.add('hide'); updateSimilar();
     const eb=$('#fExpBox',w); if(eb){ eb.classList.toggle('hide',!expCat()); expCalc(); } };
   $('#fCats',w).onclick=async e=>{
     const add=e.target.closest('[data-addcat]'), grp=e.target.closest('[data-addgrp]'), b=e.target.closest('[data-cat]');
-    if(add||grp){ const id= add? await addCategory(add.dataset.addcat,book) : await addGroup(true,book); if(id){ $('#fCats',w).innerHTML=catPickHTML(it.cat,book); pickCat(id); } return; }
-    if(b) pickCat(b.dataset.cat); };
+    if(add||grp){ const id= add? await addCategory(add.dataset.addcat,target) : await addGroup(true,target); if(id){ $('#fCats',w).innerHTML=catPickHTML(it.cat,target); pickCat(id); } return; }
+    if(b){ if(isWish && it.cat===b.dataset.cat){ it.cat=''; b.classList.remove('on'); updateSimilar(); return; } pickCat(b.dataset.cat); } };
+  if(isWish){
+    $('#fTarget',w).onclick=e=>{ const b=e.target.closest('[data-tg]'); if(!b||b.dataset.tg===target) return; target=b.dataset.tg; it.cat='';
+      $$('#fTarget .chip',w).forEach(x=>x.classList.toggle('on',x===b)); $('#fCats',w).innerHTML=catPickHTML('',target); updateSimilar(); };
+    let coolD=it.coolDays??7; const coolCalc=()=>{ const el=$('#fCoolCalc',w);
+      if(!coolD){ el.textContent='不設冷靜期，馬上就會列在「可以考慮了」。'; return; }
+      const keep=!isNew && it.coolDays===coolD && it.coolUntil; const until=keep?it.coolUntil:addDays(today(),coolD); const n=daysUntil(until);
+      el.textContent= n>0?`${fmtDate(until)} 冷靜完，還有 ${n} 天。`:'冷靜期已經過了。'; };
+    $('#fCool',w).onclick=e=>{ const b=e.target.closest('[data-cool]'); if(!b) return; coolD=+b.dataset.cool; $$('#fCool .chip',w).forEach(x=>x.classList.toggle('on',x===b)); coolCalc(); };
+    coolCalc(); w.getCool=()=>coolD;
+  }
   const drawColors=()=>$$('#fColors .swatch',w).forEach(s=>{ const i=it.colors.indexOf(s.dataset.col); s.classList.toggle('on',i>=0); s.title=i===0?'主色':''; });
   if(B.colors){
     $('#fColors',w).onclick=async e=>{
@@ -1479,7 +1564,7 @@ function openItemForm(item,opts={}){
   $('#fSeasons',w)?.addEventListener('click',e=>{ const b=e.target.closest('[data-se]'); if(!b) return; const s=b.dataset.se; it.seasons=it.seasons||[]; const i=it.seasons.indexOf(s); if(i>=0) it.seasons.splice(i,1); else it.seasons.push(s); b.classList.toggle('on',i<0); });
   function updateSimilar(){
     const el=$('#fSimilar',w); if(!it.cat){ el.classList.add('hide'); return; }
-    const same=ownedItems(book).filter(x=>x.id!==it.id && x.cat===it.cat);
+    const same=ownedItems(target).filter(x=>x.id!==it.id && x.cat===it.cat); const B=BOOKS[target];
     const sameCol=B.colors&&it.colors[0]? same.filter(x=>(x.colors||[]).includes(it.colors[0])) : [];
     const c=catById(it.cat); const n=sumQty(same);
     if(!n){ el.classList.add('hide'); return; }
@@ -1530,7 +1615,7 @@ function openItemForm(item,opts={}){
   function priceUI(){
     const cur=fCur.value; const foreign=cur!=='TWD';
     $$('.fx',w).forEach(x=>x.classList.toggle('hide',!foreign)); $('#fPriceRow',w).classList.toggle('twd',!foreign);
-    $('#lAmt',w).textContent= foreign? `金額（${cur}）` : '金額（台幣）';
+    $('#lAmt',w).textContent= (isWish?'預計':'')+(foreign? `金額（${cur}）` : '金額（台幣）');
     const q=Math.max(1,parseInt(fQty.value)||1); const amt=parseNum(fAmt.value); const twd=foreign?parseNum(fTwd.value):amt;
     const parts=[]; if(q>1 && twd>0) parts.push(`${q} ${B.unit}共 ${money(twd)}，平均每${B.unit} ${money(twd/q)}`);
     if(foreign && !fRate.value) parts.push(currentRate(cur)?'':'目前沒有這個幣別的匯率，請自己填匯率或台幣金額。');
@@ -1546,8 +1631,8 @@ function openItemForm(item,opts={}){
 
   function collect(){
     let ok=true; const errs=[];
-    if(!it.cat){ $('#eCat',w).classList.remove('hide'); ok=false; errs.push('#fCats'); }
-    const d=$('#fDate',w).value; const eD=$('#eDate',w); eD.classList.add('hide');
+    if(!it.cat && !isWish){ $('#eCat',w).classList.remove('hide'); ok=false; errs.push('#fCats'); }
+    const d=isWish?'':$('#fDate',w).value; const eD=$('#eDate',w); eD.classList.add('hide');
     if(d && d>today()){ eD.textContent='購入日期不能晚於今天'; eD.classList.remove('hide'); ok=false; errs.push('#fDate'); }
     if(expBook && expCat()){ const o=$('#fOpen',w).value, eE=$('#eExp',w); eE.classList.add('hide');
       if(o && o>today()){ eE.textContent='開封日不能晚於今天'; eE.classList.remove('hide'); ok=false; errs.push('#fOpen'); } }
@@ -1570,6 +1655,8 @@ function openItemForm(item,opts={}){
       price: amt==null? null : (cur==='TWD'? Math.round(amt*100)/100 : (twd!=null?Math.round(twd):null))
     });
     if($('#fSize',w)) it.size=$('#fSize',w).value.trim();
+    if(isWish){ it.target=target; it.channel=''; it.location=''; it.link=$('#fLink',w).value.trim(); it.reason=$('#fReason',w).value.trim();
+      const cd=w.getCool(); if(isNew || cd!==item.coolDays || (cd && !it.coolUntil)) it.coolUntil = cd? addDays(today(),cd) : ''; it.coolDays=cd; }
     if(book==='appliance'){ it.model=$('#fModel',w).value.trim(); it.serial=$('#fSerial',w).value.trim(); it.warrantyUntil=$('#fWarU',w).value||''; it.warrantyMonths=warM; }
     if(expBook && expCat()){ it.openedAt=$('#fOpen',w).value||''; it.expiry=$('#fExp',w).value||''; it.paoMonths=pao||null; }
     return it;
@@ -1590,22 +1677,23 @@ function openItemForm(item,opts={}){
       await putItem(data);
       if(oldPhoto && oldPhoto!==data.photo) await deleteImageIfUnused(oldPhoto);
       for(const d of oldDocs) if(!(data.docs||[]).includes(d)) await deleteImageIfUnused(d);
-      lsSet('closet.lastEntry',{currency:data.currency,at:Date.now()});
+      lsSet('closet.lastEntry',{currency:data.currency,at:Date.now()}); if(isWish) lsSet('closet.wishTarget',data.target);
       return data;
     }catch(e){ toast(e.message||'儲存失敗，請再試一次'); btns.forEach(b=>b.disabled=false); return false; }
   }
-  const carryOf=d=>({book,cat:d.cat,brand:d.brand,seasons:[...(d.seasons||[])],date:d.date,store:d.store,channel:d.channel,currency:d.currency,rate:d.rate,location:d.location,warrantyMonths:book==='appliance'?d.warrantyMonths:undefined});
+  const carryOf=d=>({book,target:d.target,cat:d.cat,brand:d.brand,seasons:[...(d.seasons||[])],date:d.date,store:d.store,channel:d.channel,currency:d.currency,rate:d.rate,location:d.location,warrantyMonths:book==='appliance'?d.warrantyMonths:undefined});
   w.querySelector('[data-save]').onclick=async()=>{
     const d=await save(); if(!d) return;
     if(batch){ w.close(); nextBatch(batch,carryOf(d),true); return; }
-    w.close(); render(); toast(isNew?'已新增「'+itemName(d)+'」':'已儲存');
-    if(isNew) setTimeout(()=>maybeOverLimit(d.cat),400);
+    w.close(); render(); toast(isNew?(isWish?'已加到想買清單':'已新增「'+itemName(d)+'」'):'已儲存');
+    if(opts.onSaved) await opts.onSaved(d);
+    if(isNew && !isWish) setTimeout(()=>maybeOverLimit(d.cat),400);
   };
   w.querySelector('[data-again]')?.addEventListener('click',async()=>{ const d=await save(); if(!d) return; w.close(); render(); toast('已新增「'+itemName(d)+'」，繼續下一'+B.unit); setTimeout(()=>openItemForm(null,{carry:carryOf(d)}),360); });
   w.querySelector('[data-skip]')?.addEventListener('click',()=>{ w.close(); nextBatch(batch,carryOf(collectLoose()),false); });
   w.querySelector('[data-cancel]')?.addEventListener('click',()=>w.close());
   w.querySelector('[data-batchstart]')?.addEventListener('click',()=>{ startBatch(); w.close(); });
-  w.querySelector('[data-del]')?.addEventListener('click',async()=>{ if(await confirmSheet({title:'刪除這筆紀錄？',msg:'刪除會讓花費統計也少掉這一筆。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})){ w.close(); sheets.slice().forEach(s=>s.close()); await deleteWithUndo([item.id]); } });
+  w.querySelector('[data-del]')?.addEventListener('click',async()=>{ if(await confirmSheet(isWish?{title:'從想買清單刪除？',msg:'只會刪掉這一筆想買紀錄。如果是決定不買了，建議改按「不買了」，才會記到省下的錢。',ok:'刪除',danger:true}:{title:'刪除這筆紀錄？',msg:'刪除會讓花費統計也少掉這一筆。如果是不要了，請改用「淘汰」保留紀錄。',ok:'刪除',danger:true})){ w.close(); sheets.slice().forEach(s=>s.close()); await deleteWithUndo([item.id]); } });
   function collectLoose(){ return {cat:it.cat,brand:$('#fBrand',w).value.trim(),seasons:it.seasons,date:$('#fDate',w).value,store:$('#fStore',w).value.trim(),channel:$('#fChannel',w).value,currency:fCur.value,rate:parseNum(fRate.value)||null,location:$('#fLoc',w).value.trim(),warrantyMonths:warM}; }
   return w;
 }
@@ -1663,9 +1751,56 @@ function setupDetailNav(w){
   body.addEventListener('pointercancel',()=>{ if(st&&st.act) reset(); st=null; });
   w.addEventListener('click',e=>{ if(Date.now()-swipedAt<350){ e.stopPropagation(); e.preventDefault(); } },true); // 滑動後不要誤觸按鈕
 }
+function showDetailContent(w,it,body,actions,dir){
+  w.setTitle(itemName(it));
+  const bodyEl=w.querySelector('.sh-b'), footEl=w.querySelector('.sh-f');
+  const keepY=w.shown?bodyEl.scrollTop:0;
+  bodyEl.innerHTML=body; footEl.innerHTML=actions; bodyEl.scrollTop=keepY; w.shown=true; hydrateImages(w); updateNav(w);
+  if(dir) slideIn(bodyEl,dir); else { bodyEl.style.transform=''; bodyEl.style.opacity=''; }
+  w.querySelector('.dt-photo img')?.addEventListener('click',()=>viewImage(it.photo,itemName(it)));
+}
+function fillWishDetail(w,it,dir){
+  const T=BOOKS[it.target]||BOOKS.closet, cs=coolState(it), price=it.price;
+  const cat=catById(it.cat)?.book===it.target?catById(it.cat):null;
+  const same=cat?ownedItems(it.target).filter(x=>x.cat===cat.id):[];
+  const priceLine = price==null? '—' : (it.currency&&it.currency!=='TWD'&&it.priceOrig!=null? `${money(it.priceOrig,it.currency)}（約 ${money(price)}）` : money(price)) + (qtyOf(it)>1?`<span class="faint small">・${qtyOf(it)} 個</span>`:'');
+  const safeLink=/^https?:\/\//i.test(it.link||'')?it.link:'';
+  const facts=[['要放進',esc(T.name)+(cat?'・'+esc(cat.name):'')], it.brand&&['品牌',esc(it.brand)], ['預計價格',priceLine],
+    it.store&&['在哪看到',esc(it.store)], it.link&&['網址',safeLink?`<a href="${esc(safeLink)}" target="_blank" rel="noopener" style="color:var(--mauve-ink);word-break:break-all">${esc(it.link)}</a>`:esc(it.link)],
+    ['加入',fmtDate(ymd(new Date(it.createdAt||Date.now())))], it.status==='bought'&&['買了',fmtDate(it.boughtAt)+(it.boughtPrice!=null?`・實付 ${money(it.boughtPrice)}`:'')],
+    it.status==='dropped'&&['不買了',fmtDate(it.droppedAt)], it.note&&['備註',esc(it.note).replace(/\n/g,'<br>')]].filter(Boolean);
+  let box='';
+  if(cs) box=`<div class="infobox${cs.k==='cool'?' warn':''}"><b>${cs.k==='cool'?'冷靜中':'可以考慮了'}</b>　${cs.k==='cool'?`還有 ${cs.n} 天（${fmtDate(it.coolUntil)}）`:cs.none?'沒有設冷靜期':`冷靜期過了 ${cs.since} 天`}
+    ${cs.k==='ready'?'<div class="muted small" style="margin-top:4px">現在還是很想要嗎？想清楚了再按「買了」。</div>':''}<div style="margin-top:8px"><button class="btn sm soft" data-cool7>再冷靜 7 天</button></div></div>`;
+  if(it.status==='dropped') box=`<div class="infobox"><b>不買了</b>　省下 ${money(price||0)}</div>`;
+  if(it.status==='bought') box=`<div class="infobox"><b>已經買了</b>　${fmtDate(it.boughtAt)}</div>`;
+  const body=`<div class="dt-grid"><div class="dt-photo">${it.photo?`<img alt="" data-img="${esc(it.photo)}" data-kind="full">`:photoHTML(it)}</div><div>
+    ${it.reason?`<div class="reason">「${esc(it.reason)}」<span>當初想要的理由</span></div>`:''}
+    ${box}
+    ${it.status==='wish'&&cat?(same.length?`<div class="similar" style="margin:12px 0 0">家裡已經有 <b class="num">${sumQty(same)}</b> ${T.unit}${esc(cat.name)}${cat.limit?`（上限 ${cat.limit}）`:''}。<div class="minis">${same.slice(0,10).map(x=>`<button class="mini" data-a="open" data-id="${x.id}"><div class="ph">${photoHTML(x)}</div></button>`).join('')}</div></div>`
+      :`<p class="muted small" style="margin:12px 0 0">家裡還沒有${esc(cat.name)}。</p>`):''}
+    <dl class="facts" style="margin-top:16px">${facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+  </div></div>`;
+  let actions='';
+  if(it.status==='wish') actions=`<button class="btn" data-drop>不買了</button><button class="btn" data-edit>編輯</button><button class="btn pri" data-buy>買了</button>`;
+  else if(it.status==='bought') actions=`${S.items.some(i=>i.id===it.boughtItemId)?'<button class="btn" data-seebought>看買到的那件</button>':''}<button class="btn" data-edit>編輯</button>`;
+  else actions=`<button class="btn" data-back>放回想買</button><button class="btn" data-edit>編輯</button>`;
+  showDetailContent(w,it,body,actions,dir);
+  const re=()=>fillDetail(w,it.id,0);
+  w.querySelector('[data-cool7]')?.addEventListener('click',async()=>{ const base=it.coolUntil&&daysUntil(it.coolUntil)>0?it.coolUntil:today(); it.coolUntil=addDays(base,7); await putItem(it); render(); re(); toast(`再冷靜 7 天，到 ${fmtDate(it.coolUntil)}`); });
+  w.querySelector('[data-edit]')?.addEventListener('click',()=>{ w.close(); setTimeout(()=>openItemForm(it),340); });
+  w.querySelector('[data-drop]')?.addEventListener('click',async()=>{ const before=JSON.parse(JSON.stringify(it)); it.status='dropped'; it.droppedAt=today(); await putItem(it); render(); re();
+    toast(price?`不買了，省下 ${money(price)}`:'已記成不買了',{label:'復原',fn:async()=>{ await putItem(before); render(); toast('已復原'); }}); });
+  w.querySelector('[data-back]')?.addEventListener('click',async()=>{ it.status='wish'; delete it.droppedAt; await putItem(it); render(); re(); toast('已放回想買清單'); });
+  w.querySelector('[data-seebought]')?.addEventListener('click',()=>openDetail(it.boughtItemId));
+  w.querySelector('[data-buy]')?.addEventListener('click',()=>{ const tb=BOOK_KEYS.includes(it.target)?it.target:'closet'; w.close();
+    setTimeout(()=>openItemForm(null,{book:tb, prefill:{name:it.name||'',brand:it.brand||'',cat:cat?cat.id:'',store:it.store||'',currency:it.currency||'TWD',priceOrig:it.priceOrig??null,rate:it.rate??null,price:it.price??null,qty:qtyOf(it),photo:it.photo||null,note:it.note||'',date:today()},
+      onSaved:async d=>{ it.status='bought'; it.boughtAt=d.date||today(); it.boughtItemId=d.id; it.boughtPrice=d.price; await putItem(it); render(); toast(`已加到「${BOOKS[tb].name}」，想買清單標記為買了`); }}),340); });
+}
 function fillDetail(w,id,dir){
   const it=S.items.find(i=>i.id===id); if(!it){ w.close(); return; }
   w.cur=id;
+  if(bookOf(it)==='wish') return fillWishDetail(w,it,dir);
   const bk=bookOf(it), B=BOOKS[bk];
   const c=catById(it.cat); const w_=wearCount(it); const lw=lastWear(it); const wornToday=(it.wears||[]).includes(today());
   const colors=(it.colors||[]).map(k=>`<span class="chip" style="height:28px"><i class="sw" style="background:${swBg(k)}"></i>${COLOR[k]?.n}</span>`).join('');
@@ -1976,12 +2111,12 @@ async function doExport(){
 function csvCell(v){ v=v==null?'':String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function doCSV(){
   const head=['帳本','狀態','大類','分類','名稱','顏色','品牌','尺寸／規格','型號','序號','季節','數量','購入日期','在哪買','管道','幣別','原幣金額','匯率','台幣金額','存放位置','使用次數','最後使用','每次成本','保固到期','開封日','有效期限','實際到期','維修耗材次數','維修耗材花費','淘汰日期','去向','轉賣收入','賣到哪','備註'];
-  const st={active:'擁有中',selling:'待售',retired:'已淘汰'};
-  const order=it=>BOOK_KEYS.indexOf(bookOf(it));
+  const st={active:'擁有中',selling:'待售',retired:'已淘汰',wish:'想買中',bought:'想買・買了',dropped:'想買・不買了'};
+  const order=it=>TAB_KEYS.indexOf(bookOf(it));
   const rows=sortItems(S.items,'new').sort((a,b)=>order(a)-order(b)).map(it=>{ const bk=bookOf(it), tw=tracksWear(it);
     return [BOOKS[bk].name,st[it.status],catById(it.cat)?.group||'',catName(it.cat),itemName(it),(it.colors||[]).map(c=>COLOR[c]?.n).join('、'),it.brand,it.size,it.model,it.serial,(it.seasons||[]).join(''),qtyOf(it),it.date,it.store,it.channel,it.currency,it.priceOrig,it.rate,it.price,it.location,
       tw?wearCount(it):'',tw?lastWear(it):'',tw&&it.price!=null&&wearCount(it)?Math.round(cpw(it)):'',it.warrantyUntil,it.openedAt,it.expiry,effExpiry(it),(it.logs||[]).length||'',logsCost(it)||'',
-      it.retire?.date,it.status==='retired'?methodName(bk,it.retire?.method):'',it.retire?.income,it.retire?.where,[it.note,it.retire?.note].filter(Boolean).join('／')]; });
+      it.retire?.date,it.status==='retired'?methodName(bk,it.retire?.method):'',it.retire?.income,it.retire?.where,[it.reason?'想要的理由：'+it.reason:'',it.link,it.note,it.retire?.note].filter(Boolean).join('／')]; });
   const csv='﻿'+[head,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
   deliverFile(new File([csv],`財產清冊清單-${stamp()}.csv`,{type:'text/csv'}),' Excel 清單');
 }
@@ -1992,7 +2127,7 @@ function doImport(){
     let data; try{ data=JSON.parse(await file.text()); }catch(e){ toast('這個檔案不是財產清冊（生活帳本、衣櫥帳本）的備份檔'); return; }
     if(!['life-ledger','closet-ledger'].includes(data?.app)||!Array.isArray(data.items)){ toast('這個檔案不是財產清冊（生活帳本、衣櫥帳本）的備份檔'); return; }
     data.items.forEach(i=>{ if(!i.book) i.book='closet'; });
-    const cnt=BOOK_KEYS.map(k=>[BOOKS[k].name,data.items.filter(i=>i.book===k).length]).filter(x=>x[1]).map(([n,c])=>`${n} ${c}`).join('、')||'0';
+    const cnt=TAB_KEYS.map(k=>[BOOKS[k].name,data.items.filter(i=>i.book===k).length]).filter(x=>x[1]).map(([n,c])=>`${n} ${c}`).join('、')||'0';
     const w=openSheet({title:'匯入備份',body:`<p style="margin:0 0 6px">備份檔裡有 <b>${data.items.length}</b> 筆（${cnt}）、${(data.images||[]).length} 張照片（${fmtDate(ymd(new Date(data.exportedAt)))} 匯出）。</p>
       <p class="muted small" style="margin:0 0 12px">這台裝置現在有 ${S.items.length} 筆。</p>
       <div class="list"><button class="li" data-mode="merge"><span class="tx"><div>合併</div><div class="muted small">兩邊的都留下；同一筆以較新修改的為準</div></span></button>
@@ -2034,9 +2169,9 @@ function doImport(){
 /* ---------- 事件 ---------- */
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]'); if(!b) return; const a=b.dataset.a;
-  const st=S.settings; const SB=settingsBook||S.book;
+  const st=S.settings; const SB=(settingsBook&&settingsBook!=='wish')?settingsBook:(S.book==='wish'?'closet':S.book);
   switch(a){
-    case 'nav': if(b.dataset.sec) pendingSec=b.dataset.sec; if(b.dataset.v==='settings') settingsBook=S.book; if(b.dataset.v==='money') moneyBook=null; setView(b.dataset.v); break;
+    case 'nav': if(b.dataset.sec) pendingSec=b.dataset.sec; if(b.dataset.v==='settings') settingsBook=S.book==='wish'?'closet':S.book; if(b.dataset.v==='money') moneyBook=null; setView(b.dataset.v); break;
     case 'book': setBook(b.dataset.k); window.scrollTo(0,0); break;
     case 'mbook': if(b.dataset.k==='all') moneyBook='all'; else { moneyBook=null; if(b.dataset.k!==S.book){ setBook(b.dataset.k); break; } } render(); break;
     case 'sbook': settingsBook=b.dataset.k; render(); setTimeout(()=>$('#sec-cats')?.scrollIntoView({block:'start'}),30); break;
@@ -2122,7 +2257,7 @@ function applyTheme(){ const t=S.settings?.theme||'auto'; if(t==='auto') documen
   const moved=syncItemBooks(); if(moved.length) await DB.putMany('items',moved); // 保養品搬到新頁籤
   const r=await DB.get('meta','rates'); S.rates=r?r.value:null;
   const fBy=lsGet('closet.fBy'), f1=lsGet('closet.f');
-  BOOK_KEYS.forEach(k=>{ S.fBy[k]={...newF(),...(fBy?.[k]||(k==='closet'&&f1)||{})}; }); cleanFilters();
+  TAB_KEYS.forEach(k=>{ S.fBy[k]={...newF(),...(k==='wish'?{sort:'created'}:{}),...(fBy?.[k]||(k==='closet'&&f1)||{})}; }); cleanFilters();
   const bk=lsGet('closet.book'); if(BOOKS[bk]) S.book=bk; S.f=S.fBy[S.book];
   const v=lsGet('closet.view'); if(v) S.view=v;
   applyTheme(); render();
