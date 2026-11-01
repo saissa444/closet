@@ -87,6 +87,7 @@ button:disabled{cursor:default;opacity:.45}
 .booktabs button{position:relative;font-size:17px;font-weight:600;letter-spacing:.06em;color:var(--ink3);padding:6px 0 11px;white-space:nowrap;transition:color .15s}
 .booktabs button sup{font-size:11px;font-weight:600;margin-left:3px;color:var(--ink3);top:-.55em}
 .booktabs button.on{color:var(--ink)}
+@media (max-width:430px){.booktabs{gap:16px}.booktabs button{font-size:16px;letter-spacing:.03em}}
 .booktabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:2px 2px 0 0;background:var(--ink);animation:tabin .25s ease}
 @keyframes tabin{from{transform:scaleX(.3);opacity:0}to{transform:none;opacity:1}}
 .rail{margin:4px 0 16px}
@@ -409,7 +410,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -428,20 +429,24 @@ const CUR_SYMBOL = {TWD:'NT$',JPY:'¥',KRW:'₩',USD:'US$',EUR:'€',GBP:'£',HK
 const BOOKS = {
   closet:{name:'衣櫥',title:'我的衣櫥',noun:'衣物',unit:'件',own:'在衣櫥',colors:true,seasons:true,size:'尺寸',verb:'穿',idle:'久未穿',buyNoun:'衣服',locHint:'衣櫃、收納箱 A…'},
   appliance:{name:'電器',title:'我的電器',noun:'電器',unit:'台',own:'使用中',colors:false,seasons:false,size:null,verb:null,idle:null,buyNoun:'電器',locHint:'客廳、廚房、書房…'},
-  goods:{name:'物品',title:'我的物品',noun:'物品',unit:'個',own:'擁有中',colors:true,seasons:false,size:'規格',verb:'用',idle:'久未用',buyNoun:'東西',locHint:'化妝台、抽屜、收納箱…'}
+  goods:{name:'物品',title:'我的物品',noun:'物品',unit:'個',own:'擁有中',colors:true,seasons:false,size:'規格',verb:'用',idle:'久未用',buyNoun:'東西',locHint:'抽屜、收納箱、書桌…'},
+  beauty:{name:'保養品',title:'我的保養品',noun:'保養品',unit:'個',own:'使用中',colors:true,seasons:false,size:'容量',verb:'用',idle:'久未用',buyNoun:'保養品',locHint:'化妝台、浴室、梳妝櫃…'}
 };
-const BOOK_KEYS = ['closet','appliance','goods'];
+const BOOK_KEYS = ['closet','appliance','goods','beauty'];
+const EXP_BOOKS = ['goods','beauty']; // 可以追蹤效期、記使用次數的帳本
 const METHODS_BY = {
   closet:[['trash','丟棄'],['donate','捐回收箱'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
   appliance:[['broken','壞掉丟棄'],['recycle','回收'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
-  goods:[['usedup','用完了'],['trash','丟棄'],['donate','捐出'],['gift','送人'],['sold','賣掉'],['lost','遺失']]
+  goods:[['usedup','用完了'],['trash','丟棄'],['donate','捐出'],['gift','送人'],['sold','賣掉'],['lost','遺失']],
+  beauty:[['usedup','用完了'],['trash','丟棄'],['gift','送人'],['sold','賣掉'],['lost','遺失']]
 };
 const METHOD_ALL = {trash:'丟棄',donate:'捐出',gift:'送人',sold:'賣掉',lost:'遺失',broken:'壞掉丟棄',recycle:'回收',usedup:'用完了'};
 const methodName = (book,k) => (METHODS_BY[book]||[]).find(m=>m[0]===k)?.[1] || METHOD_ALL[k] || '已淘汰';
 const DEFAULT_GROUPS_BY = {
   closet:['上衣','下身','貼身衣物','居家','配件','鞋子'],
   appliance:['3C','影音','廚房家電','生活家電','大型家電','個人護理'],
-  goods:['保養品','化妝品','包包','飾品配件','收藏品','文具','生活用品']
+  goods:['包包','飾品配件','收藏品','文具','生活用品'],
+  beauty:['保養品','化妝品','身體與頭髮']
 };
 const mkCats=(book,rows)=>rows.map(([id,name,group,fl={}],i)=>({id,name,group,book,limit:null,idle:fl.idle!==false,wear:!!fl.wear,expiry:!!fl.expiry,order:i}));
 const NOIDLE={idle:false}, EXP={expiry:true,idle:false}, WEAR={wear:true};
@@ -460,16 +465,18 @@ const DEFAULT_CATS = [
     ['a_vacuum','吸塵器','生活家電',NOIDLE],['a_dehum','除濕機','生活家電',NOIDLE],['a_purifier','空氣清淨機','生活家電',NOIDLE],['a_fan','電風扇','生活家電',NOIDLE],['a_heater','電暖器','生活家電',NOIDLE],
     ['a_fridge','冰箱','大型家電',NOIDLE],['a_washer','洗衣機','大型家電',NOIDLE],['a_aircon','冷氣','大型家電',NOIDLE],
     ['a_dryer','吹風機','個人護理',NOIDLE],['a_toothbrush','電動牙刷','個人護理',NOIDLE],['a_beauty','美容儀器','個人護理',NOIDLE]]),
-  ...mkCats('goods',[
-    ['g_toner','化妝水','保養品',EXP],['g_lotion','乳液／乳霜','保養品',EXP],['g_serum','精華液','保養品',EXP],['g_sunscreen','防曬','保養品',EXP],['g_cleanser','洗面乳','保養品',EXP],['g_mask','面膜','保養品',EXP],
+  ...mkCats('beauty',[
+    ['g_toner','化妝水','保養品',EXP],['g_lotion','乳液／乳霜','保養品',EXP],['g_serum','精華液','保養品',EXP],['g_sunscreen','防曬','保養品',EXP],['g_cleanser','洗面乳','保養品',EXP],['b_remover','卸妝','保養品',EXP],['g_mask','面膜','保養品',EXP],
     ['g_base','底妝','化妝品',EXP],['g_eye','眼妝','化妝品',EXP],['g_lip','唇彩','化妝品',EXP],['g_perfume','香水','化妝品',EXP],
+    ['b_body','身體乳','身體與頭髮',EXP],['b_hand','護手霜','身體與頭髮',EXP],['b_bodywash','沐浴乳','身體與頭髮',EXP],['b_hair','洗髮／護髮','身體與頭髮',EXP]]),
+  ...mkCats('goods',[
     ['g_bag','包包','包包',WEAR],['g_wallet','錢包','包包',WEAR],
     ['g_necklace','項鍊','飾品配件',WEAR],['g_earring','耳環','飾品配件',WEAR],['g_ring','戒指','飾品配件',WEAR],['g_watch','手錶','飾品配件',WEAR],['g_hair','髮飾','飾品配件',WEAR],['g_glasses','眼鏡','飾品配件',WEAR],
     ['g_figure','公仔','收藏品',NOIDLE],['g_card','卡片／周邊','收藏品',NOIDLE],['g_model','模型','收藏品',NOIDLE],
     ['g_pen','筆','文具',NOIDLE],['g_note','筆記本','文具',NOIDLE],['g_stationery','其他文具','文具',NOIDLE],
     ['g_kitchen','廚房用品','生活用品',NOIDLE],['g_clean','清潔用品','生活用品',NOIDLE],['g_bedding','寢具','生活用品',NOIDLE],['g_storage','收納用品','生活用品',NOIDLE]])
 ];
-const LOCS_BY = {closet:['衣櫃','抽屜','收納箱','鞋櫃'],appliance:['客廳','廚房','臥室','書房','浴室'],goods:['化妝台','抽屜','收納箱','書桌','櫃子']};
+const LOCS_BY = {closet:['衣櫃','抽屜','收納箱','鞋櫃'],appliance:['客廳','廚房','臥室','書房','浴室'],goods:['抽屜','收納箱','書桌','櫃子'],beauty:['化妝台','浴室','梳妝櫃','抽屜','冰箱']};
 const DEFAULT_LOCATIONS = LOCS_BY.closet;
 const DEFAULT_CHANNELS = ['實體店','網購','二手','別人送的'];
 
@@ -505,6 +512,7 @@ const ICON = {
   crop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg>',
   left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
   right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  bottle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5h4v3h-4zM9 5.5h6l1.5 3v11a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-11L9 5.5Z"/><path d="M7.5 12h9"/></svg>',
   hanger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5a1.8 1.8 0 1 1 1.8-1.8c0 .9-.6 1.2-1.1 1.6-.4.3-.7.6-.7 1.2v.3M12 7.8 3.4 14.2c-.7.5-.3 1.6.5 1.6h16.2c.8 0 1.2-1.1.5-1.6L12 7.8Z"/></svg>'
 };
 
@@ -537,23 +545,40 @@ const DB = {
 const newF = () => ({status:'own',q:'',cats:[],colors:[],brands:[],stores:[],seasons:[],locations:[],sort:'new'});
 const S = {
   items:[], settings:null, rates:null, view:'closet', book:'closet',
-  fBy:{closet:newF(),appliance:newF(),goods:newF()}, f:null,
+  fBy:{closet:newF(),appliance:newF(),goods:newF(),beauty:newF()}, f:null,
   selecting:false, sel:new Set(), railAnimated:false
 };
 S.f=S.fBy.closet;
-function defaultSettings(){ return {groupsBy:JSON.parse(JSON.stringify(DEFAULT_GROUPS_BY)),cats:DEFAULT_CATS.map(c=>({...c})),budgetBy:{},idleDays:365,manualRates:{},lastBackup:null,firstUse:Date.now(),lastCheckBy:{},theme:'auto',customColors:[],channels:[...DEFAULT_CHANNELS]}; }
-function migrateSettings(src){ // 舊版（只有衣櫥）設定升級成三本
+function defaultSettings(){ return {groupsBy:JSON.parse(JSON.stringify(DEFAULT_GROUPS_BY)),cats:DEFAULT_CATS.map(c=>({...c})),budgetBy:{},idleDays:365,manualRates:{},lastBackup:null,firstUse:Date.now(),lastCheckBy:{},theme:'auto',customColors:[],channels:[...DEFAULT_CHANNELS],beautyMigrated:true}; }
+const BEAUTY_IDS = new Set(['g_toner','g_lotion','g_serum','g_sunscreen','g_cleanser','g_mask','g_base','g_eye','g_lip','g_perfume']);
+function migrateSettings(src){ // 舊版設定升級：只有衣櫥 → 三本 → 四本（保養品獨立）
   const d=defaultSettings(); const st={...d,...(src||{})};
   st.groupsBy = (st.groupsBy && !Array.isArray(st.groupsBy)) ? {...st.groupsBy} : {};
   if(Array.isArray(st.groups)) st.groupsBy.closet=st.groups.slice();
   delete st.groups;
   st.cats=(st.cats||[]).map(c=>({...c,book:c.book||'closet'}));
+  if(src && !src.beautyMigrated){ // 「物品」裡的保養品、化妝品大類（含自己加的分類）搬到新的「保養品」
+    const gg=Array.isArray(st.groupsBy.goods)?st.groupsBy.goods:[];
+    const move=gg.filter(g=>g==='保養品'||g==='化妝品'||st.cats.some(c=>c.book==='goods'&&c.group===g&&BEAUTY_IDS.has(c.id)));
+    if(move.length){
+      st.cats=st.cats.map(c=>c.book==='goods'&&move.includes(c.group)?{...c,book:'beauty'}:c);
+      st.groupsBy.goods=gg.filter(g=>!move.includes(g));
+      st.groupsBy.beauty=[...move];
+      if(!move.includes('身體與頭髮')){ st.groupsBy.beauty.push('身體與頭髮');
+        st.cats.push(...d.cats.filter(c=>c.book==='beauty'&&c.group==='身體與頭髮'&&!st.cats.some(x=>x.id===c.id)).map(c=>({...c}))); }
+    }
+  }
+  st.beautyMigrated=true;
   BOOK_KEYS.forEach(b=>{ if(!Array.isArray(st.groupsBy[b])) st.groupsBy[b]=[...d.groupsBy[b]];
     if(!st.cats.some(c=>c.book===b)) st.cats.push(...d.cats.filter(c=>c.book===b).map(c=>({...c}))); });
   st.budgetBy={...(st.budgetBy||{})}; if(st.budget!=null && st.budgetBy.closet==null) st.budgetBy.closet=st.budget; delete st.budget;
   st.lastCheckBy={...(st.lastCheckBy||{})}; if(st.lastCheckAt && !st.lastCheckBy.closet) st.lastCheckBy.closet=st.lastCheckAt; delete st.lastCheckAt;
   return st;
 }
+function syncItemBooks(){ // 紀錄跟著分類所在的帳本走（例如保養品搬家後）；回傳有變動的紀錄
+  const changed=[]; S.items.forEach(it=>{ const c=catById(it.cat); if(c&&c.book&&bookOf(it)!==c.book){ it.book=c.book; changed.push(it); } }); return changed;
+}
+function cleanFilters(){ BOOK_KEYS.forEach(k=>{ const f=S.fBy[k]; if(f) f.cats=(f.cats||[]).filter(id=>catById(id)?.book===k); }); }
 async function saveSettings(){ await DB.put('meta',{key:'settings',value:S.settings}); if(typeof notifyOthers==='function') notifyOthers(); }
 function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -570,11 +595,11 @@ const owned = it => it.status==='active' || it.status==='selling';
 const ownedItems = (b=S.book) => BI(b).filter(owned);
 const qtyOf = it => Math.max(1, it.qty||1);
 const sumQty = arr => arr.reduce((s,it)=>s+qtyOf(it),0);
-function tracksWear(it){ const b=bookOf(it); if(b==='closet') return true; if(b==='goods') return !!catById(it.cat)?.wear; return false; }
-function tracksExpiry(it){ return bookOf(it)==='goods' && !!catById(it.cat)?.expiry; }
+function tracksWear(it){ const b=bookOf(it); if(b==='closet') return true; if(EXP_BOOKS.includes(b)) return !!catById(it.cat)?.wear; return false; }
+function tracksExpiry(it){ return EXP_BOOKS.includes(bookOf(it)) && !!catById(it.cat)?.expiry; }
 function itemName(it){ if(it.name?.trim()) return it.name.trim(); const b=bookOf(it);
   const col=it.colors?.[0]&&COLOR[it.colors[0]]?COLOR[it.colors[0]].n+'色':''; const br=it.brand?it.brand+' ':'';
-  if(b==='appliance') return br+catName(it.cat); if(b==='goods') return br? br+catName(it.cat) : col+catName(it.cat); return col+catName(it.cat); }
+  if(b==='appliance') return br+catName(it.cat); if(EXP_BOOKS.includes(b)) return br? br+catName(it.cat) : col+catName(it.cat); return col+catName(it.cat); }
 const wearCount = it => (it.wears||[]).length;
 const lastWear = it => (it.wears||[]).reduce((m,d)=>d>m?d:m,'');
 function idleSince(it){ // 從哪一天開始算「沒穿／沒用」：最後一次、購入日、開始建檔日 取最晚
@@ -615,6 +640,7 @@ const SORT_LABELS = {new:'最新購入',created:'最新建檔',old:'最早購入
 function sortsFor(b=S.book){
   const base=['new','created','old','priceDesc','priceAsc'];
   if(b==='closet') return [...base,'wearDesc','idle','cpwDesc'].map(k=>[k,k==='wearDesc'?'穿最多次':k==='idle'?'最久沒穿':SORT_LABELS[k]]);
+  if(b==='beauty') return [...base,'expiry','wearDesc','idle','cpwDesc'].map(k=>[k,SORT_LABELS[k]]);
   if(b==='goods') return [...base,'wearDesc','idle','cpwDesc','expiry'].map(k=>[k,SORT_LABELS[k]]);
   return [...base,'warranty'].map(k=>[k,SORT_LABELS[k]]);
 }
@@ -881,7 +907,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 let persistAsked=false;
 function askPersist(){ if(persistAsked) return; persistAsked=true; try{ navigator.storage?.persist?.(); }catch(e){} }
 
-const BOOK_ICON = {closet:ICON.hanger, appliance:ICON.plug, goods:ICON.box};
+const BOOK_ICON = {closet:ICON.hanger, appliance:ICON.plug, goods:ICON.box, beauty:ICON.bottle};
 /* ---------- 導覽與畫面 ---------- */
 function setView(v){ S.view=v; S.selecting=false; S.sel.clear(); lsSet('closet.view',v); render(); window.scrollTo(0,0); }
 function setBook(b){ if(!BOOKS[b]||b===S.book) return; S.book=b; S.f=S.fBy[b]; S.selecting=false; S.sel.clear(); S.railAnimated=false; lsSet('closet.book',b); render(); }
@@ -923,7 +949,7 @@ function fillCloset(){
   const f=S.f, B=BK(); const list=filtered(); const totalQty=sumQty(list);
   const sellingN=sumQty(BI().filter(i=>i.status==='selling'));
   $('#ownSub').innerHTML=`目前擁有 <span class="num">${fmtInt(sumQty(ownedItems()))}</span> ${B.unit}${sellingN?`，其中 <span class="num">${sellingN}</span> ${B.unit}待售`:''}`;
-  $('#railBox').innerHTML=B.colors?railHTML(BI().filter(it=>matchItem(it,f,{colors:true}))):'';
+  $('#railBox').innerHTML=B.colors&&S.book!=='beauty'?railHTML(BI().filter(it=>matchItem(it,f,{colors:true}))):''; // 保養品不顯示色譜
   const statusSeg=[['own',B.own],['selling','待售'],['retired','已淘汰'],['all','全部']].map(([k,n])=>`<button data-a="status" data-k="${k}" class="${f.status===k?'on':''}">${n}</button>`).join('');
   const sortName=(sortsFor().find(s=>s[0]===f.sort)||sortsFor()[0])[1];
   $('#resBox').innerHTML=`
@@ -970,7 +996,8 @@ function tileHTML(it){
 const EMPTY_TEXT = {
   closet:['從第一件開始建檔','拍一張照、選分類和顏色就能存。<br>家裡已經有很多衣服的話，可以用「批次拍照建檔」一次選多張照片。','新增一件'],
   appliance:['從第一台電器開始建檔','記下型號、序號和保固到期日，壞了要送修時就查得到。<br>發票和保固卡也可以拍照存起來。','新增一台'],
-  goods:['從第一個物品開始建檔','保養品、化妝品可以記開封日和有效期限，快過期會提醒你。<br>包包、飾品、收藏品、生活用品也都能放進來。','新增一個']
+  goods:['從第一個物品開始建檔','包包、飾品、收藏品、文具、生活用品都能放進來。<br>包包和飾品可以記使用次數，算出每用一次花多少錢。','新增一個'],
+  beauty:['從第一瓶保養品開始建檔','記下開封日、有效期限，或瓶身上「開封後可用」的月數，<br>快過期時清單和盤點頁會提醒你，用完了也能一鍵淘汰。','新增一個']
 };
 function emptyHTML(){
   if(!BI().length){ const [h,p,btn]=EMPTY_TEXT[S.book]; return `<div class="empty">${BOOK_ICON[S.book]}<h3>${h}</h3><p>${p}</p><div class="btnrow" style="max-width:420px;margin:16px auto 0"><button class="btn pri" data-a="add">${btn}</button><button class="btn soft" data-a="batch">批次拍照建檔</button></div></div>`; }
@@ -1000,7 +1027,7 @@ function renderOverview(){
   const B=BK(), bk=S.book; const own=ownedItems(); const q=sumQty(own);
   const lastBuy=BI().map(i=>i.date).filter(Boolean).sort().pop();
   const gap=lastBuy!=null?daysSince(lastBuy):null;
-  const hasWear=bk!=='appliance';
+  const hasWear=bk==='closet'||(bk!=='appliance'&&cats().some(c=>c.wear));
   const idle=hasWear?sortItems(own.filter(isIdle),'idle'):[];
   const selling=BI().filter(i=>i.status==='selling');
   const overs=cats().filter(c=>c.limit && sumQty(own.filter(i=>i.cat===c.id))>c.limit);
@@ -1015,7 +1042,7 @@ function renderOverview(){
       ${soon.length?`<div class="list">${soon.map(x=>liRow(x.it,'保固到 '+fmtDate(x.it.warrantyUntil),x.s.n===0?'今天到期':'剩 '+x.s.n+' 天',x.s.n<=30)).join('')}</div><p class="muted small" style="margin:8px 0 0">有問題趁保固內送修；60 天內到期的會列在這裡。</p>`
         :`<p class="muted small" style="margin:0">${war.length?'60 天內沒有保固要到期。':'建檔時填上保固（例如 1 年），快到期時會在這裡提醒你。'}</p>`}</div>`;
   }
-  if(bk==='goods'){
+  if(EXP_BOOKS.includes(bk)&&(bk==='beauty'||cats().some(c=>c.expiry))){
     const exp=own.map(i=>({it:i,s:expiryState(i)})).filter(x=>x.s);
     const bad=exp.filter(x=>x.s.k!=='ok').sort((a,b)=>a.s.n-b.s.n);
     alertPanel=`<div class="panel"><div class="ph2"><h2>有效期限</h2><span class="muted small">${exp.length} 個有記效期</span></div>
@@ -1052,7 +1079,7 @@ function renderOverview(){
       ${hasWear?`<div class="panel">
         <div class="ph2"><h2>${B.idle}</h2><span class="muted small">超過 ${S.settings.idleDays} 天</span></div>
         ${idle.length?`<div class="minis">${idle.slice(0,12).map(it=>`<button class="mini" data-a="open" data-id="${it.id}"><div class="ph">${photoHTML(it)}</div><div class="cap">${daysSince(idleSince(it))} 天</div></button>`).join('')}</div>${idle.length>12?`<button class="linkbtn" style="margin-top:8px" data-a="seeidle">看全部 ${idle.length} ${B.unit}</button>`:''}<p class="muted small" style="margin:10px 0 0">在詳細頁按「今天${B.verb}了」記錄；從開始建檔那天起算，舊東西不會一建檔就被列進來。</p>`
-          :`<p class="muted small" style="margin:0">${own.length?`目前沒有。在詳細頁按「今天${B.verb}了」記錄，太久沒${B.verb}的會出現在這裡。`:'建檔後開始計算。'}${bk==='goods'?'（只有包包、飾品這類有開「記錄使用次數」的分類會計算）':''}</p>`}
+          :`<p class="muted small" style="margin:0">${own.length?`目前沒有。在詳細頁按「今天${B.verb}了」記錄，太久沒${B.verb}的會出現在這裡。`:'建檔後開始計算。'}${EXP_BOOKS.includes(bk)?'（只有有開「記錄使用次數」的分類會計算）':''}</p>`}
       </div>`:''}
       ${selling.length?`<div class="panel"><div class="ph2"><h2>待售中</h2><span class="muted small num">預計 ${money(selling.reduce((s,i)=>s+(i.sell?.ask||0),0))}</span></div>
         <div class="list">${selling.map(it=>liRow(it,esc(it.sell?.platform||'')+(it.sell?.listedAt?`　上架 ${daysSince(it.sell.listedAt)} 天`:''),it.sell?.ask!=null?money(it.sell.ask):'')).join('')}</div></div>`:''}
@@ -1093,7 +1120,7 @@ function renderMoney(){
   const bm=brandDisplayMap('brand',scope), sm=brandDisplayMap('store',scope);
   const byBrand=groupSum(priced.filter(i=>i.brand),i=>bm.get(normKey(i.brand))||i.brand);
   const byStore=groupSum(priced.filter(i=>i.store),i=>sm.get(normKey(i.store))||i.store);
-  const showCpw=MB!=='appliance';
+  const showCpw=MB==='all'||MB==='closet'||(MB!=='appliance'&&cats(MB).some(c=>c.wear));
   const worn=scope.filter(i=>tracksWear(i)&&i.price!=null&&wearCount(i)>0);
   const best=[...worn].sort((a,b)=>cpw(a)-cpw(b)).slice(0,5);
   const worst=sortItems(scope.filter(i=>owned(i)&&tracksWear(i)&&i.price!=null),'cpwDesc').slice(0,5);
@@ -1156,21 +1183,21 @@ function renderSettings(){
   <div class="stack">
     <div class="panel" id="sec-backup">
       <div class="ph2"><h2>備份與匯出</h2><span class="muted small">${st.lastBackup?'上次備份 '+fmtDate(ymd(new Date(st.lastBackup))):'還沒有備份'}</span></div>
-      <p class="muted small" style="margin:0 0 12px">備份檔包含衣櫥、電器、物品三本的資料和所有照片（含發票、保固卡），可以存到 iCloud 雲碟或 Google 雲端硬碟，換手機或在電腦上看時再匯入。</p>
+      <p class="muted small" style="margin:0 0 12px">備份檔包含衣櫥、電器、物品、保養品四本的資料和所有照片（含發票、保固卡），可以存到 iCloud 雲碟或 Google 雲端硬碟，換手機或在電腦上看時再匯入。</p>
       <div class="btnrow"><button class="btn pri" data-a="export">匯出備份</button><button class="btn" data-a="import">匯入備份</button></div>
       <div class="btnrow" style="margin-top:8px"><button class="btn soft" data-a="csv">匯出 Excel 清單</button></div>
       <div id="exportOut"></div>
     </div>
     <div class="panel" id="sec-budget">
       <div class="ph2"><h2>預算與提醒</h2></div>
-      ${[...BOOK_KEYS,'all'].map(k=>`<div class="setrow"><div><div class="lbl">${k==='all'?'年度總預算（三本合計）':'年度'+BOOKS[k].name+'預算'}</div>${k==='closet'?'<div class="desc">花費頁會顯示用了多少、有沒有超過時間進度</div>':''}</div><input class="in num" data-budget="${k}" inputmode="numeric" placeholder="不設定" style="width:130px;text-align:right" value="${bud[k]??''}"></div>`).join('')}
+      ${[...BOOK_KEYS,'all'].map(k=>`<div class="setrow"><div><div class="lbl">${k==='all'?'年度總預算（四本合計）':'年度'+BOOKS[k].name+'預算'}</div>${k==='closet'?'<div class="desc">花費頁會顯示用了多少、有沒有超過時間進度</div>':''}</div><input class="in num" data-budget="${k}" inputmode="numeric" placeholder="不設定" style="width:130px;text-align:right" value="${bud[k]??''}"></div>`).join('')}
       <div class="setrow"><div><div class="lbl">「久未穿／久未用」的天數</div><div class="desc">超過這麼久沒穿、沒用就列入淘汰候選</div></div><select class="in" id="idleDays" style="width:120px">${[90,180,270,365,540,730].map(d=>`<option value="${d}" ${st.idleDays===d?'selected':''}>${d} 天</option>`).join('')}</select></div>
       <div class="setrow"><div><div class="lbl">放照片時自動選顏色</div><div class="desc">衣櫥和物品適用。在手機上分析照片，不會上傳；偶爾會把陰影看成灰色，可以再點選修改</div></div><input type="checkbox" id="autoColor" style="width:22px;height:22px;accent-color:var(--mauve);flex:none" ${st.autoColor!==false?'checked':''}></div>
       <div class="setrow"><div><div class="lbl">外觀</div></div><div class="seg-ctl">${[['auto','跟隨系統'],['light','淺色'],['dark','深色']].map(([k,n])=>`<button data-a="theme" data-k="${k}" class="${(st.theme||'auto')===k?'on':''}">${n}</button>`).join('')}</div></div>
     </div>
     <div class="panel" id="sec-names">
       <div class="ph2"><h2>品牌、店家、位置整理</h2></div>
-      <p class="muted small" style="margin:0 0 10px">打錯字或同一個品牌有不同寫法時，在這裡改名；改成已有的名稱就會合併。三本一起整理。</p>
+      <p class="muted small" style="margin:0 0 10px">打錯字或同一個品牌有不同寫法時，在這裡改名；改成已有的名稱就會合併。四本一起整理。</p>
       <div class="seg-ctl" style="margin-bottom:8px">${[['brand','品牌'],['store','店家'],['location','位置']].map(([k,n])=>`<button data-a="namesTab" data-k="${k}" class="${namesTab===k?'on':''}">${n}</button>`).join('')}</div>
       <div class="list" id="namesList">${namesListHTML()}</div>
     </div>
@@ -1185,7 +1212,7 @@ function renderSettings(){
     <div class="panel" id="sec-cats">
       <div class="ph2"><h2>分類與上限</h2></div>
       <div class="seg-ctl" style="margin-bottom:10px">${BOOK_KEYS.map(k=>`<button data-a="sbook" data-k="${k}" class="${SB===k?'on':''}">${BOOKS[k].name}</button>`).join('')}</div>
-      <p class="muted small" style="margin:0 0 10px">「上限」是你給自己的數量目標，超過時盤點頁會標紅，新增時也會提醒你淘汰一${BOOKS[SB].unit}。${SB==='goods'?'每個分類可以選要不要記使用次數、追蹤有效期限。':''}</p>
+      <p class="muted small" style="margin:0 0 10px">「上限」是你給自己的數量目標，超過時盤點頁會標紅，新增時也會提醒你淘汰一${BOOKS[SB].unit}。${EXP_BOOKS.includes(SB)?'每個分類可以選要不要記使用次數、追蹤有效期限。':''}</p>
       ${catEditorHTML(SB)}
       <div class="btnrow" style="margin-top:10px"><button class="btn sm" data-a="addgroup">新增大類</button></div>
     </div>
@@ -1210,7 +1237,7 @@ function renderSettings(){
     </div>
     <div class="panel">
       <div class="ph2"><h2>清除資料</h2></div>
-      <p class="muted small" style="margin:0 0 10px">刪除這台裝置上衣櫥、電器、物品三本的所有資料、照片與設定。建議先匯出備份。</p>
+      <p class="muted small" style="margin:0 0 10px">刪除這台裝置上衣櫥、電器、物品、保養品四本的所有資料、照片與設定。建議先匯出備份。</p>
       <button class="btn danger" data-a="wipe">清除所有資料</button>
     </div>
   </div></div>`;
@@ -1230,7 +1257,7 @@ function namesListHTML(){
 }
 function catFlagsHTML(c){
   if(c.book==='closet') return `<label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未穿」提醒</label>`;
-  if(c.book==='goods') return `<span class="flags"><label class="idle-t"><input type="checkbox" data-f="wear" ${c.wear?'checked':''}> 記錄使用次數</label>${c.wear?`<label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未用」</label>`:''}<label class="idle-t"><input type="checkbox" data-f="expiry" ${c.expiry?'checked':''}> 追蹤有效期限</label></span>`;
+  if(EXP_BOOKS.includes(c.book)) return `<span class="flags"><label class="idle-t"><input type="checkbox" data-f="wear" ${c.wear?'checked':''}> 記錄使用次數</label>${c.wear?`<label class="idle-t"><input type="checkbox" data-f="idle" ${c.idle!==false?'checked':''}> 列入「久未用」</label>`:''}<label class="idle-t"><input type="checkbox" data-f="expiry" ${c.expiry?'checked':''}> 追蹤有效期限</label></span>`;
   return '';
 }
 function catEditorHTML(book){
@@ -1254,7 +1281,7 @@ function bindCatEditor(){
 function newCatFlags(group,book){ // 新分類沿用同一大類第一個分類的設定（例如保養品裡新增的會自動追蹤效期）
   const sib=cats(book).find(c=>c.group===group);
   if(sib) return {idle:sib.idle,wear:!!sib.wear,expiry:!!sib.expiry};
-  return book==='closet'?{idle:true,wear:false,expiry:false}:{idle:false,wear:false,expiry:false};
+  return book==='closet'?{idle:true,wear:false,expiry:false}:book==='beauty'?{idle:false,wear:false,expiry:true}:{idle:false,wear:false,expiry:false};
 }
 async function addCategory(group,book=S.book){
   const st=S.settings; const name=await askText(`在「${group}」新增分類`,'分類名稱','');
@@ -1264,7 +1291,7 @@ async function addCategory(group,book=S.book){
 }
 async function addGroup(withCat,book=S.book){
   const st=S.settings; const gs=groups(book);
-  const g=await askText('新增大類',`大類名稱（例如：${book==='closet'?'洋裝、運動服':book==='appliance'?'寵物用品、戶外裝備':'香氛、運動用品'}）`,'');
+  const g=await askText('新增大類',`大類名稱（例如：${book==='closet'?'洋裝、運動服':book==='appliance'?'寵物用品、戶外裝備':book==='beauty'?'香氛、美髮':'運動用品、寵物用品'}）`,'');
   if(!g) return null; if(gs.includes(g)){ toast('已經有「'+g+'」這個大類了'); return null; }
   if(!withCat){ gs.push(g); await saveSettings(); toast('已新增大類「'+g+'」，記得在裡面新增分類'); return null; }
   const name=await askText(`「${g}」裡的第一個分類`,'分類名稱',g);
@@ -1309,7 +1336,7 @@ function channelOptions(cur){ const list=[...(S.settings.channels||DEFAULT_CHANN
 const lastEntry = () => { const l=lsGet('closet.lastEntry')||{}; return l.at && Date.now()-l.at<12*3600e3 ? l : {}; }; // 12 小時內連續建檔才沿用上次幣別
 const WAR_CHIPS=[[0,'無'],[6,'半年'],[12,'1 年'],[24,'2 年'],[36,'3 年']];
 const PAO_CHIPS=[[0,'不確定'],[6,'6 個月'],[12,'12 個月'],[24,'24 個月'],[36,'36 個月']];
-const NAME_HINT={closet:'可不填，會自動用「顏色＋分類」',appliance:'可不填，會自動用「品牌＋分類」',goods:'可不填，會自動用「品牌（或顏色）＋分類」'};
+const NAME_HINT={closet:'可不填，會自動用「顏色＋分類」',appliance:'可不填，會自動用「品牌＋分類」',goods:'可不填，會自動用「品牌（或顏色）＋分類」',beauty:'可不填，會自動用「品牌＋分類」'};
 function openItemForm(item,opts={}){
   const isNew=!item; const batch=opts.batch; // batch: {files:[], index}
   const carry=opts.carry||{};
@@ -1327,7 +1354,8 @@ function openItemForm(item,opts={}){
   if(isNew && book==='appliance' && it.warrantyMonths>0 && it.date) it.warrantyUntil=addMonths(it.date,it.warrantyMonths);
   const scope=BI(book);
   const brands=[...brandDisplayMap('brand',scope).values()], stores=[...brandDisplayMap('store',S.items).values()], locs=[...new Set([...LOCS_BY[book],...brandDisplayMap('location',scope).values()])];
-  const expCat=()=>book==='goods' && !!catById(it.cat)?.expiry;
+  const expBook=EXP_BOOKS.includes(book);
+  const expCat=()=>expBook && !!catById(it.cat)?.expiry;
   const title = batch?`批次建檔 ${batch.index+1} / ${batch.files.length}`:isNew?'新增'+B.noun:'編輯'+B.noun;
   const body=`
   ${batch?`<div class="batchbar"><span class="num">${batch.index+1} / ${batch.files.length}</span><span class="track"><i style="width:${(batch.index)/batch.files.length*100}%"></i></span><span>已存 ${batch.saved||0}</span></div>`:''}
@@ -1345,12 +1373,12 @@ function openItemForm(item,opts={}){
     <div class="similar hide" id="fSimilar"></div>
     <label class="f"><span>名稱</span><input class="in" id="fName" value="${esc(it.name)}" placeholder="${NAME_HINT[book]}" autocomplete="off"></label>
     <div class="frow"><label class="f"><span>品牌</span><input class="in" id="fBrand" list="dlBrand" value="${esc(it.brand)}" autocomplete="off"></label>
-      ${B.size?`<label class="f"><span>${B.size}</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"${book==='goods'?' placeholder="例如 50ml"':''}></label>`
+      ${B.size?`<label class="f"><span>${B.size}</span><input class="in" id="fSize" value="${esc(it.size)}" autocomplete="off"${expBook?' placeholder="例如 50ml"':''}></label>`
         :`<label class="f"><span>型號</span><input class="in" id="fModel" value="${esc(it.model||'')}" autocomplete="off" autocapitalize="characters"></label>`}</div>
     ${book==='appliance'?`<label class="f"><span>序號</span><input class="in" id="fSerial" value="${esc(it.serial||'')}" autocomplete="off" autocapitalize="characters" placeholder="通常在機身背面或底部的貼紙"></label>`:''}
     ${B.seasons?`<div class="flabel">季節</div>
     <div class="pick" id="fSeasons" style="margin-bottom:14px">${SEASONS.map(s=>`<button type="button" class="chip${(it.seasons||[]).includes(s)?' on':''}" data-se="${s}">${s}</button>`).join('')}</div>`:''}
-    ${book==='goods'?`<div id="fExpBox" class="fsec${expCat()?'':' hide'}">
+    ${expBook?`<div id="fExpBox" class="fsec${expCat()?'':' hide'}">
       <div class="frow"><label class="f"><span>開封日</span><input class="in" type="date" id="fOpen" value="${esc(it.openedAt||'')}" max="${today()}"></label>
         <label class="f"><span>有效期限（包裝上）</span><input class="in" type="date" id="fExp" value="${esc(it.expiry||'')}"></label></div>
       <button type="button" class="linkbtn" id="fOpenToday" style="margin:-6px 0 12px">今天開封</button>
@@ -1468,7 +1496,7 @@ function openItemForm(item,opts={}){
   function expCalc(){ const el=$('#fExpCalc',w); if(!el) return; const o=$('#fOpen',w).value, ex=$('#fExp',w).value; const c=[]; if(ex) c.push(ex); if(o&&pao) c.push(addMonths(o,pao)); const e=c.sort()[0];
     if(!e){ el.textContent='填開封日＋開封後可用，或填包裝上的有效期限，會自動算出實際到期日。'; return; }
     const n=daysUntil(e); el.innerHTML=`實際到期：<b>${fmtDate(e)}</b>　${n<0?`<span style="color:var(--brick);font-weight:700">已過期 ${-n} 天</span>`:n===0?'今天到期':`還有 ${n} 天`}`; }
-  if(book==='goods'){
+  if(expBook){
     $('#fPao',w).onclick=e=>{ const b=e.target.closest('[data-pao]'); if(!b) return; pao=+b.dataset.pao; $$('#fPao .chip',w).forEach(x=>x.classList.toggle('on',x===b)); expCalc(); };
     $('#fOpen',w).oninput=expCalc; $('#fExp',w).oninput=expCalc;
     $('#fOpenToday',w).onclick=()=>{ $('#fOpen',w).value=today(); expCalc(); };
@@ -1521,7 +1549,7 @@ function openItemForm(item,opts={}){
     if(!it.cat){ $('#eCat',w).classList.remove('hide'); ok=false; errs.push('#fCats'); }
     const d=$('#fDate',w).value; const eD=$('#eDate',w); eD.classList.add('hide');
     if(d && d>today()){ eD.textContent='購入日期不能晚於今天'; eD.classList.remove('hide'); ok=false; errs.push('#fDate'); }
-    if(book==='goods' && expCat()){ const o=$('#fOpen',w).value, eE=$('#eExp',w); eE.classList.add('hide');
+    if(expBook && expCat()){ const o=$('#fOpen',w).value, eE=$('#eExp',w); eE.classList.add('hide');
       if(o && o>today()){ eE.textContent='開封日不能晚於今天'; eE.classList.remove('hide'); ok=false; errs.push('#fOpen'); } }
     const cur=fCur.value; const amt=parseNum(fAmt.value); const twd=parseNum(fTwd.value); const rate=parseNum(fRate.value);
     const eP=$('#ePrice',w); eP.classList.add('hide'); [fAmt,fTwd,fRate].forEach(x=>x.classList.remove('err'));
@@ -1543,7 +1571,7 @@ function openItemForm(item,opts={}){
     });
     if($('#fSize',w)) it.size=$('#fSize',w).value.trim();
     if(book==='appliance'){ it.model=$('#fModel',w).value.trim(); it.serial=$('#fSerial',w).value.trim(); it.warrantyUntil=$('#fWarU',w).value||''; it.warrantyMonths=warM; }
-    if(book==='goods' && expCat()){ it.openedAt=$('#fOpen',w).value||''; it.expiry=$('#fExp',w).value||''; it.paoMonths=pao||null; }
+    if(expBook && expCat()){ it.openedAt=$('#fOpen',w).value||''; it.expiry=$('#fExp',w).value||''; it.paoMonths=pao||null; }
     return it;
   }
   async function save(){
@@ -1740,13 +1768,13 @@ function openSell(id){
   w.querySelector('[data-ok]').onclick=async()=>{ const a=parseNum($('#sAsk',w).value); if(a!=null&&(isNaN(a)||a<0)){ $('#sErr',w).textContent='售價請填數字'; $('#sErr',w).classList.remove('hide'); return; }
     it.status='selling'; it.sell={ask:a==null?null:Math.round(a),platform:$('#sPlat',w).value.trim(),listedAt:$('#sDate',w).value||today()}; await putItem(it); w.close(); render(); toast('已放到待售'); };
 }
-const RETIRE_HINT={closet:'例如：起毛球、尺寸不合',appliance:'例如：馬達壞了、換新機',goods:'例如：用完了、膚況不適合'};
+const RETIRE_HINT={closet:'例如：起毛球、尺寸不合',appliance:'例如：馬達壞了、換新機',goods:'例如：壞了、不需要了',beauty:'例如：用完了、過期、膚況不適合'};
 function openRetire(ids,opt={}){
   const items=ids.map(id=>S.items.find(i=>i.id===id)).filter(i=>i&&owned(i)); if(!items.length) return;
   const bk=bookOf(items[0]), B=BOOKS[bk];
   const single=items.length===1?items[0]:null;
-  let method=opt.method||(bk==='appliance'?'recycle':bk==='goods'&&items.every(tracksExpiry)?'usedup':'donate');
-  if(bk==='goods'&&method==='donate'&&!METHODS_BY.goods.some(m=>m[0]==='donate')) method='trash';
+  let method=opt.method||(bk==='appliance'?'recycle':EXP_BOOKS.includes(bk)&&items.every(tracksExpiry)?'usedup':'donate');
+  if(!METHODS_BY[bk].some(m=>m[0]===method)) method=METHODS_BY[bk][0][0];
   const methods = single? METHODS_BY[bk] : METHODS_BY[bk].filter(m=>m[0]!=='sold');
   const body=`${single?'':`<p style="margin:0 0 12px">一次淘汰 <b>${sumQty(items)}</b> ${B.unit}。<span class="muted small">賣掉的請逐${B.unit}記錄，才能填各自的收入。</span></p>`}
     <div class="flabel">去向</div><div class="pick" id="rM" style="margin-bottom:14px">${methods.map(([k,n])=>`<button type="button" class="chip${k===method?' on':''}" data-m="${k}">${n}</button>`).join('')}</div>
@@ -1839,6 +1867,7 @@ function openBuyCheck(){
     let verdict='';
     if(n===0) verdict='家裡還沒有這種的。';
     else if(c?.limit && catN>=c.limit) verdict=`${c.name}已經 ${catN} ${B.unit}，到上限 ${c.limit} 了。真的要買，記得淘汰一${B.unit}。`;
+    else if(bk==='beauty') verdict=n>=2?`已經有 ${n} 個了，先把開封中的用完再買，免得放到過期。`:'家裡還有一個，用完再補也來得及。';
     else if(bk==='appliance') verdict=n>=2?'已經有好幾台了，舊的還堪用嗎？要換的話記得把舊的淘汰。':'家裡已經有了，是要換新還是多一台？';
     else if(n>=5) verdict='已經不少了，這個跟家裡的有什麼不一樣？';
     else verdict=bk==='closet'?'想想看會跟哪幾件搭。':'想想看多一個會不會用得到。';
@@ -1994,6 +2023,7 @@ function doImport(){
             const ch=S.settings.channels||[...DEFAULT_CHANNELS]; (ds.channels||[]).forEach(c=>{ if(!ch.includes(c)) ch.push(c); }); S.settings.channels=ch;
             rebuildColors(); await saveSettings(); }
         }
+        const moved=syncItemBooks(); if(moved.length) await DB.putMany('items',moved); cleanFilters(); saveFilters();
         w.close(); render(); toast(mode==='replace'?`已匯入 ${added} 筆`:`新增 ${added} 筆、更新 ${updated} 筆`);
       }catch(e){ toast('匯入失敗：'+e.message); }
     });
@@ -2088,13 +2118,15 @@ function applyTheme(){ const t=S.settings?.theme||'auto'; if(t==='auto') documen
   catch(e){ $('#app').innerHTML=`<div class="empty"><h3>無法開啟本機資料庫</h3><p>${/blocked/.test(e.message)?'App 在另一個分頁開著，請關掉其他分頁後重新整理。':'可能是「私密瀏覽」模式或瀏覽器停用了網站資料。請改用一般模式開啟。'}</p></div>`; return; }
   S.items=await DB.getAll('items');
   const old=S.items.filter(i=>!i.book); if(old.length){ old.forEach(i=>{ i.book='closet'; }); await DB.putMany('items',old); } // 舊版衣物歸到「衣櫥」
-  const st=await DB.get('meta','settings'); S.settings=migrateSettings(st?st.value:null); await saveSettings(); rebuildColors();
+  const st=await DB.get('meta','settings'); const firstBeauty=!!(st&&!st.value?.beautyMigrated); S.settings=migrateSettings(st?st.value:null); await saveSettings(); rebuildColors();
+  const moved=syncItemBooks(); if(moved.length) await DB.putMany('items',moved); // 保養品搬到新頁籤
   const r=await DB.get('meta','rates'); S.rates=r?r.value:null;
   const fBy=lsGet('closet.fBy'), f1=lsGet('closet.f');
-  BOOK_KEYS.forEach(k=>{ S.fBy[k]={...newF(),...(fBy?.[k]||(k==='closet'&&f1)||{})}; });
+  BOOK_KEYS.forEach(k=>{ S.fBy[k]={...newF(),...(fBy?.[k]||(k==='closet'&&f1)||{})}; }); cleanFilters();
   const bk=lsGet('closet.book'); if(BOOKS[bk]) S.book=bk; S.f=S.fBy[S.book];
   const v=lsGet('closet.view'); if(v) S.view=v;
   applyTheme(); render();
+  if(firstBeauty && moved.length) setTimeout(()=>toast(`已把 ${moved.length} 筆保養品、化妝品搬到新的「保養品」頁籤`),600);
   refreshRates(false).then(ch=>{ if(ch && S.view==='settings') render(); });
   if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
