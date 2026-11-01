@@ -138,6 +138,9 @@ button:disabled{cursor:default;opacity:.45}
 .badge.ok{background:var(--sage);color:#fff}
 .badge.warn{background:#F1E3C6;color:#6B5222}.badge.bad{background:var(--brick);color:#fff}
 .tile .tt{margin-top:8px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .tt{display:flex;align-items:baseline;gap:6px}
+.tile .tt .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tile .tt .dt{flex:none;margin-left:auto;font-size:12.5px;font-weight:400;color:var(--ink2)}
 .tile .ts{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px}
 .tile .ts .num{margin-left:auto;flex:none;color:var(--ink)}
 .tile.retired .ph{filter:grayscale(.85);opacity:.7}
@@ -413,7 +416,7 @@ body.locked .toast.in{transform:translate(-50%,0)}
 
 <script>
 'use strict';
-const APP_VERSION = '2.6.0';
+const APP_VERSION = '2.6.1';
 
 /* ---------- 基本資料 ---------- */
 const BASE_COLORS = [
@@ -1019,7 +1022,7 @@ function tileHTML(it){
   const sub = bk==='appliance' ? (it.model||it.brand||catName(it.cat)) : (it.brand||catName(it.cat));
   return `<button class="tile${it.status==='retired'?' retired':''}${S.sel.has(it.id)?' sel':''}" data-a="tile" data-id="${it.id}">
     <div class="ph">${photoHTML(it)}</div><div class="badges">${b.join('')}</div><span class="tick"></span>
-    <div class="tt">${esc(itemName(it))}</div>
+    <div class="tt"><span class="nm">${esc(itemName(it))}</span>${it.date?`<span class="dt num">${fmtDate(it.date)}</span>`:''}</div>
     <div class="ts"><span>${esc(sub)}</span><span class="num">${it.price!=null?money(it.price):''}</span></div></button>`;
 }
 const EMPTY_TEXT = {
